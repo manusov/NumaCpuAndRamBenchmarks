@@ -1,0 +1,17 @@
+NCRB = NUMA CPU&RAM Benchmarks
+source directory structure description
+-------------------------------------------------------------------------------------------
+main.asm       = main source file, interconnect all includes
+sysinfo        = system information subroutines
+stringwrite    = text strings built subroutines
+windowmain     = registration, callback routine and subroutines for application main window
+windowdraw     = registration, callback routine and subroutines for drawings speed=f(size)
+windowone      = result message simple window for one measurement without drawings
+windowmsg      = errors and warnings messages boxes windows
+mpemanager     = Memory Performance Engine (MPE), threads manager
+mpetargets     = Memory Performance Engine (MPE), target routines for memory read/write
+mpetargets_ntr = MPE target additional routines for non-temporal reads
+datasys        = data for system information and execution threads control
+datavisual     = data for results visual and other user interface functions
+datainterface  = data for options control, interface between user and MPE.
+-------------------------------------------------------------------------------------------

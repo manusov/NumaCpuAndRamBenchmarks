@@ -1,0 +1,21 @@
+
+;---------- DEBUG -------------------------------------------------------------;
+; MAKE 2 EXECUTION WINDOWS: SIMPLE RESULT AND DRAWINGS
+
+; mov [SelectMethod],1
+; mov [OperandWidth],64
+; mov [NumThreads],1
+; mov [OptionHT],0
+; mov [OptionNUMA],0
+; mov [OptionTarget],0
+; mov [OptionMeasure],0
+; ; mov rax,00123456789ABCDEFh
+; ; mov [BlockBase1],rax
+; ; mov rax,0 ;1111222233334444h
+; ; mov [BlockBase2],rax
+; ; mov rax,2048 + 102 + 1 ; DEBUG 
+; ; mov [BlockSize],rax
+; mov [NumRepeats],1000
+; call ShowSingleResult
+
+;---------- DEBUG -------------------------------------------------------------;
