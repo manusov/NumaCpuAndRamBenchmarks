@@ -17,7 +17,9 @@
 ;         Byte  [4-4] = Special options flags:                           ;
 ;                       D0=SSE, D1=AVX, D2=FMA, D3=AVX2,                 ;
 ;                       D4=AVX512F (foundation part of AVX512),          ;
-;                       D[5-6]=Reserved, D7=HT                           ;
+;                       D5=SSE4.1 (for non-temporal read)                ;
+;                       D[6]=Reserved,                                   ; 
+;                       D7=HT                                            ;
 ;------------------------------------------------------------------------;
 GetCpuFeatures:
 cld                       ; Clear direction, because STOSD used
@@ -57,7 +59,7 @@ jnc .StoreCpuId3          ; Go skip SSE, AVX, FMA if SSE not supported
 inc esi                   ; Set ESI.0 = SSE
 ;--- Check SSE4.1, used from v0.93 for 128-bit NT Read (VMOVNTDQA xmm) ---
 bt ecx,19                 ; ECX.19 = SSE 4.1 feature bit
-jz .CheckSSE41            ; Go skip if SSE4.1 not supported
+jnc .CheckSSE41           ; Go skip if SSE4.1 not supported
 or esi,00100000b          ; If supported, set mask bit 5
 .CheckSSE41:
 ;--- Check AVX support by CPU and OS (OS must save-restore AVX context) ---

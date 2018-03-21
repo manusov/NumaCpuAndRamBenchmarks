@@ -705,7 +705,7 @@ ProductID   DB  'NUMA CPU&RAM Benchmarks for Win64',0
 
 AboutCap    DB  'Program info',0
 AboutID     DB  'NUMA CPU&RAM Benchmarks' , 0Ah,0Dh
-            DB  'v0.95 for Windows x64'   , 0Ah,0Dh
+            DB  'v0.96 for Windows x64'   , 0Ah,0Dh
             DB  '(C)2018 IC Book Labs'    , 0Ah,0Dh,0
 
              
