@@ -1,0 +1,11 @@
+v0.96
+Fix RAM Read benchmark error if SSE4.1 not supported,
+cause: SSE4.1 and non-temporal read feature detection bug.
+
+v0.97
+Improve code comments.
+
+v0.98.0
+Threads management redesign.
+Under debug. 
+Multi-Socket NUMA-optimization yet locked at this debug version.

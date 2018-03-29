@@ -1,2 +1,0 @@
-Fix RAM Read benchmark error if SSE4.1 not supported,
-cause: SSE4.1 and non-temporal read feature detection bug.
