@@ -27,3 +27,5 @@ datadialogues  = data for dialogues descriptions.
 2) SMP, HT, NUMA.
 3) Drawings.
 
+1) Use prefetchnta if not supported movntdqa, include copy, include 256-bit. Check.
+

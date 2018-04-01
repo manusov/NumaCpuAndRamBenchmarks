@@ -9,3 +9,9 @@ v0.98.0
 Threads management redesign.
 Under debug. 
 Multi-Socket NUMA-optimization yet locked at this debug version.
+
+v0.98.1
+Non-temporal read optimization for DRAM benchmarks.
+Use PREFETCHNTA if MOVNTDQA not supported,
+actual for AM2 CPUs.
+

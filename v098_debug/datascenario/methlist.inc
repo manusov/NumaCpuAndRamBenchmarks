@@ -44,7 +44,7 @@ BMETHOD  Pattern_Copy_MOV64     , DumpStart_Copy_MOV64     , DumpStop_Copy_MOV64
 BMETHOD  Pattern_Modify_NOT64   , DumpStart_Modify_NOT64   , DumpStop_Modify_NOT64   , 8
 BMETHOD  Pattern_Write_STOSQ    , DumpStart_Write_STOSQ    , DumpStop_Write_STOSQ    , 8
 BMETHOD  Pattern_Copy_MOVSQ     , DumpStart_Copy_MOVSQ     , DumpStop_Copy_MOVSQ     , 8
-BMETHOD  Pattern_Read_SSE128    , DumpStart_Read_SSE128    , DumpStop_Read_SSE128    , 16
+BMETHOD  Pattern_NtpRead_SSE128 , DumpStart_NtpRead_SSE128 , DumpStop_NtpRead_SSE128 , 16  ; patched at v0.98.1
 BMETHOD  Pattern_NtWrite_SSE128 , DumpStart_NtWrite_SSE128 , DumpStop_NtWrite_SSE128 , 16
 BMETHOD  Pattern_NtCopy_SSE128  , DumpStart_NtCopy_SSE128  , DumpStop_NtCopy_SSE128  , 16
 BMETHOD  Pattern_Read_AVX256    , DumpStart_Read_AVX256    , DumpStop_Read_AVX256    , 32

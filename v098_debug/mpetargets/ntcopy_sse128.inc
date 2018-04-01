@@ -24,6 +24,15 @@ mov r8d,256                    ; R8 = Addend, this operation also clear bits R8[
 ; Big cycle
 DumpStart_NtCopy_SSE128:
 Block_NtCopy_SSE128:
+; patch v0.98.1
+cmp rdx,1
+je @f
+prefetchnta [rax-16*08+r8]
+prefetchnta [rax-16*04+r8]
+prefetchnta [rax+16*00+r8]
+prefetchnta [rax+16*04+r8]
+@@:
+; end of patch v0.98.1
 movapd xmm0,[rax-16*08]
 movntpd [rbx-16*08],xmm0
 movapd xmm1,[rax-16*07]

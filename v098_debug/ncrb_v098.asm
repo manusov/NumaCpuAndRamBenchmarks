@@ -705,7 +705,8 @@ include 'mpetargets\ntdot_fma256.inc'       ; Reserved for FMA with NT Write
 include 'mpetargets\ntdot_fma512.inc'       ; Reserved for FMA with NT Write
 
 ; Additional routines for support non-temporal read
-include 'mpetargets\ntread_sse128.inc'      ; NT Read, SSE 128-bit 
+include 'mpetargets\ntread_sse128.inc'      ; NT Read, SSE 128-bit
+include 'mpetargets\ntpread_sse128.inc'     ; NT Prefetch Read, SSE 128-bit
 include 'mpetargets\ntread_avx256.inc'      ; NT Read, AVX 256-bit
 include 'mpetargets\ntread_avx512.inc'      ; NT Read, AVX 512-bit
 include 'mpetargets\ntrcopy_sse128.inc'     ; NT Read + NT Write, SSE 128-bit
@@ -723,7 +724,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'  , 0Ah,0Dh
-             DB  'v0.98.0 for Windows x64'  , 0Ah,0Dh
+             DB  'v0.98.1 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'     , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool
