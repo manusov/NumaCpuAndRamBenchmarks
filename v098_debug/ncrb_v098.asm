@@ -13,7 +13,8 @@
 
 ; TODO:
 ; LINE 502. NUMA OPTIMIZATION DISABLED UNDER DEBUG. NUMA OPTION FORCED GRAY.
-
+; VISUAL PREFETCHNTA FOR SIMPLE AND DRAWINGS, USED FOR DRAM MODE.
+; VISUAL NUMBER OF THREADS FOR DRAWINGS, FOR SIMPLE ALREADY VISUALIZED.
 
 ; FASM definitions
 include 'win64a.inc'
@@ -724,7 +725,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'  , 0Ah,0Dh
-             DB  'v0.98.1 for Windows x64'  , 0Ah,0Dh
+             DB  'v0.98.2 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'     , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool

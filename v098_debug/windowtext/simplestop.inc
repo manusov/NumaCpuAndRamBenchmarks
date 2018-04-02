@@ -38,8 +38,8 @@ jne @f                             ; Skip for other types: L1/L2/L3/Custom
 add al,18                          ; Skip first 18 entries: Unknown method + 17 methods
 add al,cl
 @@:
-xlat [rbx]                ; AL = Load byte from [ RBX+AL ]
-mov ah,29                 ; AH = Limit = last acceptable value
+xlat [rbx]                           ; AL = Load byte from [ RBX+AL ]
+mov ah,31  ; old=29 , v0.98.2 patch  ; AH = Limit = last acceptable value
 .BadMethod:
 lea rsi,[AM_Strings]      ; RSI = Pointer to strings sequence
 call StringWriteSelected  ; Write string selected by AL from pool [rsi]

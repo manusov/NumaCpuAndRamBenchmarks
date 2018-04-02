@@ -15,3 +15,7 @@ Non-temporal read optimization for DRAM benchmarks.
 Use PREFETCHNTA if MOVNTDQA not supported,
 actual for AM2 CPUs.
 
+v0.98.2
+Improve assembler method details visualization,
+for simple text window and for drawings speed=f(size).
+
