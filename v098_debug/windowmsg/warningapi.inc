@@ -19,24 +19,13 @@ lea rsi,[MsgWarnAPI]
 lea rdi,[TEMP_BUFFER]
 mov rdx,rdi                  ; RDX = Parm#2 = Pointer to string
 call StringWrite
-lea rsi,[FunctionsNames]
-lea rbx,[FunctionsPointers]
-.L0:
-mov rax,[rbx]                ; Get current function pointer
-add rbx,8
-test rax,rax                 ; 0 means invalid pointer
-jnz .L1                      ; Go if current pointer valid
-call StringWrite             ; This branch - write name of not found function
-mov ax,0D0Ah
-stosw
-jmp .L2
-.L1:                         ; This branch - skip name of found function
-lodsb
-cmp al,0
-jne .L1
-.L2:
-cmp byte [rsi],0
-jne .L0                      ; Cycle for functions list
+; Build list of not-loaded functions at KERNEL32.DLL
+lea rsi,[FunctionsNamesKernel32]
+lea rbx,[FunctionsPointersAll]
+call HelperCheckLibraries
+; Build list of not-loaded functions at ADVAPI32.DLL
+lea rsi,[FunctionsNamesAdvapi32]
+call HelperCheckLibraries
 ; Text termination
 mov al,0
 stosb 
@@ -54,3 +43,30 @@ mov rsp,rbx
 pop rdi rsi rbx
 .L9:
 ret
+
+; Local helper subroutine for check load functions,
+; subroutine required because 2 DLLs
+; INPUT:   RSI = Pointer to DLL functions names constants list
+;          RBX = Pointer to DLL functions entry points variables list
+; OUTPUT:  RBX = Advance by list check
+;          Other registers can be corrupted
+
+HelperCheckLibraries:
+.L0:
+mov rax,[rbx]                ; Get current function pointer
+add rbx,8
+test rax,rax                 ; 0 means invalid pointer
+jnz .L1                      ; Go if current pointer valid
+call StringWrite             ; This branch - write name of not found function
+mov ax,0D0Ah
+stosw
+jmp .L2
+.L1:                         ; This branch - skip name of found function
+lodsb
+cmp al,0
+jne .L1
+.L2:
+cmp byte [rsi],0
+jne .L0                      ; Cycle for functions list
+ret
+

@@ -15,6 +15,7 @@ NumThreads        dd  ?    ; Number of execution threads, 1 if single thread
 NumRepeats        dd  ?    ; Number of measurement repeats
 SelectMethod      db  ?    ; Select test ASM method, one of procedure
 OptionHT          db  ?    ; Hyper-threading: 0=None, 1=Present, not used, 2=Used
+OptionLP          db  ?    ; Large pages: 0=None, 1=Present, not used, 2=Used 
 OptionNUMA        db  ?    ; NUMA: 0=None, 1=No control, 2=Optimal, 3=Non optim.
 OptionTarget      db  ?    ; Target object: 0=L1, 1=L2, 2=L3, 3=RAM, 4=Custom
 OptionMeasure     db  ?    ; Measurement: 0=brief, 1=careful

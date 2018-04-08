@@ -109,3 +109,7 @@ MemoryInfo	      DB  64 DUP (?)     ; Length = 64 bytes
 ;---
 TopologicalInfo   DB  64 DUP (?)     ; Length = 64 bytes
 
+; Large page size and availability
+LargePageSize     DQ  ?              ; Used large page size, bytes
+LargePageFlag     DB  ?              ; 0 = mapping not available, 1 = available
+

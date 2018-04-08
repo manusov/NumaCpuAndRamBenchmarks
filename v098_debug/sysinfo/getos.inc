@@ -210,6 +210,8 @@ test cl,1Fh
 jnz .ErrorOsMpInfo           ; Go error if size not aligned by 32 bytes
 shr ecx,5
 jz .ErrorOsMpInfo            ; Go error if size too small 
+
+push rdi
 ; Scan WinAPI output data and built control structure
 ; RCX = Number of entries
 ; RSI = Pointer to source data for scan
@@ -291,6 +293,8 @@ mov [rbx+32+rdx],r9d   ; Store THREADS PER this CACHE
 ; Cycle
 .SkipThis:
 loop .ScanRelations
+pop rdi
+
 ; Calculate number of cores per one processor package (or per NUMA node)
 mov eax,[rbx+52]
 xor edx,edx
@@ -305,7 +309,11 @@ mov [rbx+52],eax
 .L1:
 ; Exit point, OK
 .SkipOsMpInfo:
-add rdi,64      ; Buffer size is 64 bytes, also clear CF=0(NC)
+
+; add rdi,64      ; Buffer size is 64 bytes, also clear CF=0(NC)
+clc
+;
+
 .ExitOsMpInfo:
 jmp ExitCpuClk
 ; Exit point, Error

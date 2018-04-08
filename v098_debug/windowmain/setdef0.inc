@@ -32,22 +32,31 @@ mov edx,HANDLE_X86_READ       ; RDX = Parm#2 = First radiobutton or checkbox
 mov r8d,HANDLE_LAST_METHOD    ; R8  = Parm#3 = Last radiobutton or checkbox
 movzx r9d,al                  ; R9  = Parm#4 = Selected radiobutton or checkbox 
 call [CheckRadioButton]       ; Set radio button
-; Options, set Enable Parallel Threads button if enabled
-lea rsi,[PARALLEL_NUMA_BASE]
+; Options, set "Use Parallel Threads" button = off, if enabled
+lea rsi,[PARALLEL_NUMA_LARGE_PAGES_BASE]
 test [rsi+E_PARALLEL_THREADS],edi
-jnz @f                           ; Go skip if radiobutton disabled
+jnz @f                           ; Go skip if checkbox disabled
 mov rcx,rbx
 mov edx,HANDLE_PARALLEL_THREADS
 mov r8d,edx                                 
 xor r9d,r9d                      ; Selected=0 for clear to "0" 
 call [CheckRadioButton]
 @@:
-; Options, clear Hyper-Threading button unconditionally
+; Options, set "Use Hyper-Threading" button = off, unconditionally
 mov rcx,rbx
 mov edx,HANDLE_HYPER_THREADING
 mov r8d,edx
 xor r9d,r9d                      ; Selected=0 for clear to "0"
 call [CheckRadioButton]
+; Options, set "Use Large Pages" button = off, if enabled
+test [rsi+E_LARGE_PAGES],edi
+jnz @f                           ; Go skip if checkbox disabled
+mov rcx,rbx
+mov edx,HANDLE_LARGE_PAGES
+mov r8d,edx                                 
+xor r9d,r9d                      ; Selected=0 for clear to "0" 
+call [CheckRadioButton]
+@@:
 ; Options, NUMA Absent, Local, Remote
 test [rsi+NUMA_FORCE_LOCAL],edi  ; Check NUMA present, ZF=1(Z) if present
 mov rcx,rbx

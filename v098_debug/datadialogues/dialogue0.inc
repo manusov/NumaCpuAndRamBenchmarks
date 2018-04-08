@@ -60,63 +60,69 @@ DIALELEMENT  ClassButton , AM_15 , 0017 , 0436 , 0260 , 0018 , WS_VISIBLE+WS_CHI
 DIALELEMENT  ClassButton , AM_16 , 0017 , 0454 , 0260 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 44 = Dot product FMA256 
 DIALELEMENT  ClassButton , AM_17 , 0017 , 0472 , 0260 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 45 = Dot product FMA512
 ; Parallel operations and hyper-threading
-PARALLEL_NUMA_BASE = (46-START_HANDLE_WIN0)*16 + DialogueContent_Win0 + 8
+PARALLEL_NUMA_LARGE_PAGES_BASE = (46-START_HANDLE_WIN0)*16 + DialogueContent_Win0 + 8
 E_PARALLEL_THREADS = (46-46)*16
 E_HYPER_THREADING  = (47-46)*16
-; Handle
+; Handles
 HANDLE_PARALLEL_THREADS = 46
 HANDLE_HYPER_THREADING  = 47
-; Option
-DIALELEMENT  ClassButton , PT_D_00         , 0380 , 0202 , 0180 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTOCHECKBOX+WS_TABSTOP              ; 46 = Enable hyper-threading
+; Options
+DIALELEMENT  ClassButton , PT_D_00         , 0380 , 0202 , 0180 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTOCHECKBOX+WS_TABSTOP              ; 46 = Enable parallel threads
 DIALELEMENT  ClassButton , HT_D_00         , 0380 , 0224 , 0180 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTOCHECKBOX+WS_TABSTOP              ; 47 = Enable hyper-threading
-; NUMA Control
-NUMA_ABSENT       = (48-46)*16
-NUMA_FORCE_LOCAL  = (49-46)*16
-NUMA_FORCE_REMOTE = (50-46)*16
-; Handles
-HANDLE_NUMA_ABSENT = 48
-HANDLE_NUMA_LOCAL  = 49
-HANDLE_NUMA_REMOTE = 50
-; Options
-DIALELEMENT  ClassButton , NUMA_D_00       , 0380 , 0260 , 0310 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP+WS_GROUP  ; 48 = No NUMA control
-DIALELEMENT  ClassButton , NUMA_D_01       , 0380 , 0278 , 0310 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 49 = Force Local
-DIALELEMENT  ClassButton , NUMA_D_02       , 0380 , 0296 , 0310 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 50 = Force Remote
-; Block size selections, radiobuttons and edit field
-CACHES_BASE = (51-START_HANDLE_WIN0)*16 + DialogueContent_Win0 + 8
-L1_CACHE    = (51-51)*16
-L2_CACHE    = (52-51)*16
-L3_CACHE    = (53-51)*16
-CUSTOM_EDIT = (56-51)*16
-; Handles
-HANDLE_L1_CACHE     = 51
-HANDLE_L2_CACHE     = 52
-HANDLE_L3_CACHE     = 53
-HANDLE_RAM          = 54
-HANDLE_CUSTOM_BLOCK = 55
-HANDLE_CUSTOM_EDIT  = 56
-; Options
-DIALELEMENT  ClassButton , Target_00       , 0380 , 0328 , 0115 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP+WS_GROUP  ; 51 = L1 analyse 
-DIALELEMENT  ClassButton , Target_01       , 0380 , 0346 , 0115 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 52 = L2 analyse
-DIALELEMENT  ClassButton , Target_02       , 0380 , 0364 , 0115 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 53 = L3 analyse
-DIALELEMENT  ClassButton , Target_03       , 0380 , 0382 , 0115 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 54 = RAM analyse
-DIALELEMENT  ClassButton , Target_D_04     , 0380 , 0400 , 0155 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 55 = Custom size
-DIALELEMENT  ClassEdit   , Edit_Size       , 0536 , 0398 , 0075 , 0020 , WS_VISIBLE+WS_CHILD+WS_BORDER+WS_TABSTOP+ES_AUTOHSCROLL     ; 56 = Custom size value edit
-; Slow mode test
-HANDLE_SLOW_MODE = 57
+; Large Pages Control, base is 46 because options group addressing
+E_LARGE_PAGES = (48-46)*16
+; Handle
+HANDLE_LARGE_PAGES = 48
 ; Option
-DIALELEMENT  ClassButton , Measure_D_00    , 0380 , 0436 , 0280 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTOCHECKBOX+WS_TABSTOP              ; 57 = Slow carefully mode
+DIALELEMENT  ClassButton , LP_D_00         , 0380 , 0246 , 0180 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTOCHECKBOX+WS_TABSTOP              ; 48 = Enable large pages
+; NUMA Control, base is 46 because options group addressing
+NUMA_ABSENT       = (49-46)*16
+NUMA_FORCE_LOCAL  = (50-46)*16
+NUMA_FORCE_REMOTE = (51-46)*16
+; Handles
+HANDLE_NUMA_ABSENT = 49
+HANDLE_NUMA_LOCAL  = 50
+HANDLE_NUMA_REMOTE = 51
+; Options
+DIALELEMENT  ClassButton , NUMA_D_00       , 0380 , 0282 , 0310 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP+WS_GROUP  ; 49 = No NUMA control
+DIALELEMENT  ClassButton , NUMA_D_01       , 0380 , 0300 , 0310 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 50 = Force Local
+DIALELEMENT  ClassButton , NUMA_D_02       , 0380 , 0318 , 0310 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 51 = Force Remote
+; Block size selections, radiobuttons and edit field
+CACHES_BASE = (52-START_HANDLE_WIN0)*16 + DialogueContent_Win0 + 8
+L1_CACHE    = (52-52)*16
+L2_CACHE    = (53-52)*16
+L3_CACHE    = (54-52)*16
+CUSTOM_EDIT = (57-52)*16
+; Handles
+HANDLE_L1_CACHE     = 52
+HANDLE_L2_CACHE     = 53
+HANDLE_L3_CACHE     = 54
+HANDLE_RAM          = 55
+HANDLE_CUSTOM_BLOCK = 56
+HANDLE_CUSTOM_EDIT  = 57
+; Options
+DIALELEMENT  ClassButton , Target_00       , 0380 , 0350 , 0115 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP+WS_GROUP  ; 52 = L1 analyse 
+DIALELEMENT  ClassButton , Target_01       , 0380 , 0368 , 0115 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 53 = L2 analyse
+DIALELEMENT  ClassButton , Target_02       , 0380 , 0386 , 0115 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 54 = L3 analyse
+DIALELEMENT  ClassButton , Target_03       , 0380 , 0404 , 0115 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 55 = RAM analyse
+DIALELEMENT  ClassButton , Target_D_04     , 0380 , 0422 , 0155 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 56 = Custom size
+DIALELEMENT  ClassEdit   , Edit_Size       , 0536 , 0420 , 0075 , 0020 , WS_VISIBLE+WS_CHILD+WS_BORDER+WS_TABSTOP+ES_AUTOHSCROLL     ; 57 = Custom size value edit
+; Slow mode test
+HANDLE_SLOW_MODE = 58
+; Option
+DIALELEMENT  ClassButton , Measure_D_00    , 0380 , 0458 , 0280 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTOCHECKBOX+WS_TABSTOP              ; 58 = Slow carefully mode
 ; Buttons Run Simple, Run Drawings, Defaults, Cancel, About
-HANDLE_BUTTON_RUN_SIMPLE   = 58
-HANDLE_BUTTON_RUN_DRAWINGS = 59
-HANDLE_BUTTON_DEFAULTS     = 60
-HANDLE_BUTTON_CANCEL       = 61
-HANDLE_BUTTON_ABOUT        = 62
+HANDLE_BUTTON_RUN_SIMPLE   = 59
+HANDLE_BUTTON_RUN_DRAWINGS = 60
+HANDLE_BUTTON_DEFAULTS     = 61
+HANDLE_BUTTON_CANCEL       = 62
+HANDLE_BUTTON_ABOUT        = 63
 ; Buttons
-DIALELEMENT  ClassButton , TextRunSimple   , 0205 , 0516 , 0110 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 58 = Run simple test                 
-DIALELEMENT  ClassButton , TextRunDrawings , 0325 , 0516 , 0110 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 59 = Run drawings
-DIALELEMENT  ClassButton , TextDefaults    , 0445 , 0516 , 0110 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 60 = Defaults               
-DIALELEMENT  ClassButton , TextCancel      , 0565 , 0516 , 0110 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 61 = Cancel
-DIALELEMENT  ClassButton , TextAbout       , 0065 , 0516 , 0070 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 62 = About (note CMP/JA limit at event handler)
+DIALELEMENT  ClassButton , TextRunSimple   , 0205 , 0516 , 0110 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 59 = Run simple test                 
+DIALELEMENT  ClassButton , TextRunDrawings , 0325 , 0516 , 0110 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 60 = Run drawings
+DIALELEMENT  ClassButton , TextDefaults    , 0445 , 0516 , 0110 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 61 = Defaults               
+DIALELEMENT  ClassButton , TextCancel      , 0565 , 0516 , 0110 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 62 = Cancel
+DIALELEMENT  ClassButton , TextAbout       , 0065 , 0516 , 0070 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 63 = About (note CMP/JA limit at event handler)
 ; Terminator
 DIALSTOP
 ; End of list

@@ -63,6 +63,14 @@ mov [rbx+THCTRL.SizeInst],rax   ; Number of instructions per target block size
 mov eax,[rsi+IPB.NumRepeats]
 mov [rbx+THCTRL.Repeats],rax
 
+; Setup large pages options
+xor eax,eax
+cmp [rsi+IPB.OptionLP],2        ; value 2 means available and used
+jne @f
+inc eax
+@@:
+mov [rbx+THCTRL.LargePages],rax
+
 ; Check threads count validity, select single-thread or multi-thread branch
 mov eax,[rsi+IPB.NumThreads]
 test eax,eax
@@ -228,6 +236,3 @@ jmp @b
 .Error3:    ; Address arithmetic error
 mov al,3
 jmp @b
-
-
-

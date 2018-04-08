@@ -1,3 +1,7 @@
+; TODO:
+; DEBUG THIS SECTION.
+; LARGE PAGES SUPPORT FOR NUMA MODE: REQUIRED ADDITION
+
 ;--- Memory allocation library, for NUMA platform ---
 
 ;---------- Memory allocation with alignment = 4096 bytes, NUMA mode ----------;

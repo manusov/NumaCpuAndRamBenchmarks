@@ -15,12 +15,16 @@
 ; LINE 502. NUMA OPTIMIZATION DISABLED UNDER DEBUG. NUMA OPTION FORCED GRAY.
 ; VISUAL PREFETCHNTA FOR SIMPLE AND DRAWINGS, USED FOR DRAM MODE.
 ; VISUAL NUMBER OF THREADS FOR DRAWINGS, FOR SIMPLE ALREADY VISUALIZED.
+; LARGE PAGES SUPPORT FOR NUMA (YET NO) AND NON-NUMA (YET DEBUG) TOPOLOGIES.
 
 ; FASM definitions
 include 'win64a.inc'
 
 ; Block size for RAM benchmark
 CONST_RAM_BLOCK       EQU  32*1024*1024
+
+; Constants for memory allocation option
+MEM_LARGE_PAGES = 020000000h 
 
 ; Benchmarks repeat parameters, precision=f(repeats), for Cache&RAM mode
 L1_REPEATS            EQU  100000   ; Number of measur. iter. for objects, normal mode
@@ -62,17 +66,17 @@ Base1           dq  ?   ; Source for read, destination for write and modify
 Base2           dq  ?   ; Destination for copy
 SizeBytes       dq  ?   ; Block size, units = bytes, for memory allocation 
 SizeInst        dq  ?   ; Block size, units = instructions, for benchmarking
+LargePages      dq  ?   ; Bit D0=Large Pages, other bits [1-63] = reserved
 Repeats         dq  ?   ; Number of measurement repeats
 TrueAffinity    dq  ?   ; True affinity mask, because modified as f(options)
 TrueBase        dq  ?   ; True (before alignment) memory block base for release
 ; Note TrueSize not used when memory release, block identified by base
 TrueSize        dq  ?   ; True (before alignment) memory block size for release
 ReturnAffinity  dq  ?   ; Returned affinity mask, for affinitization test
-; Note this 4 entries reserved yet
+; Note this 3 entries reserved yet
 ReturnDeltaTSC  dq  ?   ; Pointer to output list of returned dTSC
 ReturnCount     dd  ?   ; Output list entries counter
 ReturnLimit     dd  ?   ; Output list number of entries 
-Reserved        dq  ?   ; Reserved
 ends
 
 ; NUMA node description entry, not a same as thread description enrty
@@ -136,7 +140,6 @@ DEFAULT_Y_MBPS_PER_PIXEL = Y_RANGE_MAX/SUBWINY  ; Def. units (MBPS) per pixel Y
 ; Benchmarks visualization timings parameters
 TIMER_TICK       = 50     ; Milliseconds per tick, benchmarks progress timer
 
-
 ;========== Code section ======================================================;
 
 format PE64 GUI
@@ -146,6 +149,14 @@ start:
 
 ; 32 byte parameters shadow and +8 alignment
 sub rsp,8*5
+
+; Pre-load library ADVAPI32.DLL, next step uses GetModuleHandle, GetProcAddress
+; for detect functions entry points. Returned handle and status ignored at this
+; step, because availability of library and functions detected at next step.
+; Note pre-load KERNEL32.DLL not required because static import used.
+lea rcx,[NameAdvapi32]
+call [LoadLibrary]
+mov [HandleAdvapi32],rax
 
 ; Load optional system functions
 ; Optional (not a static import) because Win XP (x64) compatibility
@@ -201,6 +212,9 @@ lea r15,[MessageTApiError]
 lea rsi,[TEMP_BUFFER]    ; RSI = Transit buffer base, size = const
 call GetOsMpInfo 
 jc ErrorProgram1         ; Go error if get SMP info failed
+
+; Get Large page size and mappings with large pages availability
+call GetLargePagesInfo
 
 ; Overload topology and cache parameters, if WinAPI data valid
 lea rsi,[TopologicalInfo]
@@ -462,6 +476,24 @@ stosw
 add rcx,8
 dec bh
 jnz .PrintMemory
+
+; Large pages
+mov rax,[LargePageSize]
+test rax,rax
+jz @f                  ; Skip if large page size = 0
+call StringWrite
+mov byte [rdi],'?'
+inc rdi
+test eax,01FFFFFh
+jnz @f                 ; Skip if large page size unaligned by 2MB
+cmp  rax,10000000h
+ja @f                  ; Skip if large page size above 1GB
+dec rdi
+shr rax,20             ; Convert bytes to megabytes
+call DecimalPrint32    ; Print large page size
+@@:
+
+; Terminator byte for memory sizes string: total, available, large page size
 mov al,0
 stosb					             ; String terminator 00h
 
@@ -496,7 +528,7 @@ or [rbx+FMA512_METHOD_1],edx
 
 ; SMT, Hyper-Threading options
 ; At this point, AL, EDX valid from previous step
-lea rbx,[PARALLEL_NUMA_BASE]     ; RBX = Pointer to buttons list entry
+lea rbx,[PARALLEL_NUMA_LARGE_PAGES_BASE]  ; RBX = Pointer to buttons list entry
 mov ecx,[SystemInfo+32]          ; RCX = Number of processors by OS
 test al,80h                      ; AL = Processor flags
 jz .ClearRHT                     ; Go clear HT checkbox if not supported
@@ -508,6 +540,13 @@ or [rbx+E_HYPER_THREADING],edx   ; Disable (clear) Hyper-Threading checkbox
 cmp ecx,2                        ; Go skip clear MC checkbox if NCPU => 2
 jae @f                          
 or [rbx+E_PARALLEL_THREADS],edx  ; Disable (clear) Parallel Threads checkbox
+@@:
+
+; Large Pages option
+; At this point, RBX, EDX valid from previous step
+cmp [LargePageFlag],1
+je @f
+or [rbx+E_LARGE_PAGES],edx
 @@:
 
 ; NUMA options
@@ -595,8 +634,16 @@ mov byte [Win0_Init],1           ; Enable commands handling by callback routine
 lea rdi,[DialogueMsg_Win0]       ; RDI = MSG structure
 call WaitEvent                   ; Window 1 work as callbacks inside this
 
-; Exit
+; Exit point
 ExitProgram:
+
+; Unload dynamical import
+mov rcx,[HandleAdvapi32]
+jrcxz @f                         ; Go skip unload if handle = null
+call [FreeLibrary]               ; Unload ADVAPI32.DLL
+@@:
+
+; Exit
 xor ecx,ecx	                     ; RCX = Parm#1 = Exit code
 call [ExitProcess]               ; No return from this function
 
@@ -639,6 +686,7 @@ include 'sysinfo\measurecpuclk.inc'     ; Measure CPU clock frequency by TSC
 include 'sysinfo\getcpucache.inc'       ; Get CPU cache info by CPUID
 include 'sysinfo\getacpi.inc'           ; Get ACPI tables information
 include 'sysinfo\getos.inc'             ; Get Operating System information
+include 'sysinfo\getlargepages.inc'     ; Get Large Pages information
 
 ; Support main window and subroutines, used by other windows 
 include 'windowmain\win0.inc'           ; Main parent window callback handler
@@ -725,7 +773,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'  , 0Ah,0Dh
-             DB  'v0.98.2 for Windows x64'  , 0Ah,0Dh
+             DB  'v0.98.3 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'     , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool
@@ -757,7 +805,6 @@ include 'datadialogues\subhndl.inc'      ; Dialogue elements handles buffers
 include 'datagui\dialmsg.inc'            ; Message descriptor structures
 include 'datagui\drawvars.inc'           ; Variables for Win. 1 - benchm. draw. 
 
-
 ; Continue data section, multifunctional buffer
 TEMP_BUFFER_SIZE  = 49152      ; Required 48 Kilobytes
 align 64                       ; Aligned by typical cache line size is 64 bytes
@@ -770,6 +817,5 @@ section '.idata' import data readable writeable
 library user32, 'USER32.DLL', kernel32, 'KERNEL32.DLL', gdi32, 'GDI32.DLL'
 include 'api\user32.inc'    ; Win API, user interface
 include 'api\gdi32.inc'     ; Win API, graphice 
-include 'api\kernel32.inc'  ; Win API, common
-
+include 'api\kernel32.inc'  ; Win API, OS standard kernel functions
 

@@ -26,6 +26,7 @@ TextOsCpuCount   DB  'OS processors count=',0
 TextOsCpuMasks   DB  'mask=',0
 TextPhysMemory   DB  'OS physical memory (MB)=',0
 TextAvlMemory    DB  'Available (MB)=',0
+TextLargePage    DB  'Minimal large page (MB)=',0
 
 ; Buttons strings
 TextRunSimple    DB  'Run simple',0
@@ -100,8 +101,16 @@ HT_00            DB  'disabled by platform',0
 HT_01            DB  'enabled by platform, not used by test',0
 HT_02            DB  'enabled by platform, used by test',0
 
-; For dialogue
+; Hyper-threading, for dialogue window
 HT_D_00          DB  'Use hyper-threading',0
+
+; Large pages, for simple result window
+LP_00            DB  'not available',0
+LP_01            DB  'available, not used by test',0
+LP_02            DB  'available, used by test',0
+
+; Large pages, for dialogue window
+LP_D_00          DB  'Use large pages',0
 
 ; NUMA option strings
 NUMA_00          DB  'not supported',0

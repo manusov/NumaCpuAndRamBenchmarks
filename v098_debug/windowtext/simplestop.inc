@@ -65,7 +65,16 @@ mov ah,2
 call StringWriteSelected
 pop rsi
 
-; (5) NUMA profile, none/default/force optimal/force non-optimal
+; (5) Large pages
+call StringWrite
+push rsi
+lea rsi,[LP_00]
+mov al,[InputParms.OptionLP]
+mov ah,2
+call StringWriteSelected
+pop rsi
+
+; (6) NUMA profile, none/default/force optimal/force non-optimal
 call StringWrite
 push rsi
 lea rsi,[NUMA_00]
@@ -74,7 +83,7 @@ mov ah,3
 call StringWriteSelected
 pop rsi
 
-; (6) Target object profile, L1/L2/L3/RAM/Custom = 0/1/2/3/4
+; (7) Target object profile, L1/L2/L3/RAM/Custom = 0/1/2/3/4
 call StringWrite
 push rsi
 lea rsi,[Target_00]
@@ -83,7 +92,7 @@ mov ah,4
 call StringWriteSelected
 pop rsi
 
-; (7) Measurement profile, brief/careful
+; (8) Measurement profile, brief/careful
 call StringWrite
 push rsi
 lea rsi,[Measure_00]
@@ -92,7 +101,7 @@ mov ah,1
 call StringWriteSelected
 pop rsi
 
-; (8,9) Blocks #1 , #2 bases, two blocks used for copy or dot product
+; (9,10) Blocks #1 , #2 bases, two blocks used for copy or dot product
 mov ecx,2
 lea rbx,[InputParms.BlockBase1]
 .L0:
@@ -113,13 +122,13 @@ pop rsi
 .L1:
 loop .L0
 
-; (10) Block size
+; (11) Block size
 call StringWrite
 mov rax,[InputParms.BlockSize]
 mov bl,0FFh          ; BL = Units select for size print, 0FFh = auto
 call SizePrint64
 
-; (11) Measurement repeats, num. of same operation repeats for precision
+; (12) Measurement repeats, num. of same operation repeats for precision
 call StringWrite
 mov eax,[InputParms.NumRepeats]
 mov bl,0             ; BL = Template (chars) for decimal print, 0 = no template
@@ -207,4 +216,3 @@ mov rsp,rbx
 ; Exit
 pop rdi rsi rbx
 ret
-

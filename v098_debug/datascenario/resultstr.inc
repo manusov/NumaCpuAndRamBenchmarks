@@ -6,6 +6,7 @@ MsgResult   DB  'Simple mode benchmarks, options settings:'
             DB  0Ah,0Dh, 'instruction operand width (Bits) = ',0
             DB  0Ah,0Dh, 'threads = ',0
             DB  0Ah,0Dh, 'hyper-threading = ',0
+            DB  0Ah,0Dh, 'large pages = ',0
             DB  0Ah,0Dh, 'NUMA profile = ',0
             DB  0Ah,0Dh, 'target object profile = ',0
             DB  0Ah,0Dh, 'measurement profile = ',0

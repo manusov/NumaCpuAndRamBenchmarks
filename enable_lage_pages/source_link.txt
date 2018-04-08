@@ -1,0 +1,3 @@
+Enable Large Pages at Windows 7.
+See description at:
+https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/enable-the-lock-pages-in-memory-option-windows

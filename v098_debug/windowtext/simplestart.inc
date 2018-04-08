@@ -37,7 +37,7 @@ mov [rdi+IPB.NumThreads],eax    ; Write number of threads
 
 ; Extract ENABLE HYPER THREADING
 xor eax,eax
-test dword [PARALLEL_NUMA_BASE+E_HYPER_THREADING],WS_DISABLED
+test dword [PARALLEL_NUMA_LARGE_PAGES_BASE+E_HYPER_THREADING],WS_DISABLED
 jnz @f                      ; Go skip if HT not supported by platform, AL=0
 mov esi,HANDLE_HYPER_THREADING
 call SendMessageGetCheck
@@ -45,9 +45,19 @@ inc eax
 @@:
 mov [rdi+IPB.OptionHT],al       ; Write hyper-threading option
 
+; Extract LARGE PAGES CONTROL
+xor eax,eax
+test dword [PARALLEL_NUMA_LARGE_PAGES_BASE+E_LARGE_PAGES],WS_DISABLED
+jnz @f                      ; Go skip if HT not supported by platform, AL=0
+mov esi,HANDLE_LARGE_PAGES
+call SendMessageGetCheck
+inc eax
+@@:
+mov [rdi+IPB.OptionLP],al       ; Write large pages option
+
 ; Extract NUMA CONTROL
 xor esi,esi
-test dword [PARALLEL_NUMA_BASE+NUMA_ABSENT],WS_DISABLED
+test dword [PARALLEL_NUMA_LARGE_PAGES_BASE+NUMA_ABSENT],WS_DISABLED
 jnz .NumaOff                       ; Go skip if NUMA not sup. by platform, SI=0 
 mov esi,HANDLE_NUMA_ABSENT
 @@:
@@ -173,4 +183,3 @@ mov [rdi+016],eax               ; DWORD [DumpMethodLength] = EAX
 
 ; Exit
 ret
-

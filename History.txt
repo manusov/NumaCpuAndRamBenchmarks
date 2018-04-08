@@ -19,3 +19,6 @@ v0.98.2
 Improve assembler method details visualization,
 for simple text window and for drawings speed=f(size).
 
+v0.98.3
+Large pages support.
+
