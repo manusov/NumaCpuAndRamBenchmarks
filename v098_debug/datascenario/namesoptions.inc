@@ -129,7 +129,7 @@ Target_00        DB  'L1 cache',0
 Target_01        DB  'L2 cache',0
 Target_02        DB  'L3 cache',0
 Target_03        DB  'RAM',0
-Target_04        DB  'custom block',0
+Target_04        DB  'Custom block',0
 
 ; For dialogue
 Target_D_04      DB  'Custom size (hex) =',0
@@ -168,6 +168,13 @@ TextAverage      DB  'Average (CPI) = '
 TextAverage1     DB  12 DUP (' '),0
 TextMBPS         DB  'MBPS = '
 TextMBPS1        DB  12 DUP (' '),0  
+
+; Text strings for number of threads
+Threads_String   DB  'Threads='
+Threads_Number   DB  2+1 DUP (0)
+
+NPages_String    DB ' ',0
+LPages_String    DB 'Large pages',0
 
 ; Text strings for number of repeats
 Repeats_String   DB  'Repeats='

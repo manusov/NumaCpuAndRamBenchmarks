@@ -69,17 +69,37 @@ mov [DialogueContent_Win1+HANDLE_TEXT_OBJECT1*16-256+12],si
 ; This default settings for prevent use undefined state of this variable,
 ; benchmark procedure overwrite it when drawing Y=F(X)
 mov [BenchInstructions],1
-; Print number of repeats
+; Save registers used for prints
 push rbx rdi
+mov bl,0
+; Print number of threads, see also at drawprogress.inc
+lea rdi,[Threads_Number]
+mov word [rdi],'? '
+mov byte [rdi+2],0
+mov eax,[InputParms.NumThreads]
+test eax,eax
+jz @f                 ; Skip if number of threads = 0
+cmp eax,64
+ja @f                 ; Skip if Number of threads > 64 (means error, not sup.)
+call DecimalPrint32
+@@:
+; Print number of repeats
 lea rdi,[Repeats_Number]
 push rdi 
 mov ecx,9
 mov al,' '
 rep stosb
 pop rdi 
-mov bl,0
 mov eax,[InputParms.NumRepeats]
 call DecimalPrint32
+; Print Normal or Large pages option state
+lea rax,[NPages_String]
+cmp [InputParms.OptionLP],2
+jne @f 
+lea rax,[LPages_String]
+@@:
+sub rax,r15
+mov [DialogueContent_Win1+HANDLE_LARGE_PAGES1*16-256+12],ax
 pop rdi rbx
 
 ; Set bytes per instruction(s) or hardware iteration cycle

@@ -112,6 +112,22 @@ shr ecx,1
 mov [InputParms.NumThreads],ecx
 @@:
 
+; Print number of threads, see also at drawstart.inc
+; This required for hyper-threading correction
+push rbx rdi
+lea rdi,[Threads_Number]  ; RDI = Pointer to text string
+mov word [rdi],'? '
+mov byte [rdi+2],0
+xchg eax,ecx
+test eax,eax
+jz @f                 ; Skip if number of threads = 0
+cmp eax,64
+ja @f                 ; Skip if Number of threads > 64 (means error, not sup.)
+mov bl,0
+call DecimalPrint32
+@@:
+pop rdi rbx
+
 ; Scaling block size and instructions count by number of threads
 mov rax,[rbx+THCTRL.SizeBytes]
 mul rcx
