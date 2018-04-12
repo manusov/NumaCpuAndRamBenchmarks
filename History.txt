@@ -25,3 +25,6 @@ Large pages support.
 v0.98.4
 Add visual number of threads and large page modes
 for drawings window, speed=f(size).
+
+v0.98.5
+Fix Y-approximation bug at drawings speed=f(size).

@@ -24,7 +24,7 @@ BenchBPI           DQ  ?      ; Number of bytes per target instruction
 
 ; Benchmark parameters ---
 Xmultiplier        DD  ?      ; XTimerTick * Xmultiplier = RCX for performance pattern
-Ydivisor           DD  ?      ; ( ( Frequency * Decimal Megabytes transferred ) / clocks ) / Ydivisor = DrawYCoordinateOffset
+YdivisorFloat      DD  ?      ; ( ( Frequency * Decimal Megabytes transferred ) / clocks ) / Ydivisor = DrawYCoordinateOffset
 
 ; Auto Y-scale (by Restart/ReSize button at Window 1)
 MaximumMBPS        DD  ?      ; Maximum detected Megabytes per Second for auto Y-scale

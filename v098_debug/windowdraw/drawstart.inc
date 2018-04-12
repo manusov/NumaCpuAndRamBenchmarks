@@ -165,7 +165,12 @@ mov [MaximumMBPS],0
 mov [ValueGridY],DEFAULT_Y_MBPS_PER_GRID
 
 ; Set total MBPS per Y, for all sub-screen
-mov [Ydivisor],DEFAULT_Y_MBPS_PER_PIXEL 
+; mov [YdivisorFloat],DEFAULT_Y_MBPS_PER_PIXEL
+finit                      ; Initialize x87 FPU
+lea rdx,[YdivisorFloat]
+mov dword [rdx],DEFAULT_Y_MBPS_PER_PIXEL
+fild dword [rdx]
+fst dword [rdx]  
 
 ; Set units per grid X
 mov edx,GRIDSTEPX

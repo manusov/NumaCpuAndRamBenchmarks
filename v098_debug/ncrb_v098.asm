@@ -773,7 +773,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'  , 0Ah,0Dh
-             DB  'v0.98.4 for Windows x64'  , 0Ah,0Dh
+             DB  'v0.98.5 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'     , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool

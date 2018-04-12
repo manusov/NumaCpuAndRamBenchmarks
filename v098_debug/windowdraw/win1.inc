@@ -180,11 +180,13 @@ call InitStatistics
 mov eax,[MaximumMBPS]               ; EAX = Maximum MBPS
 mov ecx,eax                         ; ECX = Maximum MBPS copy
 jecxz .InvalidMax                   ; Go if this is first pass after open Window 1
+
 ; Temporary fix for Y units per pixel bad approximation
-cmp eax,8000
-jae @f
-mov eax,8000
-@@:
+; cmp eax,8000
+; jae @f
+; mov eax,8000
+; @@:
+
 ; Calculate Y Range
 shr eax,2                           ; EAX = Maximum MBPS / 4
 lea eax,[eax+ecx]                   ; EAX = 5/4 * Maximum MBPS
@@ -214,10 +216,17 @@ div ecx
 mov [ValueGridY],eax          ; DWORD [ValueGridY] = Range / 10 = MBPS per Grid
 pop rax
 ; Calculate MBPS per Pixel
-mov ecx,SUBWINY
-xor edx,edx
-div ecx
-mov [Ydivisor],eax            ; DWORD [Ydivisor] = Range / SUBWINY = MBPS per Pixel
+; mov ecx,SUBWINY
+; xor edx,edx
+; div ecx
+; mov [YdivisorFloat],eax     ; DWORD [Ydivisor] = Range / SUBWINY = MBPS per Pixel
+finit                         ; Initialize x87 FPU
+push rax
+push SUBWINY                  ; x87 can get data from memory only
+fild qword [rsp+8]            ; st0 = MBPS
+fidiv dword [rsp+0]           ; st0 = MBPS / SUBWINY
+fst [YdivisorFloat] 
+pop rax rax                   ; Release stack
 ; Exit
 .InvalidMax:
 jmp .WinStatus
@@ -344,28 +353,58 @@ mov rax,[TscClockHz]       ; RAX = Frequency Hz
 mov edx,[InputParms.NumThreads]
 mul rdx
 ; Convert to MHz
-mov ebx,1000000              ; Constant for decimal megabytes
-xor edx,edx                  ; RDX = 0 , dividend high qword
-div rbx                      ; RAX = Frequency/1000000
-mul qword [rdi+40]           ; BenchRepeats
-test rdx,rdx
-jnz .OverflowY
-mul qword [rdi+48]           ; BenchInstructions
-test rdx,rdx
-jnz .OverflowY
-mul qword [rdi+56]           ; BenchBPI (bytes per instruction) 
-test rdx,rdx                 ; RAX = Frequency * Decimal Megabytes transferred
-jnz .OverflowY
-test rsi,rsi
-jz .OverflowY                     
-div rsi                      ; RAX = ( Frequency * Decimal Megabytes transferred ) / clocks
-mov ebx,[rdi+68]             ; Ydivisor
-xor edx,edx
-div rbx                      ; RAX = Values for Y-coordinates
-jmp .NoOverflowY
-.OverflowY:
+; mov ebx,1000000            ; Constant for decimal megabytes
+; xor edx,edx                ; RDX = 0 , dividend high qword
+; div rbx                    ; RAX = Frequency/1000000
+; mul qword [rdi+40]         ; BenchRepeats
+; test rdx,rdx
+; jnz .OverflowY
+; mul qword [rdi+48]         ; BenchInstructions
+; test rdx,rdx
+; jnz .OverflowY
+; mul qword [rdi+56]         ; BenchBPI (bytes per instruction) 
+; test rdx,rdx               ; RAX = Frequency * Decimal Megabytes transferred
+; jnz .OverflowY
+; test rsi,rsi
+; jz .OverflowY                     
+; div rsi                    ; RAX = ( Frequency * Decimal Megabytes transferred ) / clocks
+; mov ebx,[rdi+68]           ; Ydivisor
+; xor edx,edx
+; div rbx                    ; RAX = Values for Y-coordinates
+; jmp .NoOverflowY
+; .OverflowY:
+; xor eax,eax
+; .NoOverflowY:
+finit                        ; Initialize x87 FPU
+push rax                     ; RAX = Frequency * Threads
+push rsi                     ; RSI = Delta TSC  
+push 1000000                 ; Constant for decimal megabytes
+fild qword [rdi+40]          ; BenchRepeats
+fild qword [rdi+48]          ; BenchInstructions
+fild qword [rdi+56]          ; BenchBPI (bytes per instruction)  
+fild qword [rsp+08]          ; Delta-TSC
+fild qword [rsp+16]          ; st0 = Frequency * Threads 
+fidiv dword [rsp+00]         ; st0 = st0 / 1000000
+fmul st0,st4                 ; st0 = st0 * BenchRepeats
+fmul st0,st3                 ; st0 = st0 * BenchInstructions
+fmul st0,st2                 ; st0 = st0 * BenchBPI  
+fdiv st0,st1                 ; st0 = st0 / DeltaTSC
+fdiv dword [rdi+68]          ; YdivisorFloat
+fist dword [rsp+16]
+pop rax rax rax              ; Release stack, get result = EAX = pixel offset
+; Prevent overflows
+; test eax,eax
+; js .NeedCorrect            ; Negative value is invalid
+; cmp eax,SUBWINY-3        
+; jbe .SkipCorrect           ; Not invalid if below limit 
+; .NeedCorrect:
+; xor eax,eax
+; .SkipCorrect:
+
+test eax,eax
+jns .SkipZero                ; Negative value is invalid
 xor eax,eax
-.NoOverflowY:
+
 ; Restore registers
 .SkipZero:
 pop rdi rsi rcx rbx
