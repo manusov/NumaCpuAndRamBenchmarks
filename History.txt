@@ -28,3 +28,9 @@ for drawings window, speed=f(size).
 
 v0.98.5
 Fix Y-approximation bug at drawings speed=f(size).
+
+v0.99.0
+Disable branches with MOVNTDQA/VMOVNTDQA instructions.
+Always use PREFETCHNTA non-temporal hint for DRAM read.
+
+
