@@ -18,11 +18,11 @@ jnz .LargePages
 
 ; Branch for Normal Pages
 .NormalPages:
-xor ecx,ecx                    ; Parm#1 = RCX = Virtual address, 0=Auto select
+xor ecx,ecx                        ; Parm#1 = RCX = Virtual address, 0=Auto select
 mov rdx,[rbx+THCTRL.SizeBytes] 
-add rdx,4096                   ; Parm#2 = RDX = Size + alignment reserved
-mov r8d,MEM_COMMIT             ; Parm#3 = Allocation type
-mov r9d,PAGE_READWRITE         ; Parm#4 = Page Attribute
+add rdx,4096                       ; Parm#2 = RDX = Size + alignment reserved
+mov r8d,MEM_RESERVE + MEM_COMMIT   ; Parm#3 = Allocation type
+mov r9d,PAGE_READWRITE             ; Parm#4 = Page Attribute
 call [VirtualAlloc]
 jmp .StatusPhase
 
@@ -43,7 +43,7 @@ mul r8
 lea r8,[rax+r8]                       ; Parm#3 = R8 = Block size + alignment reserved
 ; Prepare other parameters and call function 
 xor edx,edx                           ; Parm#2 = RDX = Virtual address, 0=Auto select
-mov r9d,MEM_COMMIT + MEM_LARGE_PAGES  ; Parm#4 = R9 = Allocation type
+mov r9d,MEM_RESERVE + MEM_COMMIT + MEM_LARGE_PAGES  ; Parm#4 = R9 = Allocation type
 push 0                                ; Alignment
 push PAGE_READWRITE                   ; Parm#5 = [RSP+40] = Page Attribute
 sub rsp,32                            ; Create stack frame

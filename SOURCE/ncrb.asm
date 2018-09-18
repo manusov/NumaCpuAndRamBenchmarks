@@ -5,18 +5,21 @@
 ;                                                                              ;
 ;  This file is main module: translation object, interconnecting all modules.  ;
 ;                                                                              ;
-;          Translation by Flat Assembler version 1.72 (Oct 10, 2017)           ;
+;         Translation by Flat Assembler version 1.73.04 (April 30, 2018)       ;
 ;           Visit http://flatassembler.net/ for more information.              ;
 ;       Edit by FASM Editor 2.0, use this editor for correct tabulations.      ;
 ;                                                                              ;
 ;==============================================================================;
 
+
 ; TODO:
-; LINE 502. NUMA OPTIMIZATION DISABLED UNDER DEBUG. NUMA OPTION FORCED GRAY.
-; VISUAL PREFETCHNTA FOR SIMPLE AND DRAWINGS, USED FOR DRAM MODE.
-; VISUAL NUMBER OF THREADS FOR DRAWINGS, FOR SIMPLE ALREADY VISUALIZED.
-; LARGE PAGES SUPPORT FOR NUMA (YET NO) AND NON-NUMA (YET DEBUG) TOPOLOGIES.
-; SingleThreadBenchmark subroutine must load or accept R8. Base 3.
+; 1) NUMA OPTIMIZATION ENABLED, UNDER DEBUG. 
+; 2) LARGE PAGES SEPARATE SUPPORT FOR NUMA AND NON-NUMA, UNDER DEBUG.
+; 3) PROCESSOR GROUPS, PLATFORM WITH > 64 LOGICAL PROCESSORS. 
+; 4) MEASUREMENT TIME MUST BE REDUCED WITHOUT LOSE PRECISION.
+; 5) FOR DRAWINGS, DON'T MAKE MEASUREMENTS IN THE GUI WINDOW EVENT HANDLING
+;    THREAD, USE SEPARATE MEDIATOR THREAD. BUT VECTOR BRIEF AND SIMPLE MODE
+;    NOT HAVE THIS BUG, REDESIGN DRAWINGS ONLY.
 
 ; FASM definitions
 include 'win64a.inc'
@@ -85,9 +88,9 @@ struct NUMACTRL
 NodeID          dq  ?   ; NUMA Node number, if no NUMA, this field = 0 for all entries
 NodeAffinity    dq  ?   ; NUMA Node affinity mask
 Group           dq  ?   ; Reserved for Processors Group number
-AlignedBase     dq  ?   ; Base address, returned when allocated, for release, 0=not used
-AlignedSize     dq  ?   ; Base address after alignment 
-TrueBase        dq  ?   ; Block size after alignment
+AlignedBase     dq  ?   ; Block size after alignment, for read/write operation
+AlignedSize     dq  ?   ; Block base address after alignment, for r/w operation 
+TrueBase        dq  ?   ; Base address, returned when allocated, for release, 0=not used 
 Reserved        dq  2 DUP (?)    ; Reserved
 ends
 
@@ -587,13 +590,13 @@ or [rbx+E_LARGE_PAGES],edx
 ; NUMA options
 ; At this point, RBX, EDX valid from previous step
 
-; NUMA OPTIMIZATION DISABLED UNDER DEBUG
-; cmp dword [NumaNodes],2         ; Check number of NUMA nodes
-; jae @f                          ; Skip clear MD checkbox if Domains>1
+; NUMA OPTIMIZATION CAN BE DISABLED UNDER DEBUG
+cmp dword [NumaNodes],2         ; Check number of NUMA nodes
+jae @f                          ; Skip clear MD checkbox if Domains>1
 or [rbx+NUMA_ABSENT],edx        ; Disable No NUMA checkbox, but can be selected
 or [rbx+NUMA_FORCE_LOCAL],edx   ; Disable Force Remote checkbox
 or [rbx+NUMA_FORCE_REMOTE],edx  ; Disable Force Local checkbox
-; @@:
+@@:
 
 ; Options, size select: L1, L2, L3 analysing
 lea rbx,[CACHES_BASE]           ; RBX = Pointer to Buttons list entry
@@ -826,7 +829,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'   , 0Ah,0Dh
-             DB  'v1.00.00 for Windows x64'  , 0Ah,0Dh
+             DB  'v1.01.00 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'      , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool

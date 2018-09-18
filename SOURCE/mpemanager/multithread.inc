@@ -40,24 +40,25 @@ jb .ModeNonNUMA
 cmp al,3
 ja .ModeNonNUMA
 
-; Branch for NUMA mode
+;---------- Branch for NUMA mode ----------------------------------------------;
 
 .ModeNUMA:
 ; Build NUMA nodes list
-push rbx rcx r8 r9
+push rbx rcx r8 r9 rbp
 lea rbx,[NumaControl]
-call BuildNumaList
-pop r9 r8 rcx rbx
+call BuildNumaList              ; Return EAX = Active nodes count, 
+pop rbp r9 r8 rcx rbx           ; not count nodes with affinity mask = 0
 jc OpenMultiThreadError         ; Go error if build NUMA nodes list error
 ; Allocate all memory
-push rbx rcx r8 r9
-mov ecx,eax
+push rbx rcx r8 r9 rbp
+mov ecx,eax                     ; RCX = active (nonzero) nodes count
 mov rdx,[rbx+THCTRL.SizeBytes]  ; Full size at EACH node, TODO: divide 
 push rcx
+mov r8,[rbx+THCTRL.LargePages]
 lea rbx,[NumaControl]
 call MemoryAllocationNuma
 pop rsi                         ; RSI = Nodes count
-pop r9 r8 rcx rbx               ; RCX = Threads count 
+pop rbp r9 r8 rcx rbx           ; RCX = Threads count 
 jc OpenMultiThreadError         ; Go error if memory allocation error
 ; Calculate threads per node
 mov rax,rcx
@@ -86,6 +87,7 @@ lea r14,[rbx + THREADS_CONTROL_SIZE + EVENTS_CONTROL_SIZE]
 
 ; Cycle for NUMA nodes
 .NextNode:
+
 xor edi,edi                    ; EDI = Counter for threads per node allocation
 push r11 r12
 mov rax,[r14+NUMACTRL.AlignedBase]
@@ -97,8 +99,10 @@ cmp [InputParms.OptionNUMA],3       ; Need invert affinity if NUMA-REMOTE mode
 jne @f
 xor rax,[SystemInfo.dwActiveProcessorMask]
 @@:
+
 ; Cycle for threads
 .NextThread:
+
 mov [rbx+THCTRL.EntryPoint],r10
 mov [rbx+THCTRL.Base1],r11
 mov [rbx+THCTRL.Base2],r12
@@ -106,10 +110,11 @@ mov [rbx+THCTRL.Repeats],r13
 mov [rbx+THCTRL.SizeBytes],r8
 mov [rbx+THCTRL.SizeInst],r9
 mov [rbx+THCTRL.ThreadAffinity],rax
+
+; Make cycle for threads
 add r11,r8
 add r12,r8
 add rbx,THCTRL_SIZE
-; Make cycle for threads
 inc edi
 cmp edi,esi
 jb .NextThread 
@@ -124,7 +129,7 @@ pop rcx rbx
 ; End of NUMA-specific part
 jmp .EventsAndThreads 
 
-; Branch for non-NUMA mode
+;---------- Branch for non-NUMA mode ------------------------------------------;
 
 .ModeNonNUMA:
 ; Allocate all memory
@@ -151,7 +156,7 @@ add rbx,THCTRL_SIZE
 loop .BuildControls
 pop rcx rbx
 
-; Continue both non-NUMA and NUMA branches
+;---------- Continue both non-NUMA and NUMA branches --------------------------;
 
 ; Create events and threads in the common cycle
 .EventsAndThreads:

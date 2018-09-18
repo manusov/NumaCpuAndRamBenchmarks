@@ -33,4 +33,9 @@ v0.99.0
 Disable branches with MOVNTDQA/VMOVNTDQA instructions.
 Always use PREFETCHNTA non-temporal hint for DRAM read.
 
+v1.00.00
+Improve code comments.
+
+v1.01.00
+Experimental unlock numa-aware support.
 

@@ -29,7 +29,7 @@ jz .NumaNotAvailable             ; Go skip if function not declared by OS
 call rax                         ; Return EAX=0 if error, EAX>0 if no errors
 test rax,rax
 jz .NumaNotAvailable             ; Go skip if error returned
-cmp qword [rbp],65535            ; RBX = Number of nodes
+cmp qword [rbp],65535            ; [RBP] = Number of nodes
 ja .NumaNotAvailable             ; Go skip if invalid number of nodes
 ; Scan nodes
 xor esi,esi                      ; RSI = Start node number
@@ -46,7 +46,7 @@ jnz @f                           ; Go skip blank if this node valid
 mov qword [rdi],0
 @@:
 jz @f                            ; Go skip pointer advance if this node not valid
-inc dword [rbx]                  ; Valid nodes counter +1
+inc dword [rbx]                  ; Memory at [RBX] = Valid nodes counter +1
 add rdi,8                        ; Nodes list pointer +8
 @@:
 mov rax,rdi
