@@ -35,6 +35,7 @@ Always use PREFETCHNTA non-temporal hint for DRAM read.
 
 v1.00.00
 Improve code comments.
+Add Vector Brief test.
 
 v1.01.00
 Experimental unlock numa-aware support.
