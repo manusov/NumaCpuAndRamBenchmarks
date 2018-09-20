@@ -526,7 +526,7 @@ push rax                     ; Parm#5 = Y coordinate down/right corner
 sub rsp,32                   ; Create parameters shadow
 call [SetRect]               ; Set region rectangle function 
 add rsp,32+8                 ; Remove parameters shadow and one parameter
-; Built ASCII string
+; Build ASCII string
 push rdi
 lea rdi,[BigTexts]           ; RDI = Pointer for print decimal string as ASCII
 mov rdx,rdi

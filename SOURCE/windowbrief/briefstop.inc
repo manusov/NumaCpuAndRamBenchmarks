@@ -18,7 +18,7 @@ VectorBriefStop:
 push rbx rsi rdi
 cld
 
-; Parameters for text built, write first strings
+; Parameters for text build, write first strings
 lea rdi,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_TRANSIT]   ; RDI = Destination build
 lea rbx,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_RESULTS]   ; RBX = Test results
 lea rcx,[VectorBriefControl]                        ; RCX = Control table

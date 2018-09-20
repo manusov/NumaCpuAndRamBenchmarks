@@ -17,7 +17,7 @@ SimpleStop:
 push rbx rsi rdi
 cld
 
-; Parameters for text built, write first strings
+; Parameters for text build, write first strings
 lea rsi,[MsgResultSimple]
 lea rdi,[TEMP_BUFFER]
 call StringWrite

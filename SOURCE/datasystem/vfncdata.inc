@@ -5,6 +5,7 @@
 ; import section under Windows XP x64, because some API functions not found.   ;
 ;------------------------------------------------------------------------------;
 
+align 8
 FunctionsPointersAll:
 
 ; Entry points at KERNEL32.DLL
@@ -17,6 +18,10 @@ _GetSystemFirmwareTable          DQ  ?
 _GetLogicalProcessorInformation  DQ  ?
 _GetLargePageMinimum             DQ  ?
 _VirtualAllocEx                  DQ  ?
+_GetActiveProcessorCount         DQ  ?    ; added for support > 64 processors 
+_GetActiveProcessorGroupCount    DQ  ?    ; added for support > 64 processors 
+_GetNumaNodeProcessorMaskEx      DQ  ?    ; added for support > 64 processors
+_SetThreadGroupAffinity          DQ  ?    ; added for support > 64 processors    
 
 ; Entry points at ADVAPI32.DLL
 _OpenProcessToken                DQ  ?

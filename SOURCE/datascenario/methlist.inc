@@ -69,44 +69,46 @@ BMETHOD  Pattern_Dot_FMA512     , DumpStart_Dot_FMA512     , DumpStop_Dot_FMA512
 
 MethodsNonTemporal_SSE41:
 
-BMETHOD  Pattern_Read_MOV64     , DumpStart_Read_MOV64     , DumpStop_Read_MOV64     , 8
-BMETHOD  Pattern_Write_MOV64    , DumpStart_Write_MOV64    , DumpStop_Write_MOV64    , 8
-BMETHOD  Pattern_Copy_MOV64     , DumpStart_Copy_MOV64     , DumpStop_Copy_MOV64     , 8
-BMETHOD  Pattern_Modify_NOT64   , DumpStart_Modify_NOT64   , DumpStop_Modify_NOT64   , 8
-BMETHOD  Pattern_Write_STOSQ    , DumpStart_Write_STOSQ    , DumpStop_Write_STOSQ    , 8
-BMETHOD  Pattern_Copy_MOVSQ     , DumpStart_Copy_MOVSQ     , DumpStop_Copy_MOVSQ     , 8
-BMETHOD  Pattern_NtRead_SSE128  , DumpStart_NtRead_SSE128  , DumpStop_NtRead_SSE128  , 16   ; Non temporal read used
-BMETHOD  Pattern_NtWrite_SSE128 , DumpStart_NtWrite_SSE128 , DumpStop_NtWrite_SSE128 , 16
-BMETHOD  Pattern_NtRCopy_SSE128 , DumpStart_NtRCopy_SSE128 , DumpStop_NtRCopy_SSE128 , 16   ; Non temporal read used 
-BMETHOD  Pattern_Read_AVX256    , DumpStart_Read_AVX256    , DumpStop_Read_AVX256    , 32
-BMETHOD  Pattern_NtWrite_AVX256 , DumpStart_NtWrite_AVX256 , DumpStop_NtWrite_AVX256 , 32
-BMETHOD  Pattern_NtCopy_AVX256  , DumpStart_NtCopy_AVX256  , DumpStop_NtCopy_AVX256  , 32
-BMETHOD  Pattern_Read_AVX512    , DumpStart_Read_AVX512    , DumpStop_Read_AVX512    , 64
-BMETHOD  Pattern_NtWrite_AVX512 , DumpStart_NtWrite_AVX512 , DumpStop_NtWrite_AVX512 , 64
-BMETHOD  Pattern_NtCopy_AVX512  , DumpStart_NtCopy_AVX512  , DumpStop_NtCopy_AVX512  , 64
-BMETHOD  Pattern_Dot_FMA256     , DumpStart_Dot_FMA256     , DumpStop_Dot_FMA256     , 32
-BMETHOD  Pattern_Dot_FMA512     , DumpStart_Dot_FMA512     , DumpStop_Dot_FMA512     , 64
+;- MOVNTDQA/VMOVNTDQA method removed, this entries locked -
+;BMETHOD  Pattern_Read_MOV64     , DumpStart_Read_MOV64     , DumpStop_Read_MOV64     , 8
+;BMETHOD  Pattern_Write_MOV64    , DumpStart_Write_MOV64    , DumpStop_Write_MOV64    , 8
+;BMETHOD  Pattern_Copy_MOV64     , DumpStart_Copy_MOV64     , DumpStop_Copy_MOV64     , 8
+;BMETHOD  Pattern_Modify_NOT64   , DumpStart_Modify_NOT64   , DumpStop_Modify_NOT64   , 8
+;BMETHOD  Pattern_Write_STOSQ    , DumpStart_Write_STOSQ    , DumpStop_Write_STOSQ    , 8
+;BMETHOD  Pattern_Copy_MOVSQ     , DumpStart_Copy_MOVSQ     , DumpStop_Copy_MOVSQ     , 8
+;BMETHOD  Pattern_NtRead_SSE128  , DumpStart_NtRead_SSE128  , DumpStop_NtRead_SSE128  , 16   ; Non temporal read used
+;BMETHOD  Pattern_NtWrite_SSE128 , DumpStart_NtWrite_SSE128 , DumpStop_NtWrite_SSE128 , 16
+;BMETHOD  Pattern_NtRCopy_SSE128 , DumpStart_NtRCopy_SSE128 , DumpStop_NtRCopy_SSE128 , 16   ; Non temporal read used 
+;BMETHOD  Pattern_Read_AVX256    , DumpStart_Read_AVX256    , DumpStop_Read_AVX256    , 32
+;BMETHOD  Pattern_NtWrite_AVX256 , DumpStart_NtWrite_AVX256 , DumpStop_NtWrite_AVX256 , 32
+;BMETHOD  Pattern_NtCopy_AVX256  , DumpStart_NtCopy_AVX256  , DumpStop_NtCopy_AVX256  , 32
+;BMETHOD  Pattern_Read_AVX512    , DumpStart_Read_AVX512    , DumpStop_Read_AVX512    , 64
+;BMETHOD  Pattern_NtWrite_AVX512 , DumpStart_NtWrite_AVX512 , DumpStop_NtWrite_AVX512 , 64
+;BMETHOD  Pattern_NtCopy_AVX512  , DumpStart_NtCopy_AVX512  , DumpStop_NtCopy_AVX512  , 64
+;BMETHOD  Pattern_Dot_FMA256     , DumpStart_Dot_FMA256     , DumpStop_Dot_FMA256     , 32
+;BMETHOD  Pattern_Dot_FMA512     , DumpStart_Dot_FMA512     , DumpStop_Dot_FMA512     , 64
 
 ;--- Supports non-temporal read for 256-bit and 512-bit, VMOVNTDQA ---
 
 MethodsNonTemporal_AVX2:
 
-BMETHOD  Pattern_Read_MOV64     , DumpStart_Read_MOV64     , DumpStop_Read_MOV64     , 8
-BMETHOD  Pattern_Write_MOV64    , DumpStart_Write_MOV64    , DumpStop_Write_MOV64    , 8
-BMETHOD  Pattern_Copy_MOV64     , DumpStart_Copy_MOV64     , DumpStop_Copy_MOV64     , 8
-BMETHOD  Pattern_Modify_NOT64   , DumpStart_Modify_NOT64   , DumpStop_Modify_NOT64   , 8
-BMETHOD  Pattern_Write_STOSQ    , DumpStart_Write_STOSQ    , DumpStop_Write_STOSQ    , 8
-BMETHOD  Pattern_Copy_MOVSQ     , DumpStart_Copy_MOVSQ     , DumpStop_Copy_MOVSQ     , 8
-BMETHOD  Pattern_NtRead_SSE128  , DumpStart_NtRead_SSE128  , DumpStop_NtRead_SSE128  , 16   ; Non temporal read used
-BMETHOD  Pattern_NtWrite_SSE128 , DumpStart_NtWrite_SSE128 , DumpStop_NtWrite_SSE128 , 16
-BMETHOD  Pattern_NtRCopy_SSE128 , DumpStart_NtRCopy_SSE128 , DumpStop_NtRCopy_SSE128 , 16   ; Non temporal read used
-BMETHOD  Pattern_NtRead_AVX256  , DumpStart_NtRead_AVX256  , DumpStop_NtRead_AVX256  , 32   ; Non temporal read used
-BMETHOD  Pattern_NtWrite_AVX256 , DumpStart_NtWrite_AVX256 , DumpStop_NtWrite_AVX256 , 32
-BMETHOD  Pattern_NtRCopy_AVX256 , DumpStart_NtRCopy_AVX256 , DumpStop_NtRCopy_AVX256 , 32   ; Non temporal read used
-BMETHOD  Pattern_NtRead_AVX512  , DumpStart_NtRead_AVX512  , DumpStop_NtRead_AVX512  , 64   ; Non temporal read used
-BMETHOD  Pattern_NtWrite_AVX512 , DumpStart_NtWrite_AVX512 , DumpStop_NtWrite_AVX512 , 64
-BMETHOD  Pattern_NtRCopy_AVX512 , DumpStart_NtRCopy_AVX512 , DumpStop_NtRCopy_AVX512 , 64   ; Non temporal read used
-BMETHOD  Pattern_Dot_FMA256     , DumpStart_Dot_FMA256     , DumpStop_Dot_FMA256     , 32
-BMETHOD  Pattern_Dot_FMA512     , DumpStart_Dot_FMA512     , DumpStop_Dot_FMA512     , 64
+;- MOVNTDQA/VMOVNTDQA method removed, this entries locked -
+;BMETHOD  Pattern_Read_MOV64     , DumpStart_Read_MOV64     , DumpStop_Read_MOV64     , 8
+;BMETHOD  Pattern_Write_MOV64    , DumpStart_Write_MOV64    , DumpStop_Write_MOV64    , 8
+;BMETHOD  Pattern_Copy_MOV64     , DumpStart_Copy_MOV64     , DumpStop_Copy_MOV64     , 8
+;BMETHOD  Pattern_Modify_NOT64   , DumpStart_Modify_NOT64   , DumpStop_Modify_NOT64   , 8
+;BMETHOD  Pattern_Write_STOSQ    , DumpStart_Write_STOSQ    , DumpStop_Write_STOSQ    , 8
+;BMETHOD  Pattern_Copy_MOVSQ     , DumpStart_Copy_MOVSQ     , DumpStop_Copy_MOVSQ     , 8
+;BMETHOD  Pattern_NtRead_SSE128  , DumpStart_NtRead_SSE128  , DumpStop_NtRead_SSE128  , 16   ; Non temporal read used
+;BMETHOD  Pattern_NtWrite_SSE128 , DumpStart_NtWrite_SSE128 , DumpStop_NtWrite_SSE128 , 16
+;BMETHOD  Pattern_NtRCopy_SSE128 , DumpStart_NtRCopy_SSE128 , DumpStop_NtRCopy_SSE128 , 16   ; Non temporal read used
+;BMETHOD  Pattern_NtRead_AVX256  , DumpStart_NtRead_AVX256  , DumpStop_NtRead_AVX256  , 32   ; Non temporal read used
+;BMETHOD  Pattern_NtWrite_AVX256 , DumpStart_NtWrite_AVX256 , DumpStop_NtWrite_AVX256 , 32
+;BMETHOD  Pattern_NtRCopy_AVX256 , DumpStart_NtRCopy_AVX256 , DumpStop_NtRCopy_AVX256 , 32   ; Non temporal read used
+;BMETHOD  Pattern_NtRead_AVX512  , DumpStart_NtRead_AVX512  , DumpStop_NtRead_AVX512  , 64   ; Non temporal read used
+;BMETHOD  Pattern_NtWrite_AVX512 , DumpStart_NtWrite_AVX512 , DumpStop_NtWrite_AVX512 , 64
+;BMETHOD  Pattern_NtRCopy_AVX512 , DumpStart_NtRCopy_AVX512 , DumpStop_NtRCopy_AVX512 , 64   ; Non temporal read used
+;BMETHOD  Pattern_Dot_FMA256     , DumpStart_Dot_FMA256     , DumpStop_Dot_FMA256     , 32
+;BMETHOD  Pattern_Dot_FMA512     , DumpStart_Dot_FMA512     , DumpStop_Dot_FMA512     , 64
 
 ;--- End of methods list ---

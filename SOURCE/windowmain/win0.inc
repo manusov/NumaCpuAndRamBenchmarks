@@ -145,7 +145,7 @@ loop .ScanValue     ; Cycle for calculate value = F(ASCII string)
 .DoneValue:
 mov [BlockSizeEdit],rdx   ; Store value = custom block size
 pop rdi
-; Built ASCII hex number
+; Build ASCII hex number
 mov r9,rdi          ; R9 = Parm#4 = Source buffer
 xchg eax,edx
 call HexPrint32

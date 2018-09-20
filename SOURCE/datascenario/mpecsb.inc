@@ -25,6 +25,7 @@ OptionMeasure     db  ?    ; Measurement: 0=brief, 1=careful
 ; Note non-temporal read recommended for AMD CPU only,
 ; Note non-temporal write recommended for both Intel and AMD
 ; IMPORTANT patch v0.98.0 = non-temporal read use BOTH FOR INTEL AND AMD
+; IMPORTANT patch v1.01.02 = this byte locked to 0 
 NonTemporalRead   db  ?    ; 0 = Default (V)MOVNTPD write and PREFETCHNTA read 
                            ; 1 = SSE4.1 use MOVNTDQA for read 128-bit 
                            ; 2 = AVX2 use VMOVNTDQA for read 256-bit 

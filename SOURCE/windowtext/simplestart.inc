@@ -15,7 +15,7 @@ lea rdi,[InputParms]
 mov esi,HANDLE_X86_READ         ; Compare pattern = FIRST handle
 @@:
 call SendMessageGetCheck
-jz @f                           ; Go if BST_CHECKED
+jz @f                           ; Go if BST_CHECKED (button state checked)
 inc esi
 cmp esi,HANDLE_LAST_METHOD      ; Compare with LAST handle
 jbe @b                          ; Cycle for radio buttons group
@@ -28,10 +28,18 @@ push rsi
 
 ; Extract ENABLE PARALLEL THREADS
 mov esi,HANDLE_PARALLEL_THREADS
-call SendMessageGetCheck
-mov eax,[SystemInfo.dwNumberOfProcessors]
-jz @f
-mov eax,1
+call SendMessageGetCheck          ; Result = ZF flag
+; INT3
+; mov eax,[SystemInfo.dwNumberOfProcessors]
+; jz @f                           ; Go if BST_CHECKED (button state checked)  
+; mov eax,1
+; @@:
+mov eax,1                         ; Default threads count = 1, flags not changed
+jnz @f                            ; Go if button state unchecked
+mov eax,[ProcessorsTotal]         ; Try use Processor Groups info
+cmp eax,MAX_THREADS_PER_GROUP
+ja @f                             ; Go with use Processor Groups if big system
+mov eax,[SystemInfo.dwNumberOfProcessors]  ; Otherwise simple single group
 @@:
 mov [rdi+IPB.NumThreads],eax    ; Write number of threads
 

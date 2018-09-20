@@ -5,13 +5,16 @@
 ; import section under Windows XP x64, because some API functions not found.   ;
 ;------------------------------------------------------------------------------;
 
-NameKernel32:                                ; Libraries names
+; Library name KERNEL32.DLL
+NameKernel32:                         ; Libraries names
 DB  'KERNEL32.DLL',0
 
+; Library name ADVAPI32.DLL
 NameAdvapi32:
 DB  'ADVAPI32.DLL',0
 
-FunctionsNamesKernel32:                      ; Functions names
+; Functions names at KERNEL32.DLL
+FunctionsNamesKernel32:               ; Functions names
 DB  'GlobalMemoryStatusEx',0
 DB  'GetNumaHighestNodeNumber',0
 DB  'GetNumaNodeProcessorMask',0
@@ -21,11 +24,16 @@ DB  'GetSystemFirmwareTable',0
 DB  'GetLogicalProcessorInformation',0
 DB  'GetLargePageMinimum',0
 DB  'VirtualAllocEx',0
-DB  0
+DB  'GetActiveProcessorCount',0             ; added for support > 64 processors 
+DB  'GetActiveProcessorGroupCount',0        ; added for support > 64 processors
+DB  'GetNumaNodeProcessorMaskEx', 0         ; added for support > 64 processors
+DB  'SetThreadGroupAffinity',0              ; added for support > 64 processors
+DB  0                           ; List must be terminared by additional 00 byte
 
+; Functions names at ADVAPI32.DLL
 FunctionsNamesAdvapi32:
 DB  'OpenProcessToken',0
 DB  'AdjustTokenPrivileges',0
-DB  0
+DB  0                           ; List must be terminared by additional 00 byte
 
 

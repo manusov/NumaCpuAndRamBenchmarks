@@ -12,14 +12,38 @@
 ;==============================================================================;
 
 
-; TODO:
+;- TODO:
 ; 1) NUMA OPTIMIZATION ENABLED, UNDER DEBUG. 
 ; 2) LARGE PAGES SEPARATE SUPPORT FOR NUMA AND NON-NUMA, UNDER DEBUG.
-; 3) PROCESSOR GROUPS, PLATFORM WITH > 64 LOGICAL PROCESSORS. 
-; 4) MEASUREMENT TIME MUST BE REDUCED WITHOUT LOSE PRECISION.
-; 5) FOR DRAWINGS, DON'T MAKE MEASUREMENTS IN THE GUI WINDOW EVENT HANDLING
+;
+; 3) PROCESSOR GROUPS, PLATFORM WITH > 64 LOGICAL PROCESSORS.
+;    CHANGES REQUIRED AT ( use text search by commented INT3 ) :
+;     + drawstart.inc (82)
+;     + simplestart.inc (33)
+;     + BuildNumaList, change get numa node processor mask, for group
+;       memalloc.numa (144)
+;     + ThreadEntry, affinitization method = f (groups count)
+;       multithread.inc (360, 405)
+;     + MultiThreadOpen, select ThreadsEntry = f(group mode)
+;       multithread.inc (182)      
+;     + MultiThreadOpen, line ~112, required transfer group after mask
+;       multithread.inc (114)
+;     - BuildNumaList, detect nodes count required change logic
+;       memallocnuma.inc (126, 133)
+;     + Temporary lock Processor Groups detection
+;       ncrb.asm (288)
+;     
+; 4) NUMA PROFILE TEXT STRING WRITE AT DRAWINGS WINDOW.
+; 5) MAKE OPTION FOR PROCESSOR GROUPS. VISUAL ALSO AT REPORTS. (?)
+; 6) MEASUREMENT TIME MUST BE REDUCED WITHOUT LOSE PRECISION.
+; 7) FOR DRAWINGS, DON'T MAKE MEASUREMENTS IN THE GUI WINDOW EVENT HANDLING
 ;    THREAD, USE SEPARATE MEDIATOR THREAD. BUT VECTOR BRIEF AND SIMPLE MODE
 ;    NOT HAVE THIS BUG, REDESIGN DRAWINGS ONLY.
+; 8) YET UNSUPPORTED COMBINATION: NUMA-AWARE AND SINGLE-THREAD,
+;    CAN USE MULTITHREAD CONTEXT WITH THREADS COUNT = 1.
+; 9) FMA HORIZONTAL ADDITION.
+; 10) MOVAPD USED, BUT MOVAPS COMPATIBLE.
+;- 
 
 ; FASM definitions
 include 'win64a.inc'
@@ -27,8 +51,12 @@ include 'win64a.inc'
 ; Block size for RAM benchmark
 CONST_RAM_BLOCK       EQU  32*1024*1024
 
-; Constants for memory allocation option
-MEM_LARGE_PAGES = 020000000h 
+; Constant for memory allocation option
+MEM_LARGE_PAGES = 020000000h
+
+; Constant for processor groups management, as WinAPI input parameter means
+; get total processors count, for all Processor Groups 
+ALL_PROCESSOR_GROUPS = 0000FFFFh 
 
 ; Benchmarks repeat parameters, precision=f(repeats), for Cache&RAM mode
 L1_REPEATS            EQU  100000   ; Number of measur. iter. for objects, normal mode
@@ -42,29 +70,15 @@ L3_REPEATS_SLOW       EQU  10000
 MEM_REPEATS_SLOW      EQU  200
 CM_REPEATS_SLOW       EQU  1000000
 
-; Maximum number of supported threads
-MAX_THREADS           EQU  64
-
-; Maximum number of supported NUMA nodes
-MAX_NODES             EQU  64
-
-; 8192 bytes, 64 entries for (multi) thread management
-THCTRL_SIZE           EQU  128
-THREADS_CONTROL_SIZE  EQU  MAX_THREADS * THCTRL_SIZE
-
-; 512 bytes, 64 handles, separate list req. for WaitForMultipleObjects function  
-EVENT_SIZE            EQU  8
-EVENTS_CONTROL_SIZE   EQU  MAX_THREADS * EVENT_SIZE
-
-; 4096 bytes, 64 entries for NUMA nodes description, not a same as THREAD
-NUMACTRL_SIZE         EQU  64
-NUMA_CONTROL_SIZE     EQU  MAX_NODES * NUMACTRL_SIZE  
-
 ; Thread control entry, or entire benchmark control if single thread
+; Note keep 128 bytes per entry, see ThreadEntry, can be non parametrized coding
+; Note keep all pairs: Affinity Mask + Affinity Group as 2 sequental qwords,
+; this rule required because WinAPI use with direct output store to this qwords 
 struct THCTRL
 EventHandle     dq  ?   ; Event Handle for operation complete signal 
 ThreadHandle    dq  ?   ; Thread Handle for execution thread
 ThreadAffinity  dq  ?   ; Affinity Mask = F (True Affinity Mask, Options) 
+ThreadGroup     dq  ?   ; Processor group, associated with affinity mask
 EntryPoint      dq  ?   ; Entry point to operation subroutine
 Base1           dq  ?   ; Source for read, destination for write and modify
 Base2           dq  ?   ; Destination for copy
@@ -73,26 +87,44 @@ SizeInst        dq  ?   ; Block size, units = instructions, for benchmarking
 LargePages      dq  ?   ; Bit D0=Large Pages, other bits [1-63] = reserved
 Repeats         dq  ?   ; Number of measurement repeats
 TrueAffinity    dq  ?   ; True affinity mask, because modified as f(options)
+TrueGroup       dq  ?   ; Processor group, associated with true affinity mask 
 TrueBase        dq  ?   ; True (before alignment) memory block base for release
-; Note TrueSize not used when memory release, block identified by base
-TrueSize        dq  ?   ; True (before alignment) memory block size for release
-ReturnAffinity  dq  ?   ; Returned affinity mask, for affinitization test
-; Note this 3 entries reserved yet
-ReturnDeltaTSC  dq  ?   ; Pointer to output list of returned dTSC
-ReturnCount     dd  ?   ; Output list entries counter
-ReturnLimit     dd  ?   ; Output list number of entries 
+OrigAffinity    dq  ?   ; Store original affinity mask, also storage for return 
+OrigGroup       dq  ?   ; Store processor group for original offinity mask 
 ends
 
 ; NUMA node description entry, not a same as thread description enrty
+; Note keep 64 bytes per entry, see ThreadEntry, can be non parametrized coding
+; Note keep all pairs: Affinity Mask + Affinity Group as 2 sequental qwords,
+; this rule required because WinAPI use with direct output store to this qwords 
 struct NUMACTRL
 NodeID          dq  ?   ; NUMA Node number, if no NUMA, this field = 0 for all entries
 NodeAffinity    dq  ?   ; NUMA Node affinity mask
-Group           dq  ?   ; Reserved for Processors Group number
+NodeGroup       dq  ?   ; Reserved for Processors Group number
 AlignedBase     dq  ?   ; Block size after alignment, for read/write operation
 AlignedSize     dq  ?   ; Block base address after alignment, for r/w operation 
 TrueBase        dq  ?   ; Base address, returned when allocated, for release, 0=not used 
-Reserved        dq  2 DUP (?)    ; Reserved
+Reserved        dq  2 DUP (?)    ; Reserved for alignment
 ends
+
+; Maximum number of supported threads: total and per processor group
+MAX_THREADS            EQU  256      ; old = 64, this extension is UNDER CONSTRUCTION
+MAX_THREADS_PER_GROUP  EQU  64
+
+; Maximum number of supported NUMA nodes
+MAX_NODES             EQU  64
+
+; 8192 bytes, 64 entries for (multi) thread management
+THCTRL_SIZE           EQU  sizeof.THCTRL
+THREADS_CONTROL_SIZE  EQU  MAX_THREADS * THCTRL_SIZE
+
+; 512 bytes, 64 handles, separate list req. for WaitForMultipleObjects function  
+EVENT_SIZE            EQU  8
+EVENTS_CONTROL_SIZE   EQU  MAX_THREADS * EVENT_SIZE
+
+; 4096 bytes, 64 entries for NUMA nodes description, not a same as THREAD
+NUMACTRL_SIZE         EQU  sizeof.NUMACTRL
+NUMA_CONTROL_SIZE     EQU  MAX_NODES * NUMACTRL_SIZE  
 
 ; Vector brief, test parameters
 VECTOR_BRIEF_DATA_SIZE       EQU  4096     ; Part of L1 (bytes) used as buffer
@@ -254,6 +286,15 @@ jc ErrorProgram1         ; Go error if get SMP info failed
 ; Get Large page size and mappings with large pages availability
 call GetLargePagesInfo
 
+; Get Processor groups info, actual for support >64 logical processors
+; INT3
+; Processor Groups support yet LOCKED
+xor eax,eax
+stosw  ; yet group count = 0
+stosd  ; yet total processor count = 0
+; call GetProcessorGroups
+;- end of locked part
+
 ; Overload topology and cache parameters, if WinAPI data valid
 lea rsi,[TopologicalInfo]
 lea rdi,[CacheL1Code]
@@ -303,10 +344,10 @@ jne @f                     ; Skip clear HT flag if number of threads <> 1
 and [CpuSpecFlags],01111111b
 @@:
 
-; Built Window 0 user interface elements = F (System Information)
+; Build Window 0 user interface elements = F (System Information)
 ; SysInfo Line 1, Processor
 lea rsi,[TextTfms]         ; RSI = Text string "TFMS="
-lea rdi,[TEMP_BUFFER+000]  ; RDI = Built position 0
+lea rdi,[TEMP_BUFFER+000]  ; RDI = Build position 0
 call StringWrite           ; Print "TFMS="
 mov eax,[CpuSignature]     ; TFMS = Type, Family, Model, Stepping
 call HexPrint32            ; Print TFMS as hex number
@@ -314,7 +355,7 @@ mov ax,0000h+'h'
 stosw                      ; "h" and string terminator 00h
 
 ; SysInfo Line 1 continue, CPU Frequency, start use x87 FPU
-lea rdi,[TEMP_BUFFER+080]  ; RDI = Built position 1
+lea rdi,[TEMP_BUFFER+080]  ; RDI = Build position 1
 call StringWrite           ; Print "TSC="
 mov word [rdi],0000h+'?'
 mov rax,[TscClockHz]       ; RAX = Frequency, Hz
@@ -339,7 +380,7 @@ stosb                      ; String terminator 00h
 
 ; SysInfo Line 2, Cache
 lea rsi,[TextCache]        ; RSI = Text string "Cache"
-lea rdi,[TEMP_BUFFER+160]  ; RDI = Built position 2
+lea rdi,[TEMP_BUFFER+160]  ; RDI = Build position 2
 lea r8,[CacheTrace]        ; R8 = Pointer to sysinfo data
 mov ecx,5                  ; RCX = Number of types/levels
 call StringWrite           ; Print "Cache"
@@ -387,7 +428,7 @@ stosb                      ; String terminator 00h
 ; SysInfo Line 3, ACPI MADT, Local APICs, I/O APICs
 lea rbx,[MadtText]         ; RBX = Pointer to System Information
 lea rsi,[TextMadt]         ; RSI = Pointer to Name
-lea rdi,[TEMP_BUFFER+320]  ; RDI = Built position 3
+lea rdi,[TEMP_BUFFER+320]  ; RDI = Build position 3
 cmp dword [rbx+18],0
 jne .PrintMadt             ; Go print if Local APICs count > 0
 lea rsi,[TextNoMadt]
@@ -410,7 +451,7 @@ stosb                      ; String terminator 00h
 ; SysInfo Line 4, ACPI SRAT, NUMA domains, CPUs, RAMs
 lea rbx,[SratText]         ; RBX = Pointer to System Information
 lea rsi,[TextSrat]         ; RSI = Pointer to Name
-lea rdi,[TEMP_BUFFER+480]  ; RDI = Built position 4
+lea rdi,[TEMP_BUFFER+480]  ; RDI = Build position 4
 cmp dword [rbx+18],0
 jne .PrintSrat
 lea rsi,[TextNoSrat]
@@ -438,7 +479,7 @@ stosb                      ; String terminator 00h
 
 ; SysInfo Line 5, NUMA Nodes
 lea rsi,[TextNumaNodes]    ; RSI = Pointer to Name
-lea rdi,[TEMP_BUFFER+640]  ; RDI = Built position 5
+lea rdi,[TEMP_BUFFER+640]  ; RDI = Build position 5
 call StringWrite
 lea rsi,[NumaNodes]
 lodsd                      ; EAX = Number of NUMA Nodes
@@ -470,7 +511,7 @@ stosb					             ; String terminator 00h
 ; SysInfo Line 6, Processors by OS
 lea rcx,[SystemInfo]       ; RCX = Pointer to System Information
 lea rsi,[TextOsCpuCount]	 ; RSI = Pointer to String name
-lea rdi,[TEMP_BUFFER+800]  ; RDI = Built position 6
+lea rdi,[TEMP_BUFFER+800]  ; RDI = Build position 6
 call StringWrite           ; Print "OS processors count="
 mov eax,[rcx+SYSTEM_INFO.dwNumberOfProcessors]
 mov bl,0                   ; BL = 0, mode for decimal print
@@ -492,7 +533,7 @@ stosw
 
 ; SysInfo Line 7, Physical memory by OS
 ; BL, RCX, RSI here valid from previous step
-lea rdi,[TEMP_BUFFER+960]  ; RDI = Built position 7
+lea rdi,[TEMP_BUFFER+960]  ; RDI = Build position 7
 mov bh,2                   ; 2 strings: Physical, Available
 .PrintMemory:              ; Print "OS physical memory (MB)="
 call StringWrite           ; at second pass "Available (MB)="
@@ -623,6 +664,8 @@ or [rbx+L3_CACHE],edx           ; Disable (clear) L3 Cache checkbox
 ; Note non-temporal READ recommended for AMD CPU only,
 ; Note non-temporal WRITE recommended both for Intel and AMD CPU.
 ; Select non-temporal read performance patterns for AMD branch
+; If re-use this mode, note unlock entries at methlist.inc file,
+; and re-connect target performance include files
 
 mov bl,0                     ; BL = 0 means NT Read by VMOVNTDQA not supported
 ; patch v0.98.0 = non-temporal read use BOTH FOR INTEL AND AMD
@@ -646,6 +689,50 @@ mov bl,0                     ; BL = 0 means NT Read by VMOVNTDQA not supported
 ; end of patch v.0.99.0
 
 mov [InputParms.NonTemporalRead],bl     ; Update variable, used for select patterns set
+
+
+
+;========== DEBUG FRAGMENT ====================================================;
+
+; INT3
+; cld
+; lea rbx,[TEMP_BUFFER]
+; mov rdi,rbx
+; mov ecx,TEMP_BUFFER_SIZE
+; mov al,11h
+; rep stosb
+; xor ecx,ecx  ; RCX = node 0
+; mov rdx,rbx  ; RDX = pointer to buffer
+; call [_GetNumaNodeProcessorMaskEx]
+; INT3
+; call [GetCurrentThread]
+; mov rcx,rax
+; mov rdx,rbx
+; lea r8,[rbx+32]
+; call [_SetThreadGroupAffinity]
+; nop
+; nop
+; nop
+
+; INT3
+; mov eax,NUMACTRL_SIZE
+; mov ebx,THCTRL_SIZE
+
+; INT3
+; mov [ProcessorGroups],0
+
+; INT3
+; cld
+; lea rbx,[TEMP_BUFFER]
+; mov rdi,rbx
+; mov ecx,TEMP_BUFFER_SIZE
+; mov al,11h
+; rep stosb
+; call BuildNumaList
+
+;========== END OF DEBUG FRAGMENT =============================================;
+
+
 
 ; Create (Open) parent window = Window 0
 ; Terminology notes: WS = Window Style
@@ -707,7 +794,6 @@ xor r8d,r8d	         ; Parm#3
 mov r9,MB_ICONERROR  ; Parm#4
 call [MessageBoxA]
 jmp ExitProgram
-
 
 ; Continue code section, INCLUDE connections
 ; Build text strings subroutines
@@ -802,14 +888,17 @@ include 'mpetargets\ntdot_fma256.inc'       ; Reserved for FMA with NT Write
 include 'mpetargets\ntdot_fma512.inc'       ; Reserved for FMA with NT Write
 
 ; Additional routines for support non-temporal read
-include 'mpetargets\ntread_sse128.inc'      ; NT Read, SSE 128-bit
+;- MOVNTDQA/VMOVNTDQA method removed, this entries locked -
+; include 'mpetargets\ntread_sse128.inc'    ; NT Read, SSE 128-bit
 include 'mpetargets\ntpread_sse128.inc'     ; NT Prefetch Read, SSE 128-bit
-include 'mpetargets\ntread_avx256.inc'      ; NT Read, AVX 256-bit
+;- MOVNTDQA/VMOVNTDQA method removed, this entries locked -
+; include 'mpetargets\ntread_avx256.inc'      ; NT Read, AVX 256-bit
 include 'mpetargets\ntpread_avx256.inc'     ; NT Prefetch Read, AVX 256-bit
-include 'mpetargets\ntread_avx512.inc'      ; NT Read, AVX 512-bit
-include 'mpetargets\ntrcopy_sse128.inc'     ; NT Read + NT Write, SSE 128-bit
-include 'mpetargets\ntrcopy_avx256.inc'     ; NT Read + NT Write, AVX 256-bit 
-include 'mpetargets\ntrcopy_avx512.inc'     ; NT Read + NT Write, AVX 512-bit 
+;- MOVNTDQA/VMOVNTDQA method removed, this entries locked -
+; include 'mpetargets\ntread_avx512.inc'      ; NT Read, AVX 512-bit
+; include 'mpetargets\ntrcopy_sse128.inc'   ; NT Read + NT Write, SSE 128-bit
+; include 'mpetargets\ntrcopy_avx256.inc'     ; NT Read + NT Write, AVX 256-bit 
+; include 'mpetargets\ntrcopy_avx512.inc'     ; NT Read + NT Write, AVX 512-bit 
 
 ; Routines for mathematics (not memory read-write) benchmarks
 include 'mathtargets\sqrt_sse128.inc'       ; Square root, SSE128, 2 x double 
@@ -829,7 +918,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'   , 0Ah,0Dh
-             DB  'v1.01.00 for Windows x64'  , 0Ah,0Dh
+             DB  'v1.01.05 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'      , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool

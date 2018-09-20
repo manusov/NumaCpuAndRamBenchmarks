@@ -9,9 +9,9 @@ DIALELEMENT  ClassButton , BasePoint , 0007 , 0001    , 0731 , 0168    , WS_VISI
 DIALELEMENT  ClassButton , BasePoint , 0007 , 0169    , 0731 , 0291+36 , WS_VISIBLE+WS_CHILD+BS_GROUPBOX   ; 17 = Frame for options, size Y+36 when add 2 debug routines
 DIALELEMENT  ClassButton , BasePoint , 0007 , 0460+36 , 0731 , 0053    , WS_VISIBLE+WS_CHILD+BS_GROUPBOX   ; 18 = Frame for buttons, Y+36 when add 2 debug routines
 ; Sysinfo strings
-DIALELEMENT  ClassStatic , CpuVendorString , 0017 , 0015 , 0110 , 0020 , WS_VISIBLE+WS_CHILD    ; 19 = CPU Vendor String
+DIALELEMENT  ClassStatic , CpuVendorString  , 0017 , 0015 , 0110 , 0020 , WS_VISIBLE+WS_CHILD   ; 19 = CPU Vendor String
 DIALELEMENT  ClassStatic , TEMP_BUFFER+000  , 0115 , 0015 , 0220 , 0020 , WS_VISIBLE+WS_CHILD   ; 20 = CPU TFMS
-DIALELEMENT  ClassStatic , CpuNameString   , 0250 , 0015 , 0348 , 0020 , WS_VISIBLE+WS_CHILD    ; 21 = CPU Name String
+DIALELEMENT  ClassStatic , CpuNameString    , 0250 , 0015 , 0348 , 0020 , WS_VISIBLE+WS_CHILD   ; 21 = CPU Name String
 DIALELEMENT  ClassStatic , TEMP_BUFFER+080  , 0610 , 0015 , 0110 , 0020 , WS_VISIBLE+WS_CHILD   ; 22 = CPU TSC Frequency, items 1-4 same string
 DIALELEMENT  ClassStatic , TEMP_BUFFER+160  , 0017 , 0036 , 0710 , 0020 , WS_VISIBLE+WS_CHILD   ; 23 = Cache types/levels list
 DIALELEMENT  ClassStatic , TEMP_BUFFER+320  , 0017 , 0057 , 0710 , 0020 , WS_VISIBLE+WS_CHILD   ; 24 = ACPI MADT String

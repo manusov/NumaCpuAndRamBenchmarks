@@ -4,6 +4,8 @@
 
 align 64
 
+; This fields use sequental store (STOS), must be sequentally,
+; without internal alignments
 SystemParameters:
 
 ; CPUID base parameters
@@ -102,7 +104,7 @@ MemoryInfo	      DB  64 DUP (?)     ; Length = 64 bytes
 ; Dword [040-043] = Threads per L2 unified cache 
 ; Dword [044-047] = Threads per L3 unified cache 
 ;--- 16 bytes MULTIPROCESSING TOPOLOGY INFO ---
-; Dword [048-051] = Threads per one core (SMT)
+; Dword [048-051] = Threads per one core (HT/SMT)
 ; Dword [052-055] = Cores per one package (or per one NUMA node)
 ; Dword [056-059] = Total NUMA nodes per platform
 ; Dword [060-063] = Total CPU packages per platform 
@@ -112,4 +114,13 @@ TopologicalInfo   DB  64 DUP (?)     ; Length = 64 bytes
 ; Large page size and availability
 LargePageSize     DQ  ?              ; Used large page size, bytes
 LargePageFlag     DB  ?              ; 0 = mapping not available, 1 = available
+
+; Processor groups count for support systems with >64 logical processors
+; 0 means unknown, supported as single group system
+; 1 means detected single group system
+; >1 means complex system with >1 groups, required processor group management
+ProcessorGroups   DW  ?
+; Total processors count at all groups
+ProcessorsTotal   DD  ?
+
 

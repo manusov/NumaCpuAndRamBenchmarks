@@ -165,7 +165,7 @@ jc .Error2
 .DrawingsPhase:
 
 ; Create (Open) daughter window = Window 1
-; Built child window for drawings Speed=F(Size)
+; Build child window for drawings Speed=F(Size)
 ; Terminology notes: WS = Window Style
 lea rsi,[WindowTitle_Win1]    ; RSI = Window name string pointer
 lea rdi,[Dialogue_Win1]       ; RSI = Dialogue descriptor pointer

@@ -3,7 +3,7 @@ source directory structure description
 -------------------------------------------------------------------------------------------
 ncrb.asm       = main source file, interconnect all includes
 sysinfo        = system information helpers subroutines
-stringwrite    = text strings built helpers subroutines
+stringwrite    = text strings build helpers subroutines
 windowmain     = registration, callback routine and subroutines for application main window
 windowdraw     = registration, callback routine and subroutines for drawings speed=f(size)
 windowtext     = result message simple window for one measurement without drawings

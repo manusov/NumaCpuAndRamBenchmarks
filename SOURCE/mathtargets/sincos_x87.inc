@@ -1,9 +1,11 @@
-;---------- Memory performance patterns ---------------------------------------;
+;---------- Mathematics calculations performance patterns ---------------------;
 ; INPUT:   RSI = Block #1 pointer (64-bit flat)                                ;
 ;          RDI = Block #2 pointer (64-bit flat)                                ;
 ;          R8  = Block #3 pointer (64-bit flat) , used for load data vector    ;
 ;                For Read, Write, Modify use RSI as Source or Destination      ;
 ;                For Copy use RSI = Source , RDI = Destination                 ;
+;                RSI, RDI used for Memory Performance Patterns only,           ;
+;                RSI, RDI don't used for THIS mathematics patterns             ;
 ;          RCX = Block length, units = instructions                            ;
 ;          RBP = Number of measurement repeats                                 ;
 ; OUTPUT:  None                                                                ;

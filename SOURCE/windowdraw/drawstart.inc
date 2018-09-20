@@ -12,7 +12,7 @@
 
 DrawStart:
 
-; Get options 
+; Get options, build IPB 
 call SimpleStart
 
 ; Load base address for compact offsets
@@ -79,8 +79,10 @@ mov byte [rdi+2],0
 mov eax,[InputParms.NumThreads]
 test eax,eax
 jz @f                 ; Skip if number of threads = 0
-cmp eax,64
-ja @f                 ; Skip if Number of threads > 64 (means error, not sup.)
+; INT3
+; cmp eax,64
+cmp eax,MAX_THREADS
+ja @f                 ; Skip if Num. of threads > Limit (means error, not sup.)
 call DecimalPrint32
 @@:
 ; Print number of repeats
@@ -100,6 +102,22 @@ lea rax,[LPages_String]
 @@:
 sub rax,r15
 mov [DialogueContent_Win1+HANDLE_LARGE_PAGES1*16-256+12],ax
+; Print NUMA option state
+lea rax,[NumaOff_String]
+movzx ebx,[InputParms.OptionNUMA]
+lea rax,[NumaOff_String]
+test ebx,ebx
+jz @f                   ; Go if option = 0 = Platform without NUMA 
+lea rax,[NumaU_String]
+dec ebx
+jz @f                   ; Go if option = 1 = NUMA unaware test on NUMA platform 
+lea rax,[NumaL_String]
+dec ebx
+jz @f                   ; Go if option = 2 = NUMA local test on NUMA platform
+lea rax,[NumaR_String]  ; 3 = NUMA remote test on NUMA platform 
+@@:
+sub rax,r15
+mov [DialogueContent_Win1+HANDLE_NUMA_MODE1*16-256+12],ax
 pop rdi rbx
 
 ; Set bytes per instruction(s) or hardware iteration cycle

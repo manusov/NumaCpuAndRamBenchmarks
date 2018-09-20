@@ -108,8 +108,8 @@ ErrorReleaseNuma:
 stc
 jmp ExitReleaseNuma
 
-;---------- NUMA nodes scan and built list of nodes ---------------------------;
-; INPUT:   RBX = Pointer to nodes list                                         ;
+;---------- NUMA nodes scan and build list of nodes ---------------------------;
+; INPUT:   RBX = Pointer to nodes list, destination for this subroutine        ;
 ; OUTPUT:  CF = Error flag: 0(NC)=no errors, 1(C)=error                        ;
 ;          EAX = Number of allocated nodes, valid if CF=0(NC)                  ;
 ;          NUMA enumeration list updated                                       ;
@@ -140,7 +140,18 @@ NumaScan:
 mov [rbx+NUMACTRL.NodeID],rsi        ; Store node number
 mov ecx,esi                          ; RCX = Parm #1 = Node number
 lea rdx,[rbx+NUMACTRL.NodeAffinity]  ; RDX = Parm #2 = Pointer Processor Mask
-call [_GetNumaNodeProcessorMask]     ; Write qword to [rdx]
+;
+; INT3
+cmp [ProcessorsTotal],MAX_THREADS_PER_GROUP
+jbe .GetSmallMask 
+.GetBigMask:
+call [_GetNumaNodeProcessorMaskEx]   ; Write qword to [rdx], [rdx+8], mask+group
+jmp .AfterGetMask
+.GetSmallMask:
+call [_GetNumaNodeProcessorMask]     ; Write qword to [rdx], affinity mask
+mov [rbx+NUMACTRL.NodeGroup],0       ; Processor Group always 0 for this branch  
+.AfterGetMask:
+;- end of changed -
 test  rax,rax
 jz @f                            ; Go skip validation if error returned
 ;- add at v1.01.00 for count ACTIVE NODES ONLY, when affinity mask non zero

@@ -180,8 +180,15 @@ TextMBPS1        DB  12 DUP (' '),0
 Threads_String   DB  'Threads='
 Threads_Number   DB  2+1 DUP (0)
 
-NPages_String    DB ' ',0
-LPages_String    DB 'Large pages',0
+; Text strings for paging options
+NPages_String    DB  '4K pages',0
+LPages_String    DB  'Large pages',0
+
+; Text strings for NUMA options
+NumaOff_String   DB  ' ',0
+NumaU_String     DB  'NUMA unaware',0
+NumaL_String     DB  'NUMA local',0
+NumaR_String     DB  'NUMA remote',0
 
 ; Text strings for number of repeats
 Repeats_String   DB  'Repeats='

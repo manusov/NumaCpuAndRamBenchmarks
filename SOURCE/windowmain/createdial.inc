@@ -12,12 +12,12 @@ mov rbp,rsp                  ; RBP used for restore RSP and addressing variables
 and rsp,0FFFFFFFFFFFFFFF0h   ; Align stack because Win API used 
 cld
 ; Start cycle for create elements
-.BuiltCycle:
+.BuildCycle:
 xor ecx,ecx                  ; RCX = 0 for some parameters push
 xor eax,eax                  ; This clear entire RAX, but compact blank
 lodsw	                       ; Get X7 from macro
 test eax,eax
-jz .EndBuiltWin              ; Go exit sequence if end detected, Ysize=0
+jz .EndBuildWin              ; Go exit sequence if end detected, Ysize=0
 push rcx                     ; Parm#12 = Pointer to passed parameters = 0, means none
 push r14                     ; Parm#11 = Parent module handle = [wc.hInstance]
 push rdi                     ; Parm#10 = Handle to menu, if used for this window type = 0, means none
@@ -40,14 +40,14 @@ add r8,r15                   ; Parm#3  = Pointer to Window name = WindowTitle
 @@:
 lodsw
 lea rdx,[r15+rax]            ; Parm#2  = Pointer to Window class name = ClassName
-sub rsp,32                   ; Built frame, note RCX = Parm#1  = Extended window style = 0 , means none
+sub rsp,32                   ; Build frame, note RCX = Parm#1  = Extended window style = 0 , means none
 call [CreateWindowEx]
 add rsp,32+8*8
 mov [r15-BasePoint+SubHandles-128+rdi*8],rax
 inc rdi                      ; Element handle +1
 test rax,rax
-jnz .BuiltCycle              ; Cycle for all descriptors, exit if error when RAX=0
-.EndBuiltWin:
+jnz .BuildCycle              ; Cycle for all descriptors, exit if error when RAX=0
+.EndBuildWin:
 ; End cycle for create elements
 ExitRbp:
 mov rsp,rbp

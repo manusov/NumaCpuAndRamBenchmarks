@@ -10,7 +10,7 @@
 MemoryAllocation:
 mov rbp,rsp                    ; RBP = Save input RSP
 and rsp,0FFFFFFFFFFFFFFF0h     ; Align stack because WinAPI used
-sub rsp,32                     ; Built parameters shadow, 4 qwords
+sub rsp,32                     ; Build parameters shadow, 4 qwords
 
 ; Normal and Large Pages branches divergention
 test [rbx+THCTRL.LargePages],0001h
@@ -78,7 +78,7 @@ ret
 MemoryRelease:
 mov rbp,rsp                    ; RBP = Save input RSP
 and rsp,0FFFFFFFFFFFFFFF0h     ; Align stack because WinAPI used
-sub rsp,32                     ; Built parameters shadow, 4 qwords
+sub rsp,32                     ; Build parameters shadow, 4 qwords
 
 ; Normal and Large Pages branches divergention
 test [rbx+THCTRL.LargePages],0001h

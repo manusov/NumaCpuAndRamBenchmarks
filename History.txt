@@ -40,3 +40,11 @@ Add Vector Brief test.
 v1.01.00
 Experimental unlock numa-aware support.
 
+v1.01.05
+Improve code comments.
+Internal changes for support Processor Groups
+and platform with above 64 logical processors.
+This feature yet locked.
+Some code optimization, remove unused performance
+patterns.
+

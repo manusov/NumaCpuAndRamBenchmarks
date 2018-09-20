@@ -212,10 +212,10 @@ shr ecx,5
 jz .ErrorOsMpInfo            ; Go error if size too small 
 
 push rdi
-; Scan WinAPI output data and built control structure
+; Scan WinAPI output data and build control structure
 ; RCX = Number of entries
 ; RSI = Pointer to source data for scan
-; RBX = Pointer to destination data for built
+; RBX = Pointer to destination data for build
 ; Begin scan cycle
 .ScanRelations:
 lodsq
@@ -320,3 +320,33 @@ jmp ExitCpuClk
 .ErrorOsMpInfo:
 stc
 jmp .ExitOsMpInfo
+
+;------------------------------------------------------------------------;
+; Get number of processor groups,                                        ;
+; actual for support systems with > 64 logical processors                ;
+;                                                                        ;
+; INPUT:   RDI = Destination pointer for save ACPI SRAT info             ;
+; OUTPUT:  RDI = Input RDI + 2, output size is WORD                      ;
+;------------------------------------------------------------------------;
+GetProcessorGroups:
+mov rbp,rsp
+and rsp,0FFFFFFFFFFFFFFF0h   ; Align stack because WinAPI call
+sub rsp,32                   ; Make parameter shadow because WinAPI call
+; Detect processor groups
+mov rax,[_GetActiveProcessorGroupCount]
+test rax,rax
+jz .NoGroups
+call rax     ; RAX = this subroutine address after dynamical import
+.NoGroups:
+stosw        ; Store groups count, 16-bit value, 0 means simple single group
+; Detect total processors count per all groups
+mov rax,[_GetActiveProcessorCount]
+test rax,rax
+jz .NoProcessorsTotal 
+mov ecx,ALL_PROCESSOR_GROUPS
+call rax             ; RAX = this subroutine address after dynamical import
+.NoProcessorsTotal:
+stosd                ; Store total (all groups) processors count, 32-bit value, 
+mov rsp,rbp          ; 0 means use legacy method
+ret
+

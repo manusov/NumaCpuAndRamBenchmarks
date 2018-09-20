@@ -2,7 +2,7 @@
 
 ;---------- Open threads session: allocate memory, events, threads handles ----;
 ; INPUT:   RBX = Pointer to Threads Control List + Signaled Events List        ;
-;          ECX = Number of threads                                             ;
+;          ECX = Number of Threads                                             ;
 ;          First entry of Threads Control List contains operational data       ;   
 ; OUTPUT:  CF = Error flag: 0(NC)=no errors, 1(C)=error                        ;
 ;          Registers corrupted, except R15 = saved                             ;
@@ -13,7 +13,7 @@ cld
 ; Stack alignment, required because OS API used
 mov rbp,rsp                    ; RBP = Save input RSP
 and rsp,0FFFFFFFFFFFFFFF0h     ; Align stack because WinAPI used
-sub rsp,32                     ; Built parameters shadow, 4 qwords
+sub rsp,32                     ; Build parameters shadow, 4 qwords
 
 ; Divide total size (bytes) by number of threads
 mov rax,[rbx+THCTRL.SizeBytes]
@@ -111,6 +111,11 @@ mov [rbx+THCTRL.SizeBytes],r8
 mov [rbx+THCTRL.SizeInst],r9
 mov [rbx+THCTRL.ThreadAffinity],rax
 
+; INT3
+push qword [r14+NUMACTRL.NodeGroup]
+pop qword [rbx+THCTRL.ThreadGroup]
+;
+
 ; Make cycle for threads
 add r11,r8
 add r12,r8
@@ -179,8 +184,14 @@ stosq                              ; Store handle in the handles sequental list
 ; Create threads
 xor ecx,ecx                        ; RCX = Parm#1 = Security
 xor edx,edx                        ; RDX = Parm#2 = Stack size, 0=default
+; INT3
 lea r8,[ThreadsEntry]              ; R8  = Parm#3 = Execute routine pointer
-mov r9d,ebx                        ; R9  = Parm#4 = Subroutine parameter, 0-63
+cmp [ProcessorsTotal],MAX_THREADS_PER_GROUP
+jbe .AfterSetEntry                 ; Go if simple system, single group 
+lea r8,[ThreadsEntryGroupMode]     ; This routine with affinitization with groups
+.AfterSetEntry:
+;
+mov r9d,ebx                        ; R9  = Parm#4 = Subroutine parameter, 0-63 or 0-255(if Groups)
 push 0                             ; Parm#6 = Thread ID return , 0=None
 push CREATE_SUSPENDED              ; Parm#5 = Creating Flags = Suspended
 sub rsp,32                         ; Make parameters shadow
@@ -212,7 +223,7 @@ MultiThreadClose:
 ; Stack alignment, required because OS API used
 mov rbp,rsp                    ; RBP = Save input RSP
 and rsp,0FFFFFFFFFFFFFFF0h     ; Align stack because WinAPI used
-sub rsp,32                     ; Built parameters shadow, 4 qwords
+sub rsp,32                     ; Build parameters shadow, 4 qwords
 ; Release all memory
 push rbx rcx rbp
 mov al,[InputParms.OptionNUMA]
@@ -275,7 +286,7 @@ MultiThreadBenchmark:     ; This entry point for multi-thread benchmark mode
 ; Stack alignment, required because OS API used, save number of threads
 mov rbp,rsp                    ; RBP = Save input RSP
 and rsp,0FFFFFFFFFFFFFFF0h     ; Align stack because WinAPI used
-sub rsp,32                     ; Built parameters shadow, 4 qwords
+sub rsp,32                     ; Build parameters shadow, 4 qwords
 mov rsi,rbx                    ; RSI = Store control list pointer
 mov edi,ecx                    ; RDI = Store number of threads
 ; Serializing and get TSC, measurement interval start
@@ -358,18 +369,21 @@ jnz RestartThreads                  ; Cycle for all entries
 jmp WaitThreads
 
 ;---------- Thread routine, called by OS callback mechanism -------------------;
+; Variant without support Processor Groups, systems with <64 logical CPUs      ;
+;                                                                              ;
 ; INPUT:   RCX = Parm#1 = Thread ID, 0-63                                      ;
 ; OUTPUT:  None, because no return                                             ;
 ;------------------------------------------------------------------------------;
 ThreadsEntry:
 and rsp,0FFFFFFFFFFFFFFF0h
-sub rsp,32                    ; Built parameters shadow, 4 qwords
+sub rsp,32                    ; Build parameters shadow, 4 qwords
 ; Calculate thread control entry offset = f(thread id)
 and ecx,0000003Fh             ; Initialize entire 64-bit RCX
 shl ecx,7                     ; Shift because 128 bytes per block
 lea r15,[ThreadsControl+rcx]  ; R15 = Address for block for this thread
+
 ; This point for restart thread
-ThreadRepeat:
+.ThreadRepeat:
 mov rbx,r15
 ; Set affinity mask for this thread
 mov rcx,[rbx+THCTRL.ThreadHandle]     ; Parm#1 = RCX = Thread handle
@@ -391,5 +405,45 @@ call [WaitForSingleObject]
 test rax,rax                  ; RAX = Return = 0 if object state = signaled
 jz @b                         ; Wait if object signaled
 ; Restart thread
-jmp ThreadRepeat
+jmp .ThreadRepeat
+
+;---------- Thread routine, called by OS callback mechanism -------------------;
+; Variant with support Processor Groups, systems with >64 logical CPUs         ;
+;                                                                              ;
+; INPUT:   RCX = Parm#1 = Thread ID, 0-255                                     ;
+; OUTPUT:  None, because no return                                             ;
+;------------------------------------------------------------------------------;
+ThreadsEntryGroupMode:
+and rsp,0FFFFFFFFFFFFFFF0h
+sub rsp,32                    ; Build parameters shadow, 4 qwords
+; Calculate thread control entry offset = f(thread id)
+and ecx,0000003Fh             ; Initialize entire 64-bit RCX
+shl ecx,7                     ; Shift because 128 bytes per block
+lea r15,[ThreadsControl+rcx]  ; R15 = Address for block for this thread
+
+; This point for restart thread
+.ThreadRepeat:
+mov rbx,r15
+; Set affinity mask for this thread
+mov rcx,[rbx+THCTRL.ThreadHandle]     ; Parm#1 = RCX = Thread handle
+lea rdx,[rbx+THCTRL.ThreadAffinity]   ; Parm#2 = RDX = Pointer to mask + group
+lea r8,[rbx+THCTRL.OrigAffinity]      ; Parm#3 = R8 = Pointer to get original
+test rdx,rdx
+jz @f                ; Skip set affinity mask if memory allocated without NUMA
+call [_SetThreadGroupAffinity]      ; This changed for Processor Groups
+@@:
+; Target memory operation
+call SingleThreadBenchmark
+; Signaling thread terminated
+mov rcx,[r15+THCTRL.EventHandle]    ; RCX = Parm#1 = Handle for this thread
+call [SetEvent]                     ; Call WinAPI function
+; Wait for thread re-run
+@@:
+mov rcx,[r15+THCTRL.EventHandle]  ; RCX = Parm#1 = Handle for this thread
+xor edx,edx                       ; RDX = Parm#2 = 0, means return without wait
+call [WaitForSingleObject]
+test rax,rax                  ; RAX = Return = 0 if object state = signaled
+jz @b                         ; Wait if object signaled
+; Restart thread
+jmp .ThreadRepeat
 

@@ -5,7 +5,7 @@
 ;                           1(C)  = one or some functions not found,           ;
 ;                                   need generating warning box                ;
 ;         Statical table used: FunctionsNames as text strings                  ;
-;         Builted table used: FunctionsPointers, x[i]=0 = means not found      ;
+;         Builded table used: FunctionsPointers, x[i]=0 = means not found      ;
 ;                                                                              ;
 ; OUTPUT: None                                                                 ;
 ;         Registers save/destroy by Microsoft x64 calling convention           ;
@@ -14,7 +14,7 @@ ShowWarningAPI:
 jnc .L9
 push rbx rsi rdi
 cld
-; Parameters for text built
+; Parameters for text build
 lea rsi,[MsgWarnAPI]
 lea rdi,[TEMP_BUFFER]
 mov rdx,rdi                  ; RDX = Parm#2 = Pointer to string
