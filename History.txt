@@ -52,4 +52,9 @@ v1.01.06
 Restrict threads affinitization if Hyper-Threading or SMT
 supported by platform but not enabled by test option settings.
 
+v1.01.07
+Optimized SSE tests code size:
+use MOVAPS instead MOVAPD,
+use MOVNTPS instead MOVNTPD.
+
 
