@@ -24,7 +24,7 @@ mov r8d,256                    ; R8 = Addend, this operation also clear bits R8[
 ; Big cycle
 DumpStart_NtCopy_SSE128:
 Block_NtCopy_SSE128:
-; patch v0.98.1
+; prefetch and non-temporal hint
 cmp rdx,1
 je @f
 prefetchnta [rax-16*08+r8]
@@ -32,39 +32,39 @@ prefetchnta [rax-16*04+r8]
 prefetchnta [rax+16*00+r8]
 prefetchnta [rax+16*04+r8]
 @@:
-; end of patch v0.98.1
-movapd xmm0,[rax-16*08]
-movntpd [rbx-16*08],xmm0
-movapd xmm1,[rax-16*07]
-movntpd [rbx-16*07],xmm1
-movapd xmm2,[rax-16*06]
-movntpd [rbx-16*06],xmm2
-movapd xmm3,[rax-16*05]
-movntpd [rbx-16*05],xmm3
-movapd xmm4,[rax-16*04]
-movntpd [rbx-16*04],xmm4
-movapd xmm5,[rax-16*03]
-movntpd [rbx-16*03],xmm5
-movapd xmm6,[rax-16*02]
-movntpd [rbx-16*02],xmm6
-movapd xmm7,[rax-16*01]
-movntpd [rbx-16*01],xmm7
-movapd xmm8,[rax+16*00]
-movntpd [rbx+16*00],xmm8
-movapd xmm9,[rax+16*01]
-movntpd [rbx+16*01],xmm9
-movapd xmm10,[rax+16*02]
-movntpd [rbx+16*02],xmm10
-movapd xmm11,[rax+16*03]
-movntpd [rbx+16*03],xmm11
-movapd xmm12,[rax+16*04]
-movntpd [rbx+16*04],xmm12
-movapd xmm13,[rax+16*05]
-movntpd [rbx+16*05],xmm13
-movapd xmm14,[rax+16*06]
-movntpd [rbx+16*06],xmm14
-movapd xmm15,[rax+16*07]
-movntpd [rbx+16*07],xmm15
+; end of prefetch and non-temporal hint
+movaps xmm0,[rax-16*08]
+movntps [rbx-16*08],xmm0
+movaps xmm1,[rax-16*07]
+movntps [rbx-16*07],xmm1
+movaps xmm2,[rax-16*06]
+movntps [rbx-16*06],xmm2
+movaps xmm3,[rax-16*05]
+movntps [rbx-16*05],xmm3
+movaps xmm4,[rax-16*04]
+movntps [rbx-16*04],xmm4
+movaps xmm5,[rax-16*03]
+movntps [rbx-16*03],xmm5
+movaps xmm6,[rax-16*02]
+movntps [rbx-16*02],xmm6
+movaps xmm7,[rax-16*01]
+movntps [rbx-16*01],xmm7
+movaps xmm8,[rax+16*00]
+movntps [rbx+16*00],xmm8
+movaps xmm9,[rax+16*01]
+movntps [rbx+16*01],xmm9
+movaps xmm10,[rax+16*02]
+movntps [rbx+16*02],xmm10
+movaps xmm11,[rax+16*03]
+movntps [rbx+16*03],xmm11
+movaps xmm12,[rax+16*04]
+movntps [rbx+16*04],xmm12
+movaps xmm13,[rax+16*05]
+movntps [rbx+16*05],xmm13
+movaps xmm14,[rax+16*06]
+movntps [rbx+16*06],xmm14
+movaps xmm15,[rax+16*07]
+movntps [rbx+16*07],xmm15
 add rax,r8                     ; Modify source address, addend=register (not constant) for optimization!
 add rbx,r8                     ; Modify destination address, addend=register (not constant) for optimization!
 dec rdx
@@ -78,8 +78,8 @@ jz Measure_NtCopy_SSE128
 mov r8d,16
 ; Tail cycle
 Tail_NtCopy_SSE128:
-movapd xmm0,[rax-16*08]
-movntpd [rbx-16*08],xmm0
+movaps xmm0,[rax-16*08]
+movntps [rbx-16*08],xmm0
 add rax,r8                     ; Modify source address, addend=register (not constant) for optimization!
 add rbx,r8                     ; Modify destination address, addend=register (not constant) for optimization!
 dec edx

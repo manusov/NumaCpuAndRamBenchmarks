@@ -23,22 +23,22 @@ mov ebx,256                     ; RBX = Addend, this operation also clear bits R
 ; Big cycle
 DumpStart_NtWrite_SSE128:
 Block_NtWrite_SSE128:
-movntpd [rax-16*08],xmm0
-movntpd [rax-16*07],xmm1
-movntpd [rax-16*06],xmm2
-movntpd [rax-16*05],xmm3
-movntpd [rax-16*04],xmm4
-movntpd [rax-16*03],xmm5
-movntpd [rax-16*02],xmm6
-movntpd [rax-16*01],xmm7
-movntpd [rax+16*00],xmm8
-movntpd [rax+16*01],xmm9
-movntpd [rax+16*02],xmm10
-movntpd [rax+16*03],xmm11
-movntpd [rax+16*04],xmm12
-movntpd [rax+16*05],xmm13
-movntpd [rax+16*06],xmm14
-movntpd [rax+16*07],xmm15
+movntps [rax-16*08],xmm0
+movntps [rax-16*07],xmm1
+movntps [rax-16*06],xmm2
+movntps [rax-16*05],xmm3
+movntps [rax-16*04],xmm4
+movntps [rax-16*03],xmm5
+movntps [rax-16*02],xmm6
+movntps [rax-16*01],xmm7
+movntps [rax+16*00],xmm8
+movntps [rax+16*01],xmm9
+movntps [rax+16*02],xmm10
+movntps [rax+16*03],xmm11
+movntps [rax+16*04],xmm12
+movntps [rax+16*05],xmm13
+movntps [rax+16*06],xmm14
+movntps [rax+16*07],xmm15
 add rax,rbx                     ; Modify address, addend=register (not constant) for optimization!
 dec rdx
 jnz Block_NtWrite_SSE128        ; Cycle for block data transfer, DEC/JNZ is faster than LOOP!
@@ -51,7 +51,7 @@ jz Measure_NtWrite_SSE128
 mov ebx,16
 ; Tail cycle
 Tail_NtWrite_SSE128:
-movntpd [rax-16*08],xmm0
+movntps [rax-16*08],xmm0
 add rax,rbx                     ; Modify address, addend=register (not constant) for optimization!
 dec edx
 jnz Tail_NtWrite_SSE128         ; Cycle for tail data transfer, DEC/JNZ is faster than LOOP!

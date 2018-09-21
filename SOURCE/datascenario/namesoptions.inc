@@ -67,9 +67,9 @@ AM_03  DB  'Copy x86-64 (MOV)',0                                       ; 3
 AM_04  DB  'Modify x86-64 (NOT)',0                                     ; 4
 AM_05  DB  'Write x86-64 strings (REP STOSQ)',0                        ; 5 
 AM_06  DB  'Copy x86-64 strings (REP MOVSQ)',0                         ; 6
-AM_07  DB  'Read SSE-128 (MOVAPD)',0                                   ; 7  
-AM_08  DB  'Write SSE-128 (MOVAPD)',0                                  ; 8    *
-AM_09  DB  'Copy SSE-128 (MOVAPD)',0                                   ; 9    *
+AM_07  DB  'Read SSE-128 (MOVAPS)',0                                   ; 7  
+AM_08  DB  'Write SSE-128 (MOVAPS)',0                                  ; 8    *
+AM_09  DB  'Copy SSE-128 (MOVAPS)',0                                   ; 9    *
 AM_10  DB  'Read AVX-256 (VMOVAPD)',0                                  ; 10
 AM_11  DB  'Write AVX-256 (VMOVAPD)',0                                 ; 11   *
 AM_12  DB  'Copy AVX-256 (VMOVAPD)',0                                  ; 12   *
@@ -79,8 +79,8 @@ AM_15  DB  'Copy AVX-512 (VMOVAPD)',0                                  ; 15   *
 AM_16  DB  'Dot product FMA-256 (VFMADD231)',0                         ; 16 
 AM_17  DB  'Dot product FMA-512 (VFMADD231)',0                         ; 17
 ; Additions for non-temporal Write
-AM_18  DB  'Non-temporal write SSE-128 (MOVNTPD)',0                    ; 18   
-AM_19  DB  'Non-temporal copy SSE-128 (MOVAPD+MOVNTPD)',0              ; 19
+AM_18  DB  'Non-temporal write SSE-128 (MOVNTPS)',0                    ; 18   
+AM_19  DB  'Non-temporal copy SSE-128 (MOVAPS+MOVNTPS)',0              ; 19
 AM_20  DB  'Non-temporal write AVX-256 (VMOVNTPD)',0                   ; 20
 AM_21  DB  'Non-temporal copy AVX-256 (VMOVAPD+VMOVNTPD)',0            ; 21
 AM_22  DB  'Non-temporal write AVX-512 (VMOVNTPD)',0                   ; 22
@@ -94,8 +94,8 @@ AM_28  DB  'Non-temporal read AVX-512 (VMOVNTDQA)',0                   ; 28
 AM_29  DB  'Non-temporal copy AVX-512 (VMOVNTDQA+VMOVNTPD)',0          ; 29
 ; Additions for non-temporal Read if CPU not supports (V)MOVNTDQA, v0.98.2
 ; also if (V)MOVNTDQA is supported, but non-optimal
-AM_30  DB  'Non-temporal read SSE-128 (PREFETCHNTA+MOVAPD)',0          ; 30   
-AM_31  DB  'Non-temporal copy SSE-128 (PREFETCHNTA+MOVAPD+MOVNTPD)',0  ; 31
+AM_30  DB  'Non-temporal read SSE-128 (PREFETCHNTA+MOVAPS)',0          ; 30   
+AM_31  DB  'Non-temporal copy SSE-128 (PREFETCHNTA+MOVAPS+MOVNTPS)',0  ; 31
 ; Additions for non-temporal Read if CPU not supports (V)MOVNTDQA, v0.99.0
 ; also if (V)MOVNTDQA is supported, but non-optimal
 AM_32  DB  'Non-temporal read AVX-256 (PREFETCHNTA+VMOVAPD)',0         ; 32

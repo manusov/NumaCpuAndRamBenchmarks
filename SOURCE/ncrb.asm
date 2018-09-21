@@ -77,9 +77,11 @@
 ;
 ; 11)-- FMA HORIZONTAL ADDITION.
 ;
-; 12)-- MOVAPD USED, BUT MOVAPS COMPATIBLE FOR SSE1 PERFORMANCE PATTERNS.
+; 12)+- MOVAPD USED, BUT MOVAPS COMPATIBLE FOR SSE1 PERFORMANCE PATTERNS.
 ;       BUT THIS VARIANT IS USEABLE AT 64-BIT MODE, 
 ;       DOUBLE PRECISION FOR SSE SUPPORTED BY X64 CPUs.
+;       UPDATE INSTRUCTIONS NAMES MESSAGES WHEN UPDATE CODE.
+;       But SQRTPD still double precision, Vector Brief test.
 ;
 ;- 
 
@@ -956,7 +958,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'   , 0Ah,0Dh
-             DB  'v1.01.06 for Windows x64'  , 0Ah,0Dh
+             DB  'v1.01.07 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'      , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool
