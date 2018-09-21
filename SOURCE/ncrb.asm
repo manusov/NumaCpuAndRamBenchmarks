@@ -12,37 +12,75 @@
 ;==============================================================================;
 
 
-;- TODO:
-; 1) NUMA OPTIMIZATION ENABLED, UNDER DEBUG. 
-; 2) LARGE PAGES SEPARATE SUPPORT FOR NUMA AND NON-NUMA, UNDER DEBUG.
+;--- TODO ---
 ;
-; 3) PROCESSOR GROUPS, PLATFORM WITH > 64 LOGICAL PROCESSORS.
-;    CHANGES REQUIRED AT ( use text search by commented INT3 ) :
-;     + drawstart.inc (82)
-;     + simplestart.inc (33)
-;     + BuildNumaList, change get numa node processor mask, for group
-;       memalloc.numa (144)
-;     + ThreadEntry, affinitization method = f (groups count)
-;       multithread.inc (360, 405)
-;     + MultiThreadOpen, select ThreadsEntry = f(group mode)
-;       multithread.inc (182)      
-;     + MultiThreadOpen, line ~112, required transfer group after mask
-;       multithread.inc (114)
-;     - BuildNumaList, detect nodes count required change logic
-;       memallocnuma.inc (126, 133)
-;     + Temporary lock Processor Groups detection
-;       ncrb.asm (288)
+; mark legend:
+; -- functionality under construction
+; +- functionality present, include locked functionality, verify required
+; ++ functionality verify OK
+;
+; 1)+-  NUMA OPTIMIZATION ENABLED, UNDER DEBUG.
+; 
+; 2)+-  LARGE PAGES SEPARATE SUPPORT FOR NUMA AND NON-NUMA, UNDER DEBUG.
+;
+; 3)+-  USE AFFINITY MASKS FOR HYPER-THREADING / SMT,
+;       ACTUAL REQUIRED CHANGES: multithread.inc ( 97, 159, 181 )
+;       ACTUAL CHECKPOINT: multithread.inc ( 412 ) 
+;         ACTUAL WHEN NT=OFF by applications, 
+;         need overried OS default affinitization
+;         not supported by platform = no masking
+;         supported by platform and used by test = no masking
+;         supported by platform, not used by test = mask 0101...0101b   
+;         NOT BY PROCESSOR COUNT ONLY.
+;         BUG: no affinitization, threads count only, means by OS politics
+;         simplestart.inc (46, 51, 61)
+;         simpleprogress.inc (147) , analysing point
+;         multithread.inc (112, 157, 167) , add masking to cycle
+;          
+;
+; 4)--  PROCESSOR GROUPS, PLATFORM WITH > 64 LOGICAL PROCESSORS.
+;       CHANGES REQUIRED AT ( use text search by commented INT3 ) :
+;       + drawstart.inc (82)
+;       + simplestart.inc (33)
+;       + BuildNumaList, change get numa node processor mask, for group
+;         memalloc.numa (144)
+;       + ThreadEntry, affinitization method = f (groups count)
+;         multithread.inc (360, 405)
+;       + MultiThreadOpen, select ThreadsEntry = f(group mode)
+;         multithread.inc (182)      
+;       + MultiThreadOpen, line ~112, required transfer group after mask
+;         multithread.inc (114)
+;       - BuildNumaList, detect nodes count required change logic
+;         memallocnuma.inc (126, 133)
+;       - Per-group masking required
+;         multithread.inc (100)
+;       + Temporary lock Processor Groups detection
+;         ncrb.asm (316)
 ;     
-; 4) NUMA PROFILE TEXT STRING WRITE AT DRAWINGS WINDOW.
-; 5) MAKE OPTION FOR PROCESSOR GROUPS. VISUAL ALSO AT REPORTS. (?)
-; 6) MEASUREMENT TIME MUST BE REDUCED WITHOUT LOSE PRECISION.
-; 7) FOR DRAWINGS, DON'T MAKE MEASUREMENTS IN THE GUI WINDOW EVENT HANDLING
-;    THREAD, USE SEPARATE MEDIATOR THREAD. BUT VECTOR BRIEF AND SIMPLE MODE
-;    NOT HAVE THIS BUG, REDESIGN DRAWINGS ONLY.
-; 8) YET UNSUPPORTED COMBINATION: NUMA-AWARE AND SINGLE-THREAD,
-;    CAN USE MULTITHREAD CONTEXT WITH THREADS COUNT = 1.
-; 9) FMA HORIZONTAL ADDITION.
-; 10) MOVAPD USED, BUT MOVAPS COMPATIBLE.
+; 5)+-  NUMA PROFILE TEXT STRING WRITE AT DRAWINGS WINDOW.
+;
+; 6)--  MAKE OPTION FOR PROCESSOR GROUPS. VISUAL ALSO AT REPORTS. (?)
+;
+; 7)--  MEASUREMENT TIME MUST BE REDUCED WITHOUT LOSE PRECISION.
+;
+; 8)--  FOR DRAWINGS, DON'T MAKE MEASUREMENTS IN THE GUI WINDOW EVENT HANDLING
+;       THREAD, USE SEPARATE MEDIATOR THREAD. BUT VECTOR BRIEF AND SIMPLE MODE
+;       NOT HAVE THIS BUG, REDESIGN DRAWINGS ONLY.
+;
+; 9)--  YET UNSUPPORTED COMBINATION: NUMA-AWARE AND SINGLE-THREAD,
+;       CAN USE MULTITHREAD CONTEXT WITH THREADS COUNT = 1.
+;       OR SET MASK IN THE SINGLE THREAD.
+;
+; 10)-- FOR ThreadEntry subroutine SET AFFINITY MASK OUTSIDE CYCLE, 
+;       THIS BETTER FOR OPTIMIZING SIZE AND SPEED,
+;       CAN USE COMMON BRANCH FOR THREAD RE-RUN CYCLE, AFTER AFFINITIZATION.
+;
+; 11)-- FMA HORIZONTAL ADDITION.
+;
+; 12)-- MOVAPD USED, BUT MOVAPS COMPATIBLE FOR SSE1 PERFORMANCE PATTERNS.
+;       BUT THIS VARIANT IS USEABLE AT 64-BIT MODE, 
+;       DOUBLE PRECISION FOR SSE SUPPORTED BY X64 CPUs.
+;
 ;- 
 
 ; FASM definitions
@@ -918,7 +956,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'   , 0Ah,0Dh
-             DB  'v1.01.05 for Windows x64'  , 0Ah,0Dh
+             DB  'v1.01.06 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'      , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool

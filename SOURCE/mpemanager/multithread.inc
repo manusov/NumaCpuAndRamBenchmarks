@@ -36,10 +36,11 @@ xchg r9,rax                    ; R8 = Instructions per thread
 ; Select NUMA or non-NUMA mode
 mov al,[InputParms.OptionNUMA]
 cmp al,2
-jb .ModeNonNUMA
+jb .ModeNonNUMA    ; Go if <2, means 0 = None, 1 = Supported by platform, but unaware by application
 cmp al,3
-ja .ModeNonNUMA
-
+ja .ModeNonNUMA    ; Go if >3, means unknown value of option
+                   ; NUMA branch if 2 = force local, 3 = force remote
+                   
 ;---------- Branch for NUMA mode ----------------------------------------------;
 
 .ModeNUMA:
@@ -155,10 +156,14 @@ mov [rbx+THCTRL.Base2],r12
 mov [rbx+THCTRL.Repeats],r13
 mov [rbx+THCTRL.SizeBytes],r8
 mov [rbx+THCTRL.SizeInst],r9
+; INT3
+mov qword [rbx+THCTRL.ThreadAffinity],0  ; Blank affinity
+mov qword [rbx+THCTRL.ThreadGroup],0
+;
 add r11,r8
 add r12,r8
 add rbx,THCTRL_SIZE
-loop .BuildControls
+loop .BuildControls  ; RCX = Cycle counter, by number of threads
 pop rcx rbx
 
 ;---------- Continue both non-NUMA and NUMA branches --------------------------;
@@ -169,8 +174,23 @@ mov rsi,rbx
 lea rdi,[rbx+THREADS_CONTROL_SIZE]
 mov r12,rcx
 xor ebx,ebx
-; Cycle
+
+; Cycle for events and threads, include set affinity mask = f(HT option)
 .CreateEventsThreads:                                    
+; Set affinity mask if Hyper-Threading supported by platform but not used by application
+; INT3
+cmp [InputParms.OptionHT],1   ; 1 means HT/SMT supported by platform but not enabled by option
+jne .SkipHtMask               ; Go if this situation not detected 
+mov rax,[rsi+THCTRL.ThreadAffinity]         ; Sub-mask for NUMA optimization
+test rax,rax
+jnz .NumaAwareHt                            ; Go if NUMA-aware mask exist
+mov rax,[SystemInfo.dwActiveProcessorMask]  ; Full system mask
+.NumaAwareHt:
+mov rcx,05555555555555555h            ; Mask for disable ODD logical processors 
+and rax,rcx                           ; Disable ODD logical processors
+mov [rsi+THCTRL.ThreadAffinity],rax   ; Update affinity mask
+.SkipHtMask:
+;
 ; Create events
 xor ecx,ecx                        ; RCX = Parm#1 = lpEventAttributes  
 mov edx,1                          ; RDX = Parm#2 = bManualReset
@@ -205,6 +225,7 @@ inc ebx
 add rsi,THCTRL_SIZE
 dec r12
 jnz .CreateEventsThreads          ; Cycle for all events and threads handles
+
 ; Exit points, use previous add CF=0(NC)
 OpenMultiThreadExit:
 mov rsp,rbp
@@ -387,7 +408,11 @@ lea r15,[ThreadsControl+rcx]  ; R15 = Address for block for this thread
 mov rbx,r15
 ; Set affinity mask for this thread
 mov rcx,[rbx+THCTRL.ThreadHandle]     ; Parm#1 = RCX = Thread handle
-mov rdx,[rbx+THCTRL.ThreadAffinity]   ; Parm#2 = RDX = Affinity mask
+mov rdx,[rbx+THCTRL.ThreadAffinity]   ; Parm#2 = RDX = Thread Affinity mask
+
+; INT3
+; This point for check affinitization
+
 test rdx,rdx
 jz @f                ; Skip set affinity mask if memory allocated without NUMA
 call [_SetThreadAffinityMask]

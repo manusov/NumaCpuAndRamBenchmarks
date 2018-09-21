@@ -48,3 +48,8 @@ This feature yet locked.
 Some code optimization, remove unused performance
 patterns.
 
+v1.01.06
+Restrict threads affinitization if Hyper-Threading or SMT
+supported by platform but not enabled by test option settings.
+
+
