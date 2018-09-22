@@ -55,7 +55,7 @@
 ;       - Per-group masking required
 ;         multithread.inc (100)
 ;       + Temporary lock Processor Groups detection
-;         ncrb.asm (316)
+;         ncrb.asm (335)
 ;     
 ; 5)+-  NUMA PROFILE TEXT STRING WRITE AT DRAWINGS WINDOW.
 ;
@@ -75,13 +75,18 @@
 ;       THIS BETTER FOR OPTIMIZING SIZE AND SPEED,
 ;       CAN USE COMMON BRANCH FOR THREAD RE-RUN CYCLE, AFTER AFFINITIZATION.
 ;
-; 11)-- FMA HORIZONTAL ADDITION.
+; 11)-- FMA HORIZONTAL ADDITION. FIX ARITHMETIC BUG, CHECK FMA 256/512.
+;       FMA256 optimizing only, FMA512 required redesign bug fix and optimizing
 ;
 ; 12)+- MOVAPD USED, BUT MOVAPS COMPATIBLE FOR SSE1 PERFORMANCE PATTERNS.
-;       BUT THIS VARIANT IS USEABLE AT 64-BIT MODE, 
-;       DOUBLE PRECISION FOR SSE SUPPORTED BY X64 CPUs.
-;       UPDATE INSTRUCTIONS NAMES MESSAGES WHEN UPDATE CODE.
+;       ALSO FOR MOVNTPD / MOVNTPS.
+;       OLD VARIANT IS USEABLE AT 64-BIT MODE, BECAUSE DOUBLE PRECISION
+;       FOR SSE SUPPORTED BY X64 CPUs (HISTORICALLY).
+;       ADDITIONALY, MOVAPS IS COMPACT ENCODING, CAN OPTIMIZE SIZE.
+;       ALSO UPDATE INSTRUCTIONS NAMES MESSAGES WHEN UPDATE CODE.
 ;       But SQRTPD still double precision, Vector Brief test.
+;
+; 13)-- FOR AVX512 OPTIMIZE BUFFERS TAILS BY PREDICATES.
 ;
 ;- 
 
@@ -328,7 +333,7 @@ call GetLargePagesInfo
 
 ; Get Processor groups info, actual for support >64 logical processors
 ; INT3
-; Processor Groups support yet LOCKED
+;- Processor Groups support yet LOCKED
 xor eax,eax
 stosw  ; yet group count = 0
 stosd  ; yet total processor count = 0
@@ -924,8 +929,8 @@ include 'mpetargets\ntwrite_avx512.inc'     ; NT Write, AVX 512-bit
 include 'mpetargets\ntcopy_sse128.inc'      ; NT Read + NT Write, SSE 128-bit
 include 'mpetargets\ntcopy_avx256.inc'      ; NT Read + NT Write, AVX 256-bit
 include 'mpetargets\ntcopy_avx512.inc'      ; NT Read + NT Write, AVX 512-bit
-include 'mpetargets\ntdot_fma256.inc'       ; Reserved for FMA with NT Write
-include 'mpetargets\ntdot_fma512.inc'       ; Reserved for FMA with NT Write
+include 'mpetargets\ntdot_fma256.inc'       ; Reserved for FMA with NT Read
+include 'mpetargets\ntdot_fma512.inc'       ; Reserved for FMA with NT Read
 
 ; Additional routines for support non-temporal read
 ;- MOVNTDQA/VMOVNTDQA method removed, this entries locked -
@@ -958,7 +963,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'   , 0Ah,0Dh
-             DB  'v1.01.07 for Windows x64'  , 0Ah,0Dh
+             DB  'v1.01.08 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'      , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool

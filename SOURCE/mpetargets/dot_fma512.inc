@@ -45,31 +45,44 @@ dec rdx
 jnz Block_Dot_FMA512        ; Cycle for block data transfer, DEC/JNZ is faster than LOOP!
 DumpStop_Dot_FMA512:
 ; Horizontal additions for main part, result is vector
+
+;- redesigned: bug fix and optimizing -
 ; 512
+; vaddpd zmm8,zmm8,zmm12
+; vaddpd zmm9,zmm9,zmm13
+; vaddpd zmm10,zmm10,zmm14 
+; vaddpd zmm11,zmm11,zmm15
+; vaddpd zmm0,zmm8,zmm10
+; vaddpd zmm1,zmm9,zmm11
+; vextractf64x4 ymm2,zmm0,1
+; vextractf64x4 ymm3,zmm1,1
+; 256
+; vhaddpd ymm0,ymm8,ymm9
+; vhaddpd ymm1,ymm10,ymm11
+; vhaddpd ymm2,ymm12,ymm13
+; vhaddpd ymm3,ymm14,ymm15
+; vextractf128 xmm4,ymm0,1
+; vextractf128 xmm5,ymm1,1
+; vextractf128 xmm6,ymm2,1
+; vextractf128 xmm7,ymm3,1
+; vaddpd xmm0,xmm0,xmm4
+; vaddpd xmm1,xmm1,xmm5
+; vaddpd xmm2,xmm2,xmm6
+; vaddpd xmm3,xmm3,xmm7
+; vaddpd xmm8,xmm0,xmm1
+; vaddpd xmm9,xmm2,xmm3
+; vaddpd xmm8,xmm8,xmm9
+;-
+; add 512-bit operands
 vaddpd zmm8,zmm8,zmm12
 vaddpd zmm9,zmm9,zmm13
 vaddpd zmm10,zmm10,zmm14 
 vaddpd zmm11,zmm11,zmm15
-vaddpd zmm0,zmm8,zmm10
-vaddpd zmm1,zmm9,zmm11
-vextractf64x4 ymm2,zmm0,1
-vextractf64x4 ymm3,zmm1,1
-; 256
-vhaddpd ymm0,ymm8,ymm9
-vhaddpd ymm1,ymm10,ymm11
-vhaddpd ymm2,ymm12,ymm13
-vhaddpd ymm3,ymm14,ymm15
-vextractf128 xmm4,ymm0,1
-vextractf128 xmm5,ymm1,1
-vextractf128 xmm6,ymm2,1
-vextractf128 xmm7,ymm3,1
-vaddpd xmm0,xmm0,xmm4
-vaddpd xmm1,xmm1,xmm5
-vaddpd xmm2,xmm2,xmm6
-vaddpd xmm3,xmm3,xmm7
-vaddpd xmm8,xmm0,xmm1
-vaddpd xmm9,xmm2,xmm3
-vaddpd xmm8,xmm8,xmm9
+vaddpd zmm0,zmm8,zmm9
+vaddpd zmm1,zmm10,zmm11
+vaddpd zmm0,zmm0,zmm1    ; ZMM0 = sum as 512-bit vector, 8 numbers x 64-bit
+;- end of redesigned part -
+
 ; Prepare tail cycle
 Small_Dot_FMA512:
 mov edx,ecx
@@ -78,20 +91,38 @@ jz Measure_Dot_FMA512
 mov r8d,64
 ; Tail cycle
 Tail_Dot_FMA512:
-vmovapd zmm0,[rax+64*00]
-vfmadd231pd zmm8,zmm0,[rbx+64*00]
+
+;- changed -
+; vmovapd zmm0,[rax+64*00]
+; vfmadd231pd zmm8,zmm0,[rbx+64*00]
+;-
+vmovapd zmm1,[rax+64*00]
+vfmadd231pd zmm0,zmm1,[rbx+64*00]
+;- end of changed -
+
 add rax,r8                   ; Modify source address, addend=register (not constant) for optimization!
 add rbx,r8                   ; Modify destination address, addend=register (not constant) for optimization!
 dec edx
 jnz Tail_Dot_FMA512          ; Cycle for tail data transfer, DEC/JNZ is faster than LOOP!
+
+;- changed -
 ; Horizontal additions for tail, result is scalar
 ; 512
-vextractf64x4 ymm0,zmm8,1
-vaddpd ymm8,ymm8,ymm0
+; vextractf64x4 ymm0,zmm8,1
+; vaddpd ymm8,ymm8,ymm0
 ; 256
-vextractf128 xmm9,ymm8,1
-vaddpd xmm8,xmm8,xmm9
-vhaddpd xmm8,xmm8,xmm8
+; vextractf128 xmm9,ymm8,1
+; vaddpd xmm8,xmm8,xmm9
+; vhaddpd xmm8,xmm8,xmm8
+;-
+; extract 2 x 256-bit operands from 512-bit operand, ZMM0 = vector source
+vextractf64x4 ymm1,zmm0,1
+vaddpd ymm0,ymm0,ymm1        ; add 256-bit vector operands
+vhaddpd ymm0,ymm0,ymm0
+vextractf128 xmm1,ymm0,1     ; extract 128-bit groups
+vaddsd xmm8,xmm0,xmm1        ; add 64-bit operands, XMM8[0-63] = scalar result
+;- end of changed -
+
 ; Measurement cycle
 Measure_Dot_FMA512:
 dec rbp

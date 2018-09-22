@@ -47,21 +47,33 @@ dec rdx
 jnz Block_Dot_FMA256        ; Cycle for block data transfer, DEC/JNZ is faster than LOOP!
 DumpStop_Dot_FMA256:
 ; Horizontal additions for main part, result is vector
-vhaddpd ymm0,ymm8,ymm9
-vhaddpd ymm1,ymm10,ymm11
-vhaddpd ymm2,ymm12,ymm13
-vhaddpd ymm3,ymm14,ymm15
-vextractf128 xmm4,ymm0,1
-vextractf128 xmm5,ymm1,1
-vextractf128 xmm6,ymm2,1
-vextractf128 xmm7,ymm3,1
-vaddpd xmm0,xmm0,xmm4
-vaddpd xmm1,xmm1,xmm5
-vaddpd xmm2,xmm2,xmm6
-vaddpd xmm3,xmm3,xmm7
-vaddpd xmm8,xmm0,xmm1
-vaddpd xmm9,xmm2,xmm3
-vaddpd xmm8,xmm8,xmm9
+
+;- redesign: optimizing -
+; vhaddpd ymm0,ymm8,ymm9
+; vhaddpd ymm1,ymm10,ymm11
+; vhaddpd ymm2,ymm12,ymm13
+; vhaddpd ymm3,ymm14,ymm15
+; vextractf128 xmm4,ymm0,1
+; vextractf128 xmm5,ymm1,1
+; vextractf128 xmm6,ymm2,1
+; vextractf128 xmm7,ymm3,1
+; vaddpd xmm0,xmm0,xmm4
+; vaddpd xmm1,xmm1,xmm5
+; vaddpd xmm2,xmm2,xmm6
+; vaddpd xmm3,xmm3,xmm7
+; vaddpd xmm8,xmm0,xmm1
+; vaddpd xmm9,xmm2,xmm3
+; vaddpd xmm8,xmm8,xmm9
+;-
+vaddpd ymm8,ymm8,ymm12
+vaddpd ymm9,ymm9,ymm13
+vaddpd ymm10,ymm10,ymm14
+vaddpd ymm11,ymm11,ymm15
+vaddpd ymm0,ymm8,ymm9
+vaddpd ymm1,ymm10,ymm11
+vaddpd ymm0,ymm0,ymm1     ; YMM0 = sum as 256-bit vector, 4 numbers x 64-bit 
+;- end of redesign part -
+
 ; Prepare tail cycle
 Small_Dot_FMA256:
 mov edx,ecx
@@ -70,16 +82,32 @@ jz Measure_Dot_FMA256
 mov r8d,32
 ; Tail cycle
 Tail_Dot_FMA256:
-vmovapd ymm0,[rax-32*04]
-vfmadd231pd ymm8,ymm0,[rbx-32*04]
+
+;- changed -
+; vmovapd ymm0,[rax-32*04]
+; vfmadd231pd ymm8,ymm0,[rbx-32*04]
+;-
+vmovapd ymm1,[rax-32*04]
+vfmadd231pd ymm0,ymm1,[rbx-32*04]
+;- end of changed part -
+
 add rax,r8                   ; Modify source address, addend=register (not constant) for optimization!
 add rbx,r8                   ; Modify destination address, addend=register (not constant) for optimization!
 dec edx
 jnz Tail_Dot_FMA256         ; Cycle for tail data transfer, DEC/JNZ is faster than LOOP!
 ; Horizontal additions for tail, result is scalar
-vextractf128 xmm9,ymm8,1
-vaddpd xmm8,xmm8,xmm9
-vhaddpd xmm8,xmm8,xmm8
+
+;- changed -
+; vextractf128 xmm9,ymm8,1
+; vaddpd xmm8,xmm8,xmm9
+; vhaddpd xmm8,xmm8,xmm8
+;-
+; YMM0 = 256-bit vector source
+vhaddpd ymm0,ymm0,ymm0
+vextractf128 xmm1,ymm0,1
+vaddsd xmm8,xmm0,xmm1         ; add 64-bit operands, XMM8[0-63] = scalar result
+;- end of changed part -
+
 ; Measurement cycle
 Measure_Dot_FMA256:
 dec rbp
