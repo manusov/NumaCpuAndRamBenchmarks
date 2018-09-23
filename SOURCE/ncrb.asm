@@ -21,7 +21,8 @@
 ;
 ; 1)+-  NUMA OPTIMIZATION ENABLED, UNDER DEBUG.
 ; 
-; 2)+-  LARGE PAGES SEPARATE SUPPORT FOR NUMA AND NON-NUMA, UNDER DEBUG.
+; 2)+-  LARGE PAGES SEPARATE SUPPORT FOR NUMA AND NON-NUMA, 
+;       ENABLED, UNDER DEBUG.
 ;
 ; 3)+-  USE AFFINITY MASKS FOR HYPER-THREADING / SMT,
 ;       ACTUAL REQUIRED CHANGES: multithread.inc ( 97, 159, 181 )
@@ -37,8 +38,12 @@
 ;         simpleprogress.inc (147) , analysing point
 ;         multithread.inc (112, 157, 167) , add masking to cycle
 ;          
+; 4)+-  YET UNSUPPORTED COMBINATION: NUMA-AWARE AND SINGLE-THREAD,
+;       CAN USE MULTITHREAD CONTEXT WITH THREADS COUNT = 1.
+;       OR SET MASK IN THE SINGLE THREAD. ADD ERRORS CHECK: ALWAYS JC <label>
+;       singlethread.inc (12, 42, 72, 109, 138).
 ;
-; 4)--  PROCESSOR GROUPS, PLATFORM WITH > 64 LOGICAL PROCESSORS.
+; 5)--  PROCESSOR GROUPS, PLATFORM WITH > 64 LOGICAL PROCESSORS.
 ;       CHANGES REQUIRED AT ( use text search by commented INT3 ) :
 ;       + drawstart.inc (82)
 ;       + simplestart.inc (33)
@@ -55,27 +60,23 @@
 ;       - Per-group masking required
 ;         multithread.inc (100)
 ;       + Temporary lock Processor Groups detection
-;         ncrb.asm (335)
+;         ncrb.asm (337)
 ;     
-; 5)+-  NUMA PROFILE TEXT STRING WRITE AT DRAWINGS WINDOW.
+; 6)+-  NUMA PROFILE TEXT STRING WRITE AT DRAWINGS WINDOW.
 ;
-; 6)--  MAKE OPTION FOR PROCESSOR GROUPS. VISUAL ALSO AT REPORTS. (?)
+; 7)--  MAKE OPTION FOR PROCESSOR GROUPS. VISUAL ALSO AT REPORTS. (?)
 ;
-; 7)--  MEASUREMENT TIME MUST BE REDUCED WITHOUT LOSE PRECISION.
+; 8)--  MEASUREMENT TIME MUST BE REDUCED WITHOUT LOSE PRECISION.
 ;
-; 8)--  FOR DRAWINGS, DON'T MAKE MEASUREMENTS IN THE GUI WINDOW EVENT HANDLING
+; 9)--  FOR DRAWINGS, DON'T MAKE MEASUREMENTS IN THE GUI WINDOW EVENT HANDLING
 ;       THREAD, USE SEPARATE MEDIATOR THREAD. BUT VECTOR BRIEF AND SIMPLE MODE
 ;       NOT HAVE THIS BUG, REDESIGN DRAWINGS ONLY.
-;
-; 9)--  YET UNSUPPORTED COMBINATION: NUMA-AWARE AND SINGLE-THREAD,
-;       CAN USE MULTITHREAD CONTEXT WITH THREADS COUNT = 1.
-;       OR SET MASK IN THE SINGLE THREAD.
 ;
 ; 10)-- FOR ThreadEntry subroutine SET AFFINITY MASK OUTSIDE CYCLE, 
 ;       THIS BETTER FOR OPTIMIZING SIZE AND SPEED,
 ;       CAN USE COMMON BRANCH FOR THREAD RE-RUN CYCLE, AFTER AFFINITIZATION.
 ;
-; 11)-- FMA HORIZONTAL ADDITION. FIX ARITHMETIC BUG, CHECK FMA 256/512.
+; 11)+- FMA HORIZONTAL ADDITION. FIX ARITHMETIC BUG, CHECK FMA 256/512.
 ;       FMA256 optimizing only, FMA512 required redesign bug fix and optimizing
 ;
 ; 12)+- MOVAPD USED, BUT MOVAPS COMPATIBLE FOR SSE1 PERFORMANCE PATTERNS.
@@ -87,6 +88,7 @@
 ;       But SQRTPD still double precision, Vector Brief test.
 ;
 ; 13)-- FOR AVX512 OPTIMIZE BUFFERS TAILS BY PREDICATES.
+;       SCALAR-ALIGNED AND VECTOR-GROUP ALIGNED.
 ;
 ;- 
 
@@ -131,8 +133,8 @@ SizeBytes       dq  ?   ; Block size, units = bytes, for memory allocation
 SizeInst        dq  ?   ; Block size, units = instructions, for benchmarking
 LargePages      dq  ?   ; Bit D0=Large Pages, other bits [1-63] = reserved
 Repeats         dq  ?   ; Number of measurement repeats
-TrueAffinity    dq  ?   ; True affinity mask, because modified as f(options)
-TrueGroup       dq  ?   ; Processor group, associated with true affinity mask 
+AffinityMode    dq  ?   ; Affinity mode: 0=None, 1=Without groups, 2=With groups 
+Reserved1       dq  ?   ; Reserved 
 TrueBase        dq  ?   ; True (before alignment) memory block base for release
 OrigAffinity    dq  ?   ; Store original affinity mask, also storage for return 
 OrigGroup       dq  ?   ; Store processor group for original offinity mask 
@@ -963,7 +965,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'   , 0Ah,0Dh
-             DB  'v1.01.08 for Windows x64'  , 0Ah,0Dh
+             DB  'v1.01.09 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'      , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool

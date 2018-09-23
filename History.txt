@@ -63,6 +63,9 @@ FMA256 optimizing horizontal additions phase.
 FMA512 bug fix and optimizing horizontal additions phase.
 Main "hot cycle" not changed.
 
+v1.01.09
+Update affinitization restrictions for single thread.
+Some code locked, under debug.
 
 
 

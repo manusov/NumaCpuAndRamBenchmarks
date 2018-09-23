@@ -206,9 +206,12 @@ xor ecx,ecx                        ; RCX = Parm#1 = Security
 xor edx,edx                        ; RDX = Parm#2 = Stack size, 0=default
 ; INT3
 lea r8,[ThreadsEntry]              ; R8  = Parm#3 = Execute routine pointer
+mov [rsi+THCTRL.AffinityMode],1    ; This added for single-thread affinityzation
 cmp [ProcessorsTotal],MAX_THREADS_PER_GROUP
 jbe .AfterSetEntry                 ; Go if simple system, single group 
 lea r8,[ThreadsEntryGroupMode]     ; This routine with affinitization with groups
+mov [rsi+THCTRL.AffinityMode],2    ; This added for single-thread affinityzation
+
 .AfterSetEntry:
 ;
 mov r9d,ebx                        ; R9  = Parm#4 = Subroutine parameter, 0-63 or 0-255(if Groups)
@@ -453,8 +456,8 @@ mov rbx,r15
 mov rcx,[rbx+THCTRL.ThreadHandle]     ; Parm#1 = RCX = Thread handle
 lea rdx,[rbx+THCTRL.ThreadAffinity]   ; Parm#2 = RDX = Pointer to mask + group
 lea r8,[rbx+THCTRL.OrigAffinity]      ; Parm#3 = R8 = Pointer to get original
-test rdx,rdx
-jz @f                ; Skip set affinity mask if memory allocated without NUMA
+cmp qword [rdx],0
+je @f                ; Skip set affinity mask if memory allocated without NUMA
 call [_SetThreadGroupAffinity]      ; This changed for Processor Groups
 @@:
 ; Target memory operation
