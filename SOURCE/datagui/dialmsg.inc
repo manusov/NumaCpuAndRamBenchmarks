@@ -1,5 +1,7 @@
-;--------------------------------------------------------------
-; MSG message descriptor structure (for Win64)
+;------------------------------------------------------------------------------;
+;               MSG message descriptor structure (for Win64).                  ;
+;------------------------------------------------------------------------------;
+
 ; Name	      Size      Comments
 ;--------------------------------------------------------------
 ; hwnd        dq        Window handle , 0 = thread message
@@ -18,5 +20,11 @@
 ; y	 dd	  Cursor Y-position
 ;--------------------------------------------------------------
 
-DialogueMsg_Win0     MSG     ; Message structure for wait event, parent win.
-DialogueMsg_Win1     MSG     ; Message structure for wait event, child win. 
+; This variables, defined as (?) located after constants with predefined
+; valuse. This method allows reduce executable file size.
+; Constants is a part of executable file size, because pre-defined values.
+; Variables (for example this) not a part of executable file size, because
+; no pre-defined values. 
+
+DialogueMsg_Win0    MSG     ; Message structure for wait event, parent window
+DialogueMsg_Win1    MSG     ; Message structure for wait event, child window 

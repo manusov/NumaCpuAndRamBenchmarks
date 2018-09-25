@@ -20,6 +20,7 @@
 ;                       D4=AVX512F (foundation part of AVX512),          ;
 ;                       D[5-6]=Reserved, D7=HT                           ;
 ;------------------------------------------------------------------------;
+
 GetCpuFeatures:
 cld                       ; Clear direction, because STOSD used
 push rbx rcx rdx rsi

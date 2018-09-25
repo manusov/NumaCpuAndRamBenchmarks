@@ -1,5 +1,13 @@
-;--- Window 1 (drawings) execution controls ---
-; Window 1 = Measurement window, drawings Y=F(X).
+;------------------------------------------------------------------------------;
+;                  Window 1 (drawings) execution controls.                     ;
+;               Window 1 = Measurement window, drawings Y=F(X).                ;
+;------------------------------------------------------------------------------;
+
+; This variables, defined as (?) located after constants with predefined
+; valuse. This method allows reduce executable file size.
+; Constants is a part of executable file size, because pre-defined values.
+; Variables (for example this) not a part of executable file size, because
+; no pre-defined values. 
 
 ; Benchmarks units control
 ; Used indexed access from this base, include next groups, don't reorder variables!

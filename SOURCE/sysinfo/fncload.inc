@@ -13,6 +13,7 @@
 ;         Functions address table updated                                      ;
 ;         Registers save/destroy by Microsoft x64 calling convention           ;
 ;------------------------------------------------------------------------------;
+
 SystemFunctionsLoad:
 push rbx rbp rsi rdi r12
 cld

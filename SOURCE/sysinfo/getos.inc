@@ -10,6 +10,7 @@
 ;          ...                                                           ;
 ;          Qword [012-515] = Domain (Node) #63 Affinity Mask             ; 
 ;------------------------------------------------------------------------;
+
 GetOsNumaInfo:
 cld                          ; Clear direction, because STOSQ used
 push rbx rcx rdx rax rsi rbp r8 r9 r10 r11 rax	; R8-R11 because API

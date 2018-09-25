@@ -21,6 +21,7 @@
 ;          Word  [56-57] = Maximum threads at this level                 ;
 ;          Word  [58-59] = Maximum APIC IDs per package                  ; 
 ;------------------------------------------------------------------------;
+
 GetCpuCache:								  
 cld                            ; Clear direction, because STOSB used
 push rbx rcx rdx rsi

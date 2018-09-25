@@ -1,5 +1,9 @@
-;--- Window 1 elements list ---
+;------------------------------------------------------------------------------;
+;                         Window 1 elements list.                              ;
+;------------------------------------------------------------------------------;
+
 ; Window 1 = Measurement window, drawings Y=F(X).
+; List of GUI window elements descriptors.
 
 ; If x2=BasePoint, Result=StringsNull-StringsNull=0
 START_HANDLE_WIN1 = 16

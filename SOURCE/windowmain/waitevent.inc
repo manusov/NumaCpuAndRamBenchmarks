@@ -4,6 +4,7 @@
 ; INPUT:  RDI = Pointer to DialMsg structure                        ;
 ; OUTPUT: None                                                      ;
 ;-------------------------------------------------------------------;
+
 WaitEvent:
 mov rbp,rsp                 ; RBP used for restore RSP and addressing variables
 and rsp,0FFFFFFFFFFFFFFF0h  ; Align stack

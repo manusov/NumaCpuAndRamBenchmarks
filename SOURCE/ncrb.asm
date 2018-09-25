@@ -90,6 +90,9 @@
 ; 13)-- FOR AVX512 OPTIMIZE BUFFERS TAILS BY PREDICATES.
 ;       SCALAR-ALIGNED AND VECTOR-GROUP ALIGNED.
 ;
+; 14)+- VirtualAllocEx use dynamical import, VirtualFreeEx use statical import,
+;       plus, virtualallocex called directly.
+;       make regular.
 ;- 
 
 ; FASM definitions
@@ -450,7 +453,7 @@ stosw
 call StringWrite           ; Print Cache Level name
 xchg rax,rbp
 xor edx,edx
-mov rbx,1024
+mov ebx,1024               ; Note this operation also clear bits RBX[63-32]
 div rbx
 mov byte [rdi],'?'
 shld rdx,rax,32
@@ -586,7 +589,7 @@ mov bh,2                   ; 2 strings: Physical, Available
 call StringWrite           ; at second pass "Available (MB)="
 mov rax,[rcx+48+08]        ; RAX = Physical memory by OS, Bytes
 xor edx,edx                ; RDX = 0, Dividend high bits
-mov rbp,1024*1024          ; RBP = Divisor for Bytes to Megabytes
+mov ebp,1024*1024          ; RBP = Divisor for Bytes to Megabytes, 32 clear 64
 div rbp                    ; RAX = Physical memory by OS, Megabytes
 mov byte [rdi],'?'
 inc rdi
@@ -965,7 +968,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'   , 0Ah,0Dh
-             DB  'v1.01.09 for Windows x64'  , 0Ah,0Dh
+             DB  'v1.01.10 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'      , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool
@@ -990,6 +993,8 @@ include 'datadialogues\classes.inc'     ; Classes for user interface objects
 include 'datadialogues\dialmacro.inc'   ; Macro for dialogues descriptors
 include 'datadialogues\dialogue0.inc'   ; User dialogue - main window
 include 'datadialogues\dialogue1.inc'   ; User dialogue - drawings window
+
+; Bound for optimizing executable file size: store non-predefined variables higher
 
 ; Continue data section, VARIABLES pool
 include 'datasystem\vfncdata.inc'        ; Optional system functions - variables

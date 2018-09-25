@@ -1,4 +1,10 @@
-;--- Strings: names for modes and options ---
+;------------------------------------------------------------------------------;
+;                    Strings: names for modes and options.                     ;
+;------------------------------------------------------------------------------;
+
+; Used for main menu, drawings and simple text windows,
+; for main menu use brief strings,
+; for reports (drawings and simple tests) use more detail strings.
 
 ; System Information strings
 TextTfms         DB  'TFMS=',0

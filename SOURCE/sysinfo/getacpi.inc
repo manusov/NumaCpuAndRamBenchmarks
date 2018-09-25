@@ -42,8 +42,8 @@ mov [rbp],edx
 ;		       insufficient memory error. 0 means other type error 
 add rsi,0Fh
 and rsi,0FFFFFFFFFFFFFFF0h
-mov rbx,49152-16
-mov rcx,'IPCA'
+mov ebx,49152-16    ; Note bits RBX[63-32] cleared by 32-bit operation with EBX
+mov ecx,'IPCA'      ; Note bits RCX[63-32] cleared by 32-bit operation with ECX
 ; RDX loaded at entry
 mov r8,rsi
 mov r9,rbx

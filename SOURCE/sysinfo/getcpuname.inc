@@ -9,6 +9,7 @@
 ;          String formatted by subroutine, left spaces deleted           ;
 ;          If feature not supported, string contain "None"               ; 
 ;------------------------------------------------------------------------;
+
 GetCpuName:
 cld                       ; Clear direction, because STOSB/STOSD used
 push rbx rcx rdx rax rsi

@@ -67,5 +67,10 @@ v1.01.09
 Update affinitization restrictions for single thread.
 Some code locked, under debug.
 
+v1.01.10
+Fix bug: large pages mode flag can be corrupted at
+NUMA memory allocation branch.
+Some internal optimizations.
+Improve comments.
 
 

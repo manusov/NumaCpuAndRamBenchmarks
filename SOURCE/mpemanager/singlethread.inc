@@ -1,4 +1,6 @@
-;---------- Memory performance measurement (Single thread) --------------------;
+;------------------------------------------------------------------------------;
+;         Memory performance measurement, support Single-Thread mode.          ;
+;------------------------------------------------------------------------------;
 
 ;---------- Open single-thread session, include allocate memory ---------------;
 ; INPUT:   RBX = Pointer to Control Entry                                      ;

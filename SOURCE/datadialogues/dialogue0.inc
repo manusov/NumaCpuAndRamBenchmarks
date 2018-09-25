@@ -1,5 +1,9 @@
-;--- Window 0 elements list ---
+;------------------------------------------------------------------------------;
+;                         Window 0 elements list.                              ;                             
+;------------------------------------------------------------------------------;
+
 ; Window 0 = Main window of application, brief info and menu of operations.
+; List of GUI window elements descriptors.
 
 ; If x2=BasePoint, Result=StringsNull-StringsNull=0
 START_HANDLE_WIN0 = 16

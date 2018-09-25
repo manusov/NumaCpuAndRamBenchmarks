@@ -1,5 +1,13 @@
-;--- Variables for Window 1 - benchmarks drawings ---
+;------------------------------------------------------------------------------;
+;               Variables for Window 1 - benchmarks drawings.                  ;
+;------------------------------------------------------------------------------;
+
 ; Variables for graphics context
+; This variables, defined as (?) located after constants with predefined
+; valuse. This method allows reduce executable file size.
+; Constants is a part of executable file size, because pre-defined values.
+; Variables (for example this) not a part of executable file size, because
+; no pre-defined values. 
 
 ; Video output control            ; 64 bytes per group
 HandleMemDC        DQ  ?          ; Handle for Device Context, video controller
@@ -30,5 +38,5 @@ HandleDC           DQ  ?          ; Handle Graphical Device Context
 ; bottom        dd ?       Y-coordinate of lower-right point
 ;--------------------------------------------------------------
 
-PaintStruc       PAINTSTRUCT
-GraphRect        RECT
+PaintStruc       PAINTSTRUCT   ; Paint control
+GraphRect        RECT          ; Rectangle definition for visualized area

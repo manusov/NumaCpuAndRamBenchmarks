@@ -1,4 +1,6 @@
-;---------- Memory performance measurement (Multi-Thread) ---------------------;
+;------------------------------------------------------------------------------;
+;          Memory performance measurement, support Multi-Thread mode.          ;
+;------------------------------------------------------------------------------;
 
 ;---------- Open threads session: allocate memory, events, threads handles ----;
 ; INPUT:   RBX = Pointer to Threads Control List + Signaled Events List        ;
@@ -58,7 +60,7 @@ push rcx
 mov r8,[rbx+THCTRL.LargePages]
 lea rbx,[NumaControl]
 call MemoryAllocationNuma
-pop rsi                         ; RSI = Nodes count
+pop rsi                         ; RSI = Nodes count, restored from RCX push
 pop rbp r9 r8 rcx rbx           ; RCX = Threads count 
 jc OpenMultiThreadError         ; Go error if memory allocation error
 ; Calculate threads per node
@@ -68,10 +70,10 @@ test rsi,rsi
 jz OpenMultiThreadError        ; Go error if number of nodes = 0
 cmp rsi,MAX_NODES
 ja OpenMultiThreadError        ; Go error if number of nodes > maximum  
-div rsi                        ; RAX = Threads per node
+div rsi                        ; RAX = Threads / Nodes = Threads per node
 test rax,rax
 jz OpenMultiThreadError        ; Go error if threads per node = 0
-test rdx,rdx
+test rdx,rdx                   ; Check RDX = MOD after division
 jnz OpenMultiThreadError       ; Go error if threads per node is fractional 
 
 ; Initializing cycle parameters for build control structures

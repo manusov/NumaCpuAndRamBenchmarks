@@ -2,6 +2,7 @@
 ; INPUT:   None                             ;
 ; OUTPUT:  None, variables updated          ;
 ;-------------------------------------------;
+
 InitStatistics:
 xor eax,eax
 lea rcx,[StatClksMinimum]

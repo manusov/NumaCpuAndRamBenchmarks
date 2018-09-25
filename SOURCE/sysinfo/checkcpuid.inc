@@ -12,6 +12,7 @@
 ;          RDI = Input RDI + 12 , string size fixed = 12 bytes           ;
 ;          Destination memory at [input RDI] = CPU Vendor String         ; 
 ;------------------------------------------------------------------------;
+
 CheckCpuId:
 cld                       ; Clear direction, because STOSD used
 push rbx rcx rdx

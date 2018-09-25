@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------;
-; Data for load some system functions - constants pool.                        ;
+;            Data for load some system functions - constants pool.             ;
 ; This functions not declared in the import section and required manually load ;
 ; for Windows XP x64 compatibility reasons. Otherwise abort when interpreting  ;
 ; import section under Windows XP x64, because some API functions not found.   ;
@@ -23,7 +23,7 @@ DB  'SetThreadAffinityMask',0
 DB  'GetSystemFirmwareTable',0
 DB  'GetLogicalProcessorInformation',0
 DB  'GetLargePageMinimum',0
-DB  'VirtualAllocEx',0
+; DB  'VirtualAllocEx',0
 DB  'GetActiveProcessorCount',0             ; added for support > 64 processors 
 DB  'GetActiveProcessorGroupCount',0        ; added for support > 64 processors
 DB  'GetNumaNodeProcessorMaskEx', 0         ; added for support > 64 processors

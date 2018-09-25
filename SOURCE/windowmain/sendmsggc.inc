@@ -8,6 +8,7 @@
 ;          ZF Flag: 0(NZ) = Status other than BST_CHECKED           ;
 ;                   1(Z)  = Status is BST_CHECKED                   ; 
 ;-------------------------------------------------------------------;
+
 SendMessageGetCheck:
 mov rbp,rsp                  ; RBP used for restore RSP and addressing variables
 and rsp,0FFFFFFFFFFFFFFF0h

@@ -1,4 +1,9 @@
-;--- Benchmarks methods list by CPU instructions set ---
+;------------------------------------------------------------------------------;
+;              Benchmarks methods list by CPU instructions set.                ;
+;------------------------------------------------------------------------------;
+
+; Method selection = f ( user selection, object selection, CPU features )
+; Object selection means Cache / DRAM means Temporal / Nontemporal
 
 MACRO BMETHOD x1, x2, x3, x4   ; 6 bytes per entry, compact encoding
 {

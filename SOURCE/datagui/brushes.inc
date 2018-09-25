@@ -1,5 +1,9 @@
-;--- Color brushes ---
+;------------------------------------------------------------------------------;
+;                             GUI color brushes.                               ;
+;------------------------------------------------------------------------------;
+
 ; Used for graphics window, drawings Y=F(X)
+; Brush color values = 00bbggrrh, bb=blue, gg=green, rr=red, 1 byte per color
 
 BrushesList:
 DD  BRUSH_GRID         ; Grid with horizontal and vertical lines 

@@ -1,4 +1,7 @@
-;--- Control structures for Vector Brief test ---
+;------------------------------------------------------------------------------;
+;                Control structures for Vector Brief test.                     ;
+;------------------------------------------------------------------------------;
+
 ; VE = Legacy term "Visual Entry"
 
 ; Macro for CPUID features encoding 
@@ -52,7 +55,8 @@ DD  x3                ; Measurement cycle count
 VECPU  x4,x5          ; CPU (CPUID) check criteria to run this
 VECNT  x6,x7          ; OS (XCR0) check criteria to run this
 }
-; Terminator
+; Terminator for structures list, 
+; value pointer to measurement routine = 0 means end of list 
 MACRO VEEND
 {
 DQ  0

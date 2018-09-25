@@ -1,4 +1,6 @@
-;--- Memory allocation library, for NUMA platform ---
+;------------------------------------------------------------------------------;
+;      Memory allocation library, for NUMA platforms and test scenarios.       ;
+;------------------------------------------------------------------------------;
 
 ;---------- Memory allocation with alignment = 4096 bytes, NUMA mode ----------;
 ; INPUT:   RBX = Pointer to nodes list                                         ;
@@ -14,11 +16,14 @@ and rsp,0FFFFFFFFFFFFFFF0h   ; Stack alignment
 ; Store parameters to non-volatile registers
 mov rsi,rdx                  ; RSI = Buffer block size per each NUMA node
 mov edi,ecx                  ; RDI = Number of nodes
+
+;- fix bug corrupt R8 -
 ; Get current process handle
-call [GetCurrentProcess]     ; Return RAX = Handle
-test rax,rax
-jz ErrorAllocationNuma       ; Go error if Handle=0
-xchg r12,rax                 ; R12 = Process Handle, XCHG for compact
+; call [GetCurrentProcess]     ; Return RAX = Handle
+; test rax,rax
+; jz ErrorAllocationNuma       ; Go error if Handle=0
+; xchg r12,rax                 ; R12 = Process Handle, XCHG for compact
+;-
 
 ; Check for large pages
 mov r14,MEM_RESERVE + MEM_COMMIT
@@ -34,6 +39,14 @@ div r8
 mul r8
 lea rsi,[rax+r8]               ; Parm#3 = R8 = Block size + alignment reserved
 .SkipLP:
+
+;- fix bug corrupt r8 -
+; Get current process handle
+call [GetCurrentProcess]     ; Return RAX = Handle
+test rax,rax
+jz ErrorAllocationNuma       ; Go error if Handle=0
+xchg r12,rax                 ; R12 = Process Handle, XCHG for compact
+;-
 
 ; Cycle for nodes
 NumaAllocation:

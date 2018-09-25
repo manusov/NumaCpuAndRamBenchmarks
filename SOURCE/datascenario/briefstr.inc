@@ -52,5 +52,10 @@ Sup             DB 'supported',0
 NsupCPU         DB 'not supported by CPU',0
 NsupOS          DB 'not supported by OS',0
 
+; Note.
+; Support by CPU validated by CPUID instruction,
+; Support by OS validated by XCR0 register mask, 
+; means OS context management support,
+; save and restore CPU context for tasks switch.
 
                 

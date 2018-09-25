@@ -1,4 +1,8 @@
-;--- Window class descriptor for user interface window ---
+;------------------------------------------------------------------------------; 
+;            Windows Class Descriptors for user interface windows.             ;
+;------------------------------------------------------------------------------;
+
+; Used classes.
 ; ClassWindow0 = used at Dialogue_Win0, application main window 
 ; ClassWindow1 = used at Dialogue_Win1, drawings window Y=F(X)
 ; ClassButton  = used at dialogue descriptors, button
@@ -12,7 +16,7 @@
 ; cbSize           dd  Size of this structure, bytes
 ; style            dd  Window style info and bitmap
 ; lpfnWndProc      dq  Pointer to Window Procedure for call back
-; cbClsExtra       dd  Number of extra cleared bytes after win. class struc.
+; cbClsExtra       dd  Number of extra cleared bytes after win. class structure
 ; cbWndExtra       dd  Number of extra cleared bytes after window instance
 ; hInstance        dq  Handle for instance, contain window proc. for the class
 ; hIcon            dq  Handle to the class icon (icon resource) , 0=default
@@ -28,7 +32,7 @@ Dialogue_Win1	  WNDCLASSEX sizeof.WNDCLASSEX,0,WindowProc_Win1,0,0,0,0,0,COLOR_B
 
 ClassWindow0  DB  'FASM64WIN0',0  ; Class for Window 0 (my object)
 ClassWindow1  DB  'FASM64WIN1',0  ; Class for Window 1 (my object)
-ClassButton   DB  'BUTTON',0      ; Class BUTTON (ref. to windows)
-ClassStatic   DB  'STATIC',0      ; Class STATIC (ref. to windows)
-ClassEdit     DB  'EDIT',0        ; Class EDIT (ref. to windows)
+ClassButton   DB  'BUTTON',0      ; Class BUTTON (reference to windows classes)
+ClassStatic   DB  'STATIC',0      ; Class STATIC (reference to windows classes)
+ClassEdit     DB  'EDIT',0        ; Class EDIT (reference to windows classes)
 

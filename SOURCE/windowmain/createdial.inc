@@ -6,6 +6,7 @@
 ;                                                                   ;
 ; OUTPUT:  None                                                     ;
 ;-------------------------------------------------------------------;
+
 CreateDialogueElements:
 lea r15,[BasePoint]
 mov rbp,rsp                  ; RBP used for restore RSP and addressing variables

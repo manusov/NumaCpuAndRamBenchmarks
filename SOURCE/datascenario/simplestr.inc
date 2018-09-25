@@ -1,4 +1,6 @@
-;--- Strings for simple mode test, with text result only ---
+;------------------------------------------------------------------------------;
+;            Strings for simple mode test, with text result only.              ;
+;------------------------------------------------------------------------------;
 
 ; INPUT parameters, measurement start conditions
 MsgResultSimple  DB  'Simple mode benchmarks, options settings:'
