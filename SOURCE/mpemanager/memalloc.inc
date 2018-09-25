@@ -9,6 +9,7 @@
 ;          Registers corrupted: by convention plus RBP                         ;
 ;          First entry of Threads Control List updated                         ;
 ;------------------------------------------------------------------------------;
+
 MemoryAllocation:
 mov rbp,rsp                    ; RBP = Save input RSP
 and rsp,0FFFFFFFFFFFFFFF0h     ; Align stack because WinAPI used
@@ -79,6 +80,7 @@ ret
 ; OUTPUT:  CF = Error flag: 0(NC)=no errors, 1(C)=error                        ;
 ;          Registers corrupted: by convention plus RBP                         ;
 ;------------------------------------------------------------------------------;
+
 MemoryRelease:
 mov rbp,rsp                    ; RBP = Save input RSP
 and rsp,0FFFFFFFFFFFFFFF0h     ; Align stack because WinAPI used
