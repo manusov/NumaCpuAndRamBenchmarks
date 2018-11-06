@@ -18,25 +18,25 @@ and rsp,0FFFFFFFFFFFFFFF0h     ; Align stack because WinAPI used
 sub rsp,32                     ; Build parameters shadow, 4 qwords
 
 ; Divide total size (bytes) by number of threads
-mov rax,[rbx+THCTRL.SizeBytes]
-xor edx,edx
-test rcx,rcx
-jz OpenMultiThreadError        ; Go error if number of threads = 0
-cmp rcx,MAX_THREADS
-ja OpenMultiThreadError        ; Go error if number of threads > maximum  
-div rcx                        ; RAX = Work memory per thread
-test rdx,rdx
-jnz OpenMultiThreadError       ; Go error if fractional memory allocation
-xchg r8,rax                    ; R8 = Bytes per thread
+mov rax,[rbx+THCTRL.SizeBytes]  ; RAX = Total memory size for benchmark
+xor edx,edx                     ; Make 128-bit dividend RDX:RAX
+test rcx,rcx                    ; RCX = Number of threads, check for 0=error
+jz OpenMultiThreadError         ; Go error if number of threads = 0
+cmp rcx,MAX_THREADS             ; Check for threads count limit
+ja OpenMultiThreadError         ; Go error if number of threads > maximum  
+div rcx                         ; RAX = Work memory per thread
+test rdx,rdx                    ; Check RDX = remainder after division
+jnz OpenMultiThreadError        ; Go error if fractional memory allocation
+xchg r8,rax                     ; R8 = Bytes per thread, XCHG for compact code
 ; Divide total size (instructions) by number of threads 
 mov rax,[rbx+THCTRL.SizeInst]
-div rcx                        ; RAX = Work memory per thread
-test rdx,rdx
-jnz OpenMultiThreadError       ; Go error if fractional instructions allocation
-xchg r9,rax                    ; R8 = Instructions per thread
+div rcx                         ; RAX = Instructions per thread (really used buffer)
+test rdx,rdx                    ; Check RDX = remainder after division
+jnz OpenMultiThreadError        ; Go error if fractional instructions allocation
+xchg r9,rax                     ; R9 = Instructions per thread
 
 ; Select NUMA or non-NUMA mode
-mov al,[InputParms.OptionNUMA]
+mov al,[InputParms.OptionNUMA]  ; AL = NUMA option selected value
 cmp al,2
 jb .ModeNonNUMA    ; Go if <2, means 0 = None, 1 = Supported by platform, but unaware by application
 cmp al,3
@@ -63,119 +63,124 @@ call MemoryAllocationNuma
 pop rsi                         ; RSI = Nodes count, restored from RCX push
 pop rbp r9 r8 rcx rbx           ; RCX = Threads count 
 jc OpenMultiThreadError         ; Go error if memory allocation error
+
 ; Calculate threads per node
-mov rax,rcx
-xor edx,edx
-test rsi,rsi
+mov rax,rcx                    ; RAX = Threads count
+xor edx,edx                    ; RDX = 0 , threads count extension for divide
+test rsi,rsi                   ; RSI = Nodes count, check for 0=error
 jz OpenMultiThreadError        ; Go error if number of nodes = 0
 cmp rsi,MAX_NODES
 ja OpenMultiThreadError        ; Go error if number of nodes > maximum  
 div rsi                        ; RAX = Threads / Nodes = Threads per node
 test rax,rax
 jz OpenMultiThreadError        ; Go error if threads per node = 0
-test rdx,rdx                   ; Check RDX = MOD after division
+test rdx,rdx                   ; Check RDX = Remainder after division
 jnz OpenMultiThreadError       ; Go error if threads per node is fractional 
 
 ; Initializing cycle parameters for build control structures
-push rbx rcx
+push rbx rcx              ; Save RBX = threads list pointer, RCX = threads count
 
-; Load initial parameters
-mov ecx,esi                    ; ECX = NUMA nodes count
-xchg esi,eax                   ; ESI = Threads per node count
-mov r10,[rbx+THCTRL.EntryPoint]
-mov r11,[rbx+THCTRL.Base1]
-mov r12,[rbx+THCTRL.Base2]
-mov r13,[rbx+THCTRL.Repeats]
-lea r14,[rbx + THREADS_CONTROL_SIZE + EVENTS_CONTROL_SIZE]
+; Load initial parameters, RBX = Threads pointer , R14 = Nodes pointer 
+mov ecx,esi                         ; ECX = NUMA nodes count
+xchg esi,eax                        ; ESI = Threads per node count
+mov r10,[rbx+THCTRL.EntryPoint]     ; R10 = Selected performance pattern entry point 
+mov r11,[rbx+THCTRL.Base1]          ; R11 = Base address 1 (source/destination) 
+mov r12,[rbx+THCTRL.Base2]          ; R12 = Base address 2 (destination if dual address)
+mov r13,[rbx+THCTRL.Repeats]        ; R13 = Measurement repeats count 
+lea r14,[rbx + THREADS_CONTROL_SIZE + EVENTS_CONTROL_SIZE]  ; R14 = Nodes pointer
 
-; Cycle for NUMA nodes
+; External cycle for NUMA nodes
 .NextNode:
 
 xor edi,edi                    ; EDI = Counter for threads per node allocation
-push r11 r12
+push r11 r12                   ; Save blocks offsets by test scenario, example 0, L1/2
 mov rax,[r14+NUMACTRL.AlignedBase]
-add r11,rax
-add r12,rax
+add r11,rax                         ; R11 = Base1 = Allocated base + Block1 offset
+add r12,rax                         ; R12 = Base2 = Allocated base + Block2 offset
 ; Affinity mask
-mov rax,[r14+NUMACTRL.NodeAffinity]
-cmp [InputParms.OptionNUMA],3       ; Need invert affinity if NUMA-REMOTE mode
-jne @f
-xor rax,[SystemInfo.dwActiveProcessorMask]
+mov rax,[r14+NUMACTRL.NodeAffinity]  ; RAX = Affinity mask for this node
+cmp [InputParms.OptionNUMA],3        ; Need invert affinity if NUMA-REMOTE mode
+jne @f                               ; Go skip if not a remote mode
+xor rax,[SystemInfo.dwActiveProcessorMask]  ; Invert used part of affinity mask
 @@:
 
-; Cycle for threads
+; Internal cycle for threads
 .NextThread:
 
-mov [rbx+THCTRL.EntryPoint],r10
-mov [rbx+THCTRL.Base1],r11
-mov [rbx+THCTRL.Base2],r12
-mov [rbx+THCTRL.Repeats],r13
-mov [rbx+THCTRL.SizeBytes],r8
-mov [rbx+THCTRL.SizeInst],r9
-mov [rbx+THCTRL.ThreadAffinity],rax
+mov [rbx+THCTRL.EntryPoint],r10        ; Set selected performance pattern entry point
+mov [rbx+THCTRL.Base1],r11             ; Set base address 1 (source/destination)
+mov [rbx+THCTRL.Base2],r12             ; Set base address 2 (destination if dual address) 
+mov [rbx+THCTRL.Repeats],r13           ; Set measurement repeats count
+mov [rbx+THCTRL.SizeBytes],r8          ; Set block allocation size, units = bytes
+mov [rbx+THCTRL.SizeInst],r9           ; Set block performance size, units = instructions 
+mov [rbx+THCTRL.ThreadAffinity],rax    ; Set thread affinity mask, 64-bit KAFFINITY
 
 ; INT3
 push qword [r14+NUMACTRL.NodeGroup]
-pop qword [rbx+THCTRL.ThreadGroup]
+pop qword [rbx+THCTRL.ThreadGroup]     ; Set Processor Group associated with affinity mask
 ;
 
-; Make cycle for threads
-add r11,r8
-add r12,r8
-add rbx,THCTRL_SIZE
-inc edi
-cmp edi,esi
-jb .NextThread 
+; Make internal cycle for threads
+add r11,r8               ; R11 = memory base1, add R8 = bytes per thread
+add r12,r8               ; R12 = memory base1, add R8 = bytes per thread
+add rbx,THCTRL_SIZE      ; Advance pointer to next thread (internal cycle)
+inc edi                  ; EDI = count thread per nodes, current thread per node 
+cmp edi,esi              ; EDI = current thread per node, ESI = total threads per node  
+jb .NextThread           ; Internal cycle for THREADS, if current < limit 
 
-; Make cycle for NUMA nodes
-pop r12 r11
-add r14,NUMACTRL_SIZE
-loop .NextNode
+; Make external cycle for NUMA nodes
+pop r12 r11              ; Restore blocks offsets by test scenario, example 0, L1/2
+add r14,NUMACTRL_SIZE    ; Advance pointer to next node (external cycle)
+loop .NextNode           ; External cycle for NODES, RCX = counter
 
 ; End of build cycles
-pop rcx rbx
+pop rcx rbx              ; Restore RCX = threads count, RBX = threads list pointer
 ; End of NUMA-specific part
 jmp .EventsAndThreads 
 
 ;---------- Branch for non-NUMA mode ------------------------------------------;
 
 .ModeNonNUMA:
-; Allocate all memory
+; Allocate all memory, for all threads, this method possible at non-NUMA branch
 push rbx rcx rbp r8 r9
 call MemoryAllocation
 pop r9 r8 rbp rcx rbx
 jc OpenMultiThreadError        ; Go error if memory allocation error
-; Cycle for build control structures
-push rbx rcx
-mov r10,[rbx+THCTRL.EntryPoint]
-mov r11,[rbx+THCTRL.Base1]
-mov r12,[rbx+THCTRL.Base2]
-mov r13,[rbx+THCTRL.Repeats]
+
+; Load parameters for build control structures
+push rbx rcx                       ; Save RBX = threads list pointer, RCX = threads count
+mov r10,[rbx+THCTRL.EntryPoint]    ; R10 = Selected performance pattern entry point
+mov r11,[rbx+THCTRL.Base1]         ; R11 = Block1 memory buffer base address
+mov r12,[rbx+THCTRL.Base2]         ; R12 = Block1 memory buffer base address
+mov r13,[rbx+THCTRL.Repeats]       ; R13 = Measurement repeats count
+
+; Cycle for build threads entries
 .BuildControls:
-mov [rbx+THCTRL.EntryPoint],r10
-mov [rbx+THCTRL.Base1],r11
-mov [rbx+THCTRL.Base2],r12
-mov [rbx+THCTRL.Repeats],r13
-mov [rbx+THCTRL.SizeBytes],r8
-mov [rbx+THCTRL.SizeInst],r9
+mov [rbx+THCTRL.EntryPoint],r10   ; Set selected performance pattern entry point 
+mov [rbx+THCTRL.Base1],r11        ; Set thread buffer block 1 base address
+mov [rbx+THCTRL.Base2],r12        ; Set thread buffer block 2 base address
+mov [rbx+THCTRL.Repeats],r13      ; Set measurement repeats count 
+mov [rbx+THCTRL.SizeBytes],r8     ; Set allocated block size, units = bytes
+mov [rbx+THCTRL.SizeInst],r9      ; Set performance block size, units = instructions
 ; INT3
 mov qword [rbx+THCTRL.ThreadAffinity],0  ; Blank affinity
-mov qword [rbx+THCTRL.ThreadGroup],0
+mov qword [rbx+THCTRL.ThreadGroup],0     ; Blank group, associated with affinity
 ;
-add r11,r8
-add r12,r8
-add rbx,THCTRL_SIZE
-loop .BuildControls  ; RCX = Cycle counter, by number of threads
-pop rcx rbx
+add r11,r8            ; R11 = Advance block 1 pointer, to next thread buffer 
+add r12,r8            ; R12 = Advance block 2 pointer, to next thread buffer
+add rbx,THCTRL_SIZE   ; RBX = Advance threads list pointer
+loop .BuildControls   ; RCX = Cycle counter, by number of threads
+
+pop rcx rbx           ; Restore RCX = threads count, RBX = threads list pointer
 
 ;---------- Continue both non-NUMA and NUMA branches --------------------------;
 
 ; Create events and threads in the common cycle
 .EventsAndThreads:
-mov rsi,rbx
-lea rdi,[rbx+THREADS_CONTROL_SIZE]
-mov r12,rcx
-xor ebx,ebx
+mov rsi,rbx                          ; RSI = Pointer to threads list
+lea rdi,[rbx+THREADS_CONTROL_SIZE]   ; RDI = Pointer for sequentally store handles
+mov r12,rcx                          ; R12 = Threads count
+xor ebx,ebx                          ; RBX = Threads number for create threads
 
 ; Cycle for events and threads, include set affinity mask = f(HT option)
 .CreateEventsThreads:                                    
@@ -226,17 +231,17 @@ test rax,rax                       ; Status=0 means error
 jz OpenMultiThreadError            ; Go if error creating thread
 mov [rsi+THCTRL.ThreadHandle],rax  ; Store thread handle in the per-thread list
 ; Cycle
-inc ebx
-add rsi,THCTRL_SIZE
-dec r12
-jnz .CreateEventsThreads          ; Cycle for all events and threads handles
+inc ebx                            ; RBX = Thread number +1
+add rsi,THCTRL_SIZE                ; RSI = Advance threads list pointer
+dec r12                            ; R12 = Threads count -1
+jnz .CreateEventsThreads           ; Cycle for all events and threads handles
 
 ; Exit points, use previous add CF=0(NC)
 OpenMultiThreadExit:
 mov rsp,rbp
 ret
 OpenMultiThreadError:
-stc
+stc                               ; CF=1 means error detected
 jmp OpenMultiThreadExit
 
 ;---------- Close threads session: release memory, events, threads handles ----;
@@ -254,22 +259,24 @@ sub rsp,32                     ; Build parameters shadow, 4 qwords
 push rbx rcx rbp
 mov al,[InputParms.OptionNUMA]
 cmp al,2
-jb .L0
+jb .L0    ; Go to non-NUMA branch if 0=not supported, 1=not selected
 cmp al,3
-ja .L0
-; This branch for NUMA mode
+ja .L0    ; Go to non-NUMA branch if >3 means unknown option value
+; This branch for NUMA mode, release memory, allocated for NUMA nodes
 lea rbx,[NumaControl]
 call MemoryReleaseNuma 
 jmp .L1
 .L0:
-; This branch for non-NUMA mode
+; This branch for non-NUMA mode, release memory allocated by single thread
 call MemoryRelease
 .L1:
 pop rbp rcx rbx
 jc OpenMultiThreadError        ; Go error if memory allocation error
 ; Scan list of threads
-mov rsi,rbx
-mov edi,ecx
+mov rsi,rbx                        ; RSI = Pointer to threads list
+mov edi,ecx                        ; RDI = Number of threads 
+
+; Cycle for release threads
 ReleaseThreads:
 ; Terminate threads
 mov rcx,[rsi+THCTRL.ThreadHandle]  ; RCX = Parm#1 = THREAD handle
@@ -293,11 +300,12 @@ call [CloseHandle]                 ; Call WinAPI function
 test rax,rax                       ; Status=0 means error
 jz OpenMultiThreadError            ; Go exit if error
 @@:
-;--- Cycle ---
+; Cycle for release threads
 add rsi,THCTRL_SIZE                ; Select next thread entry
 dec edi                            ; Count pairs of entries
 jnz ReleaseThreads                 ; Cycle for all entries
-;--- Exit ---
+
+; Exit
 mov eax,1                  ; Status = no errors, if all skipped and RAX not set
 jmp OpenMultiThreadExit    ; Here CF=0 
 

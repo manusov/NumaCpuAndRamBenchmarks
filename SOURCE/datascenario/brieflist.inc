@@ -50,7 +50,7 @@ VECNT  05+00 , 1      ; AVX512, predicates K[0-7]         , XCR0.5
 MACRO VECLK x1,x2,x3,x4,x5,x6,x7 
 {
 DQ  x1                ; Pointer to measurement routine
-DD  x2                ; Instruction count per work cycle
+DD  x2                ; Instruction count per work cycle, means per 4KB block
 DD  x3                ; Measurement cycle count
 VECPU  x4,x5          ; CPU (CPUID) check criteria to run this
 VECNT  x6,x7          ; OS (XCR0) check criteria to run this
@@ -78,5 +78,8 @@ VECLK  Pattern_Sqrt_AVX512  , 256 , 400000  , 16+00 , 3 , 06+00 , 1
 VECLK  Pattern_Cos_X87      , 256 , 40000   , 00+00 , 1 , 00+00 , 0     
 VECLK  Pattern_SinCos_X87   , 256 , 40000   , 00+00 , 1 , 00+00 , 0 
 VEEND
-  
 
+; Example for instruction count per work cycle, means per 4KB block.
+; Block size = 4096 bytes.
+; One 128-bit SSE instruction has operand size 128 bits means 16 bytes
+; Instructions per block = 4096 / 16 = 256    

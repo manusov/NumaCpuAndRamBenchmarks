@@ -153,12 +153,14 @@ shr ecx,1
 mov [InputParms.NumThreads],ecx
 @@:
 
-; Scaling block size and instructions count by number of threads
-mov rax,[rbx+THCTRL.SizeBytes]
-mul rcx
+; Scaling block size by number of threads
+mov rax,[rbx+THCTRL.SizeBytes]     ; RAX = Block allocation size, units = bytes
+mul rcx                            ; RAX = Block allocation size for all threads
 mov [rbx+THCTRL.SizeBytes],rax
-mov rax,[rbx+THCTRL.SizeInst]
-mul rcx
+
+; Scaling instructions count by number of threads
+mov rax,[rbx+THCTRL.SizeInst]      ; RAX = Block performance size, units = bytes
+mul rcx                            ; RAX = Block performance size for all threads 
 mov [rbx+THCTRL.SizeInst],rax
 
 ; Open (initializing) threads manager, include memory allocation

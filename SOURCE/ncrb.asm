@@ -60,7 +60,7 @@
 ;       - Per-group masking required
 ;         multithread.inc (100)
 ;       + Temporary lock Processor Groups detection
-;         ncrb.asm (337)
+;         ncrb.asm (350)
 ;     
 ; 6)+-  NUMA PROFILE TEXT STRING WRITE AT DRAWINGS WINDOW.
 ;
@@ -93,6 +93,16 @@
 ; 14)+- VirtualAllocEx use dynamical import, VirtualFreeEx use statical import,
 ;       plus, virtualallocex called directly.
 ;       make regular.
+;
+; 15)-- OPTIMIZE VECTOR BRIEF TEST. 
+;       16-BIT OFFSETS RELATIVE R15 FOR PROCEDURES CALL 
+;       INSTEAD FULL 64-BIT OFFSETS, PLUS OTHER MEMBERS OF STRUCTURE. 
+;       LABEL InstructionTimingControl.
+;       WRITE " : " AS FIXED FRAGMENT, SEPARATE STRING. (?) BUT FLEXIBILITY.
+;-
+;
+; NEXT PLANNED ITEM: 1 = REQUIRED VERIFY.    
+;
 ;- 
 
 ; FASM definitions
@@ -968,7 +978,7 @@ BasePoint:
 PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP    DB  'Program info',0
 ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'   , 0Ah,0Dh
-             DB  'v1.01.11 for Windows x64'  , 0Ah,0Dh
+             DB  'v1.01.12 for Windows x64'  , 0Ah,0Dh
              DB  '(C)2018 IC Book Labs'      , 0Ah,0Dh,0
 
 ; Continue data section, CONSTANTS pool
