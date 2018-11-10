@@ -1,33 +1,27 @@
 NCRB = NUMA CPU&RAM Benchmarks
 source directory structure description
--------------------------------------------------------------------------------------------
-ncrb.asm       = main source file, interconnect all includes
-sysinfo        = system information helpers subroutines
-stringwrite    = text strings build helpers subroutines
-windowmain     = registration, callback routine and subroutines for application main window
-windowdraw     = registration, callback routine and subroutines for drawings speed=f(size)
-windowtext     = result message simple window for one measurement without drawings
-windowbrief    = result message simple window for "Vector Brief" mode
-windowmsg      = errors and warnings messages boxes windows
-mpemanager     = Memory Performance Engine (MPE), threads manager
-mpetargets     = Memory Performance Engine (MPE), target routines for memory read/write
-mathtargets    = Mathematics benchmarks target routines
-datasystem     = data for system information and execution threads control
-datagui        = data for graphical user interface (GUI) and benchmarks results visual
-datascenario   = data for options control, interface user-MPE by application scenario
-datadialogues  = data for dialogues descriptions.
--------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+ncrb.asm        = main source file, interconnect all includes
+sysinfo         = system information helpers subroutines
+stringwrite     = text strings build helpers subroutines
+windowmain      = registration, callback routine and subroutines for application main window
+windowdraw      = registration, callback routine and subroutines for drawings speed=f(size)
+windowsimple    = result message text window for "Simple" mode
+windowbrief     = result message text window for "Vector Brief" mode
+windowmsg       = errors and warnings messages boxes windows
+mpemanager      = Memory Performance Engine (MPE), threads manager
+mpetargets      = Memory Performance Engine (MPE), target routines for memory read/write
+mathtargets     = Mathematics benchmarks target routines
+datasystem      = data for system information and execution threads control
+datagui         = data for graphical user interface (GUI) and benchmarks results visual
+datascenario    = data for options control, interface user-MPE by application scenario
+datadialogues   = data for dialogues descriptions.
+datadefinitions = data definitions: constants, structures, macro definitions
+_debug_         = context-integrated debug samples
+----------------------------------------------------------------------------------------------
 
+Template debug feature:     by use template.asm in the source directory
+Application debug feature:  integrated to ncrb.asm, before create window 0
+Window debug feature:       integrated to windowmain\win0.inc, before handling events
 
-1) + First, build simple window for debug.
-2) + Reorder data by logic: GUI and Scenario.
-3) + Order constants and variables for minimize executable file size.
-4) + Divide overflow exception bug, bad precision: use x87 FPU.
-
-
-1) Simple.
-2) SMP, HT, NUMA.
-3) Drawings.
-
-1) Use prefetchnta if not supported movntdqa, include copy, include 256-bit. Check.
-
+----------------------------------------------------------------------------------------------

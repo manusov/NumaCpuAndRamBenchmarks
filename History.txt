@@ -76,5 +76,7 @@ Improve comments.
 v1.01.11
 Fix parameters shadow bug.
 
-
+v1.01.13
+Integrate debug features:
+Template debug, Application debug, Window debug.
 

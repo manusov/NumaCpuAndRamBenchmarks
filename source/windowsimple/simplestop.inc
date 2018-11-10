@@ -165,7 +165,7 @@ div rcx                      ; RCX = Instructions per block
 mov ecx,[InputParms.NumRepeats]
 mul rcx                      ; RAX = Total instructions
 push rax
-fild qword [rsp]                         ; st0 = total instructions
+fild qword [rsp]                        ; st0 = total instructions
 fild qword [OutputParms.TSCtimerDelta]  ; st0 = total delta TSC, st1 = total instructions  
 fdiv st0,st1
 fstp qword [rsp]
@@ -200,7 +200,7 @@ call DoublePrint
 mov al,0
 stosb 
 
-; Other parameters
+; Input parameters for build message box
 xor ecx,ecx             ; RCX = Parm#1 = Parent window handle or 0
 lea rdx,[TEMP_BUFFER]   ; RDX = Dialogue window Parm#2 = Pointer to string
 lea r8,[PRODUCT_ID]     ; R8  = Parm#3 = Pointer to caption

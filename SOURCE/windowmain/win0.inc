@@ -19,6 +19,15 @@ and rsp,0FFFFFFFFFFFFFFF0h
 push rbp
 sub rsp,32+8          ; Parameters shadow for call API + alignment
 mov rbx,rcx           ; RBX = Storage for hwnd
+
+;========== DEBUG FRAGMENT ====================================================;
+; Connect point for debug method 3 of 3 = Window debug.
+; ( Use also 1 = Template debug, 2 = Application debug )
+
+; include '_debug_\window_key_trap.inc'
+
+;========== END OF DEBUG FRAGMENT =============================================;
+
 ; Select handler
 cmp rdx,WM_CREATE
 je .WinCreate         ; Go if WM (Window Message) = OPEN WINDOW

@@ -11,264 +11,13 @@
 ;                                                                              ;
 ;==============================================================================;
 
-
-;--- TODO ---
-;
-; mark legend:
-; -- functionality under construction
-; +- functionality present, include locked functionality, verify required
-; ++ functionality verify OK
-;
-; 1)+-  NUMA OPTIMIZATION ENABLED, UNDER DEBUG.
-; 
-; 2)+-  LARGE PAGES SEPARATE SUPPORT FOR NUMA AND NON-NUMA, 
-;       ENABLED, UNDER DEBUG.
-;
-; 3)+-  USE AFFINITY MASKS FOR HYPER-THREADING / SMT,
-;       ACTUAL REQUIRED CHANGES: multithread.inc ( 97, 159, 181 )
-;       ACTUAL CHECKPOINT: multithread.inc ( 412 ) 
-;         ACTUAL WHEN NT=OFF by applications, 
-;         need overried OS default affinitization
-;         not supported by platform = no masking
-;         supported by platform and used by test = no masking
-;         supported by platform, not used by test = mask 0101...0101b   
-;         NOT BY PROCESSOR COUNT ONLY.
-;         BUG: no affinitization, threads count only, means by OS politics
-;         simplestart.inc (46, 51, 61)
-;         simpleprogress.inc (147) , analysing point
-;         multithread.inc (112, 157, 167) , add masking to cycle
-;          
-; 4)+-  YET UNSUPPORTED COMBINATION: NUMA-AWARE AND SINGLE-THREAD,
-;       CAN USE MULTITHREAD CONTEXT WITH THREADS COUNT = 1.
-;       OR SET MASK IN THE SINGLE THREAD. ADD ERRORS CHECK: ALWAYS JC <label>
-;       singlethread.inc (12, 42, 72, 109, 138).
-;
-; 5)--  PROCESSOR GROUPS, PLATFORM WITH > 64 LOGICAL PROCESSORS.
-;       CHANGES REQUIRED AT ( use text search by commented INT3 ) :
-;       + drawstart.inc (82)
-;       + simplestart.inc (33)
-;       + BuildNumaList, change get numa node processor mask, for group
-;         memalloc.numa (144)
-;       + ThreadEntry, affinitization method = f (groups count)
-;         multithread.inc (360, 405)
-;       + MultiThreadOpen, select ThreadsEntry = f(group mode)
-;         multithread.inc (182)      
-;       + MultiThreadOpen, line ~112, required transfer group after mask
-;         multithread.inc (114)
-;       - BuildNumaList, detect nodes count required change logic
-;         memallocnuma.inc (126, 133)
-;       - Per-group masking required
-;         multithread.inc (100)
-;       + Temporary lock Processor Groups detection
-;         ncrb.asm (350)
-;     
-; 6)+-  NUMA PROFILE TEXT STRING WRITE AT DRAWINGS WINDOW.
-;
-; 7)--  MAKE OPTION FOR PROCESSOR GROUPS. VISUAL ALSO AT REPORTS. (?)
-;
-; 8)--  MEASUREMENT TIME MUST BE REDUCED WITHOUT LOSE PRECISION.
-;
-; 9)--  FOR DRAWINGS, DON'T MAKE MEASUREMENTS IN THE GUI WINDOW EVENT HANDLING
-;       THREAD, USE SEPARATE MEDIATOR THREAD. BUT VECTOR BRIEF AND SIMPLE MODE
-;       NOT HAVE THIS BUG, REDESIGN DRAWINGS ONLY.
-;
-; 10)-- FOR ThreadEntry subroutine SET AFFINITY MASK OUTSIDE CYCLE, 
-;       THIS BETTER FOR OPTIMIZING SIZE AND SPEED,
-;       CAN USE COMMON BRANCH FOR THREAD RE-RUN CYCLE, AFTER AFFINITIZATION.
-;
-; 11)+- FMA HORIZONTAL ADDITION. FIX ARITHMETIC BUG, CHECK FMA 256/512.
-;       FMA256 optimizing only, FMA512 required redesign bug fix and optimizing
-;
-; 12)+- MOVAPD USED, BUT MOVAPS COMPATIBLE FOR SSE1 PERFORMANCE PATTERNS.
-;       ALSO FOR MOVNTPD / MOVNTPS.
-;       OLD VARIANT IS USEABLE AT 64-BIT MODE, BECAUSE DOUBLE PRECISION
-;       FOR SSE SUPPORTED BY X64 CPUs (HISTORICALLY).
-;       ADDITIONALY, MOVAPS IS COMPACT ENCODING, CAN OPTIMIZE SIZE.
-;       ALSO UPDATE INSTRUCTIONS NAMES MESSAGES WHEN UPDATE CODE.
-;       But SQRTPD still double precision, Vector Brief test.
-;
-; 13)-- FOR AVX512 OPTIMIZE BUFFERS TAILS BY PREDICATES.
-;       SCALAR-ALIGNED AND VECTOR-GROUP ALIGNED.
-;
-; 14)+- VirtualAllocEx use dynamical import, VirtualFreeEx use statical import,
-;       plus, virtualallocex called directly.
-;       make regular.
-;
-; 15)-- OPTIMIZE VECTOR BRIEF TEST. 
-;       16-BIT OFFSETS RELATIVE R15 FOR PROCEDURES CALL 
-;       INSTEAD FULL 64-BIT OFFSETS, PLUS OTHER MEMBERS OF STRUCTURE. 
-;       LABEL InstructionTimingControl.
-;       WRITE " : " AS FIXED FRAGMENT, SEPARATE STRING. (?) BUT FLEXIBILITY.
-;-
-;
-; NEXT PLANNED ITEM: 1 = REQUIRED VERIFY.    
-;
-;- 
-
 ; FASM definitions
 include 'win64a.inc'
 
-; Block size for RAM benchmark
-CONST_RAM_BLOCK       EQU  32*1024*1024
-
-; Constant for memory allocation option
-MEM_LARGE_PAGES = 020000000h
-
-; Constant for processor groups management, as WinAPI input parameter means
-; get total processors count, for all Processor Groups 
-ALL_PROCESSOR_GROUPS = 0000FFFFh 
-
-; Benchmarks repeat parameters, precision=f(repeats), for Cache&RAM mode
-L1_REPEATS            EQU  100000   ; Number of measur. iter. for objects, normal mode
-L2_REPEATS            EQU  50000
-L3_REPEATS            EQU  1000
-MEM_REPEATS           EQU  100
-CM_REPEATS            EQU  100000
-L1_REPEATS_SLOW       EQU  2000000  ; Number of measur. iter. for objects, slow mode
-L2_REPEATS_SLOW       EQU  500000
-L3_REPEATS_SLOW       EQU  10000
-MEM_REPEATS_SLOW      EQU  200
-CM_REPEATS_SLOW       EQU  1000000
-
-; Thread control entry, or entire benchmark control if single thread
-; Note keep 128 bytes per entry, see ThreadEntry, can be non parametrized coding
-; Note keep all pairs: Affinity Mask + Affinity Group as 2 sequental qwords,
-; this rule required because WinAPI use with direct output store to this qwords 
-struct THCTRL
-EventHandle     dq  ?   ; Event Handle for operation complete signal 
-ThreadHandle    dq  ?   ; Thread Handle for execution thread
-ThreadAffinity  dq  ?   ; Affinity Mask = F (True Affinity Mask, Options) 
-ThreadGroup     dq  ?   ; Processor group, associated with affinity mask
-EntryPoint      dq  ?   ; Entry point to operation subroutine
-Base1           dq  ?   ; Source for read, destination for write and modify
-Base2           dq  ?   ; Destination for copy
-SizeBytes       dq  ?   ; Block size, units = bytes, for memory allocation 
-SizeInst        dq  ?   ; Block size, units = instructions, for benchmarking
-LargePages      dq  ?   ; Bit D0=Large Pages, other bits [1-63] = reserved
-Repeats         dq  ?   ; Number of measurement repeats
-AffinityMode    dq  ?   ; Affinity mode: 0=None, 1=Without groups, 2=With groups 
-Reserved1       dq  ?   ; Reserved 
-TrueBase        dq  ?   ; True (before alignment) memory block base for release
-OrigAffinity    dq  ?   ; Store original affinity mask, also storage for return 
-OrigGroup       dq  ?   ; Store processor group for original offinity mask 
-ends
-
-; NUMA node description entry, not a same as thread description enrty
-; Note keep 64 bytes per entry, see ThreadEntry, can be non parametrized coding
-; Note keep all pairs: Affinity Mask + Affinity Group as 2 sequental qwords,
-; this rule required because WinAPI use with direct output store to this qwords 
-struct NUMACTRL
-NodeID          dq  ?   ; NUMA Node number, if no NUMA, this field = 0 for all entries
-NodeAffinity    dq  ?   ; NUMA Node affinity mask
-NodeGroup       dq  ?   ; Reserved for Processors Group number
-AlignedBase     dq  ?   ; Block size after alignment, for read/write operation
-AlignedSize     dq  ?   ; Block base address after alignment, for r/w operation 
-TrueBase        dq  ?   ; Base address, returned when allocated, for release, 0=not used 
-Reserved        dq  2 DUP (?)    ; Reserved for alignment
-ends
-
-; Maximum number of supported threads: total and per processor group
-MAX_THREADS            EQU  256      ; old = 64, this extension is UNDER CONSTRUCTION
-MAX_THREADS_PER_GROUP  EQU  64
-
-; Maximum number of supported NUMA nodes
-MAX_NODES             EQU  64
-
-; 8192 bytes, 64 entries for (multi) thread management
-THCTRL_SIZE           EQU  sizeof.THCTRL
-THREADS_CONTROL_SIZE  EQU  MAX_THREADS * THCTRL_SIZE
-
-; 512 bytes, 64 handles, separate list req. for WaitForMultipleObjects function  
-EVENT_SIZE            EQU  8
-EVENTS_CONTROL_SIZE   EQU  MAX_THREADS * EVENT_SIZE
-
-; 4096 bytes, 64 entries for NUMA nodes description, not a same as THREAD
-NUMACTRL_SIZE         EQU  sizeof.NUMACTRL
-NUMA_CONTROL_SIZE     EQU  MAX_NODES * NUMACTRL_SIZE  
-
-; Vector brief, test parameters
-VECTOR_BRIEF_DATA_SIZE       EQU  4096     ; Part of L1 (bytes) used as buffer
-
-; Vector brief, temporary buffer allocation parameters
-VECTOR_BRIEF_TEMP_DATA       EQU  0        ; Buffer for performance patterns
-VECTOR_BRIEF_TEMP_RESULTS    EQU  4096     ; Buffer for save results
-VECTOR_BRIEF_TEMP_TRANSIT    EQU  8192     ; Buffer for transit data 
-
-; Vector brief results description block, not supported data = 0
-struct VECTORBRIEF
-CpuName         db  48 DUP (?)  ; CPU name string
-Reserved        dq  ?           ; Reserved for string terminator byte + align
-TscClock        dq  ?           ; TSC clock, Hz, increments per second
-TscClockNs      dq  ?           ; Nanoseconds per TSC clock, double precision
-StdFeatures     dq  ?           ; EDX(low), ECX(high) after CPUID#00000001h
-ExtFeatures     dq  ?           ; EDX(low), ECX(high) after CPUID#80000001h
-AddFeatures     dq  ?           ; EBX(low), ECX(high) after CPUID#00000007h  
-OsContext       dq  ?           ; XCR0
-dtSse128read    dq  ?           ; TSC clocks per SSE128 Read pattern
-dtSse128write   dq  ?           ; TSC clocks per SSE128 Write pattern
-dtSse128copy    dq  ?           ; TSC clocks per SSE128 Copy pattern 
-dtAvx256read    dq  ?           ; TSC clocks per AVX256 Read pattern
-dtAvx256write   dq  ?           ; TSC clocks per AVX256 Write pattern
-dtAvx256copy    dq  ?           ; TSC clocks per AVX256 Copy pattern 
-dtAvx512read    dq  ?           ; TSC clocks per AVX512 Read pattern
-dtAvx512write   dq  ?           ; TSC clocks per AVX512 Write pattern
-dtAvx512copy    dq  ?           ; TSC clocks per AVX512 Copy pattern 
-dtSse128sqrt    dq  ?           ; TSC clocks per SSE128 Square Root pattern
-dtAvx256sqrt    dq  ?           ; TSC clocks per AVX256 Square Root pattern
-dtAvx512sqrt    dq  ?           ; TSC clocks per AVX512 Square Root pattern
-dtX87cos        dq  ?           ; TSC clocks per x87 Cosine (FCOS) pattern
-dtX87sincos     dq  ?           ; TSC clocks per x87 Sine+Cosine (FSINCOS) pat. 
-ends
-
-; Geometry parameters: Window 0 (parent), system information and options
-WIN0_XBASE = 100    ; Parent window start X position, pixels, if no auto-center
-WIN0_YBASE = 100    ; Parent window start Y position, pixels, if no auto-center
-WIN0_XSIZE = 750    ; Parent window start X size, pixels
-WIN0_YSIZE = 550+36 ; Parent window start Y size, pix., +36 for 2 debug routines
-
-; Geometry parameters: Window 1 (daughter), drawings Speed = F(Block Size)
-WIN1_XBASE = 150    ; Daughter (drawings) window same parameters set 
-WIN1_YBASE = 150     
-WIN1_XSIZE = 760     
-WIN1_YSIZE = 560     
-
-; Geometry parameters: Area with drawings Speed = F(Block Size)
-SUBWINX    = 750+2  ; Plot sub-window X size, pixels
-SUBWINY    = 480+2  ; Plot sub-window Y size, pixels
-GRIDX      = 15     ; Divisor for drawing coordinate X-grid, vertical lines
-GRIDY      = 10     ; Divisor for drawing coordinate Y-grid, horizontal lines
-SHIFTX     = 1      ; X-shift plot sub window in the dialogue window, pixels
-SHIFTY     = 1      ; X-shift plot sub window in the dialogue window, pixels
-GRIDSTEPX  = 50     ; Addend for X-grid step
-GRIDSTEPY  = 48     ; Addend for Y-grid step
-
-; Color parameters of Sub-Window with drawings Speed = F(Block Size)
-; Brush color values = 00bbggrrh, bb=blue, gg=green, rr=red, 1 byte per color
-BRUSH_GRID       = 00017001h        ; Grid with horizontal and vertical lines 
-BRUSH_LINE       = 0001F0F0h        ; Draw Line Speed = F (Block Size)
-BRUSH_BACKGROUND = 00250101h        ; Draw window background
-COLOR_TEXT_UNITS = 0001F001h        ; Text front color, units print
-COLOR_TEXT_BACK  = BRUSH_BACKGROUND ; Text back color
-COLOR_TEXT_INFO  = 00E0E0E0h        ; Text front color, system info print
-COLOR_TEXT_DUMP  = 00F04040h        ; Text front color, instruction dump print
-
-; WinAPI equations for DIB (Device Independent Bitmap)
-DIB_RGB_COLORS    = 0x00  ; Means mode: color table contain RGB values
-DIB_PAL_COLORS    = 0x01  ; Means mode: color tab. is indexes in the pal. table
-DIB_PAL_INDICES   = 0x02  ; Means mode: no color table exist, use default
-CLEARTYPE_QUALITY = 5     ; Quality code for create font and draw at grap. win. 
-
-; Benchmarks deault Y-sizing parameters
-; This parameters set for first pass, 
-; auto adjusted as F(Maximum Detected Speed) for next passes,
-; if don't close Window 1 and press Run (Resize) button 
-; Settings for Cache&RAM mode
-Y_RANGE_MAX              = 300000               ; Default Y maximum 
-DEFAULT_Y_MBPS_PER_GRID  = Y_RANGE_MAX/10       ; Def. units (MBPS) per greed Y 
-DEFAULT_Y_MBPS_PER_PIXEL = Y_RANGE_MAX/SUBWINY  ; Def. units (MBPS) per pixel Y
-
-; Benchmarks visualization timings parameters
-TIMER_TICK       = 50     ; Milliseconds per tick, benchmarks progress timer
+; NCRB definitions
+; Make this modules as separate files for useable by samples under debug 
+include 'datadefinitions\sysdefinitions.inc'    ; System support parameters
+include 'datadefinitions\guidefinitions.inc'    ; GUI support parameters
 
 ;========== Code section ======================================================;
 
@@ -751,47 +500,17 @@ mov bl,0                     ; BL = 0 means NT Read by VMOVNTDQA not supported
 mov [InputParms.NonTemporalRead],bl     ; Update variable, used for select patterns set
 
 
-
 ;========== DEBUG FRAGMENT ====================================================;
+; Connect point for debug method 2 of 3 = Application debug.
+; ( Use also 1 = Template debug, 3 = Window debug )
+; This modules under debug can use full-functional NCRB context.
+; Note. LCM = Linear Congruential Method for pseudo-random numbers generation 
 
-; INT3
-; cld
-; lea rbx,[TEMP_BUFFER]
-; mov rdi,rbx
-; mov ecx,TEMP_BUFFER_SIZE
-; mov al,11h
-; rep stosb
-; xor ecx,ecx  ; RCX = node 0
-; mov rdx,rbx  ; RDX = pointer to buffer
-; call [_GetNumaNodeProcessorMaskEx]
-; INT3
-; call [GetCurrentThread]
-; mov rcx,rax
-; mov rdx,rbx
-; lea r8,[rbx+32]
-; call [_SetThreadGroupAffinity]
-; nop
-; nop
-; nop
-
-; INT3
-; mov eax,NUMACTRL_SIZE
-; mov ebx,THCTRL_SIZE
-
-; INT3
-; mov [ProcessorGroups],0
-
-; INT3
-; cld
-; lea rbx,[TEMP_BUFFER]
-; mov rdi,rbx
-; mov ecx,TEMP_BUFFER_SIZE
-; mov al,11h
-; rep stosb
-; call BuildNumaList
+; include '_debug_\debug_numa_and_groups.inc'
+; include '_debug_\application_latency_rdrand.inc'
+; include '_debug_\application_latency_lcm.inc'
 
 ;========== END OF DEBUG FRAGMENT =============================================;
-
 
 
 ; Create (Open) parent window = Window 0
@@ -857,61 +576,61 @@ jmp ExitProgram
 
 ; Continue code section, INCLUDE connections
 ; Build text strings subroutines
-include 'stringwrite\stringwrite.inc'   ; String write, copy to buffer
-include 'stringwrite\hexprint.inc'      ; Hex numbers write, ASCII string 
-include 'stringwrite\decprint.inc'      ; Decimal numbers write, ASCII string 
-include 'stringwrite\sizeprint.inc'     ; Memory size write, ASCII string  
-include 'stringwrite\doubleprint.inc'   ; Floating numbers write, ASCII string
-include 'stringwrite\acpihprint.inc'    ; ACPI table header write
-include 'stringwrite\acpinprint.inc'    ; Numbers write for ACPI tables info  
+include 'stringwrite\stringwrite.inc'     ; String write, copy to buffer
+include 'stringwrite\hexprint.inc'        ; Hex numbers write, ASCII string 
+include 'stringwrite\decprint.inc'        ; Decimal numbers write, ASCII string 
+include 'stringwrite\sizeprint.inc'       ; Memory size write, ASCII string  
+include 'stringwrite\doubleprint.inc'     ; Float. numbers write, ASCII string
+include 'stringwrite\acpihprint.inc'      ; ACPI table header write
+include 'stringwrite\acpinprint.inc'      ; Numbers write for ACPI tables info  
 
 ; Platform support
-include 'sysinfo\fncload.inc'           ; Optional system functions loader
-include 'sysinfo\checkcpuid.inc'        ; Check CPUID support
-include 'sysinfo\getcpuname.inc'        ; Get CPU name string by CPUID
-include 'sysinfo\getcpufeatures.inc'    ; Get CPU features by CPUID
-include 'sysinfo\measurecpuclk.inc'     ; Measure CPU clock frequency by TSC
-include 'sysinfo\getcpucache.inc'       ; Get CPU cache info by CPUID
-include 'sysinfo\getacpi.inc'           ; Get ACPI tables information
-include 'sysinfo\getos.inc'             ; Get Operating System information
-include 'sysinfo\getlargepages.inc'     ; Get Large Pages information
+include 'sysinfo\fncload.inc'             ; Optional system functions loader
+include 'sysinfo\checkcpuid.inc'          ; Check CPUID support
+include 'sysinfo\getcpuname.inc'          ; Get CPU name string by CPUID
+include 'sysinfo\getcpufeatures.inc'      ; Get CPU features by CPUID
+include 'sysinfo\measurecpuclk.inc'       ; Measure CPU clock frequency by TSC
+include 'sysinfo\getcpucache.inc'         ; Get CPU cache info by CPUID
+include 'sysinfo\getacpi.inc'             ; Get ACPI tables information
+include 'sysinfo\getos.inc'               ; Get Operating System information
+include 'sysinfo\getlargepages.inc'       ; Get Large Pages information
 
 ; Support main window and subroutines, used by other windows 
-include 'windowmain\win0.inc'           ; Main parent window callback handler
-include 'windowmain\createwin.inc'      ; Create dialogue window subroutine
-include 'windowmain\waitevent.inc'      ; Wait user event subroutine
-include 'windowmain\createdial.inc'     ; Create dialogue elements subroutine
-include 'windowmain\setdef0.inc'        ; Set defaults for options at win0
-include 'windowmain\sendmsggc.inc'      ; Send message
+include 'windowmain\win0.inc'             ; Main parent window callback handler
+include 'windowmain\createwin.inc'        ; Create dialogue window subroutine
+include 'windowmain\waitevent.inc'        ; Wait user event subroutine
+include 'windowmain\createdial.inc'       ; Create dialogue elements subroutine
+include 'windowmain\setdef0.inc'          ; Set defaults for options at win0
+include 'windowmain\sendmsggc.inc'        ; Send message
 
 ; Support simple test results window, text output
-include 'windowtext\executesimple.inc'  ; Connect phases: setup, run, result 
-include 'windowtext\simplestart.inc'    ; Benchmarks mode set = F(Options)
-include 'windowtext\simpleprogress.inc' ; Execute simple measurement test 
-include 'windowtext\simplestop.inc'     ; Show simple measurement result 
+include 'windowsimple\executesimple.inc'  ; Connect phases: setup, run, result 
+include 'windowsimple\simplestart.inc'    ; Benchmarks mode set = F(Options)
+include 'windowsimple\simpleprogress.inc' ; Execute simple measurement test 
+include 'windowsimple\simplestop.inc'     ; Show simple measurement result 
 
 ; Support drawings Y=F(X), graphical output SPEED=F(BLOCK SIZE or ADDRESS)
-include 'windowdraw\win1.inc'           ; Draw child window callback handler
-include 'windowdraw\executedraw.inc'    ; Connect phases: setup, run, result 
-include 'windowdraw\drawstart.inc'      ; Benchmarks mode set = F(Options)
-include 'windowdraw\drawprogress.inc'   ; Execute drawings Y=F(X) 
-include 'windowdraw\drawstop.inc'       ; Close drawings process and window 
-include 'windowdraw\initstat.inc'       ; Helper subroutine, clear statistics
+include 'windowdraw\win1.inc'             ; Draw child window callback handler
+include 'windowdraw\executedraw.inc'      ; Connect phases: setup, run, result 
+include 'windowdraw\drawstart.inc'        ; Benchmarks mode set = F(Options)
+include 'windowdraw\drawprogress.inc'     ; Execute drawings Y=F(X) 
+include 'windowdraw\drawstop.inc'         ; Close drawings process and window 
+include 'windowdraw\initstat.inc'         ; Helper subroutine, clear statistics
 
 ; Support vector brief results window, text output
-include 'windowbrief\executebrief.inc'  ; Connect phases: setup, run, result 
-include 'windowbrief\briefstart.inc'    ; Reserved for mode set = F(Options)
-include 'windowbrief\briefprogress.inc' ; Execute vector brief get info, bench. 
-include 'windowbrief\briefstop.inc'     ; Show vector brief result 
+include 'windowbrief\executebrief.inc'    ; Connect phases: setup, run, result 
+include 'windowbrief\briefstart.inc'      ; Reserved for mode set = F(Options)
+include 'windowbrief\briefprogress.inc'   ; Exec. vector brief get info, bench. 
+include 'windowbrief\briefstop.inc'       ; Show vector brief result 
 
 ; Support warning message window
-include 'windowmsg\warningapi.inc'      ; Show warning about optional API
+include 'windowmsg\warningapi.inc'        ; Show warning about optional API
 
 ; Memory Performance Engine (MPE) manager routines
-include 'mpemanager\singlethread.inc'   ; Dispatcher for single thread
-include 'mpemanager\multithread.inc'    ; Dispatcher for multi thread
-include 'mpemanager\memalloc.inc'       ; Memory allocation for non-NUMA 
-include 'mpemanager\memallocnuma.inc'   ; Memory allocation for NUMA 
+include 'mpemanager\singlethread.inc'     ; Dispatcher for single thread
+include 'mpemanager\multithread.inc'      ; Dispatcher for multi thread
+include 'mpemanager\memalloc.inc'         ; Memory allocation for non-NUMA 
+include 'mpemanager\memallocnuma.inc'     ; Memory allocation for NUMA 
 
 ; Performance patterns for CPU instructions
 ; See comments at include modules
@@ -952,13 +671,13 @@ include 'mpetargets\ntdot_fma512.inc'       ; Reserved for FMA with NT Read
 ; include 'mpetargets\ntread_sse128.inc'    ; NT Read, SSE 128-bit
 include 'mpetargets\ntpread_sse128.inc'     ; NT Prefetch Read, SSE 128-bit
 ;- MOVNTDQA/VMOVNTDQA method removed, this entries locked -
-; include 'mpetargets\ntread_avx256.inc'      ; NT Read, AVX 256-bit
+; include 'mpetargets\ntread_avx256.inc'    ; NT Read, AVX 256-bit
 include 'mpetargets\ntpread_avx256.inc'     ; NT Prefetch Read, AVX 256-bit
 ;- MOVNTDQA/VMOVNTDQA method removed, this entries locked -
-; include 'mpetargets\ntread_avx512.inc'      ; NT Read, AVX 512-bit
+; include 'mpetargets\ntread_avx512.inc'    ; NT Read, AVX 512-bit
 ; include 'mpetargets\ntrcopy_sse128.inc'   ; NT Read + NT Write, SSE 128-bit
-; include 'mpetargets\ntrcopy_avx256.inc'     ; NT Read + NT Write, AVX 256-bit 
-; include 'mpetargets\ntrcopy_avx512.inc'     ; NT Read + NT Write, AVX 512-bit 
+; include 'mpetargets\ntrcopy_avx256.inc'   ; NT Read + NT Write, AVX 256-bit 
+; include 'mpetargets\ntrcopy_avx512.inc'   ; NT Read + NT Write, AVX 512-bit 
 
 ; Routines for mathematics (not memory read-write) benchmarks
 include 'mathtargets\sqrt_sse128.inc'       ; Square root, SSE128, 2 x double 
@@ -975,11 +694,7 @@ section '.data' data readable writeable
 BasePoint:
 
 ; Copyright and version info
-PRODUCT_ID   DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
-ABOUT_CAP    DB  'Program info',0
-ABOUT_ID     DB  'NUMA CPU&RAM Benchmarks'   , 0Ah,0Dh
-             DB  'v1.01.12 for Windows x64'  , 0Ah,0Dh
-             DB  '(C)2018 IC Book Labs'      , 0Ah,0Dh,0
+include 'datadefinitions\programname.inc'
 
 ; Continue data section, CONSTANTS pool
 include 'datasystem\sysconstants.inc'    ; Constants for system detection
