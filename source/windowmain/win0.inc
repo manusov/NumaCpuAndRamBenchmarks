@@ -24,6 +24,11 @@ mov rbx,rcx           ; RBX = Storage for hwnd
 ; Connect point for debug method 3 of 3 = Window debug.
 ; ( Use also 1 = Template debug, 2 = Application debug )
 
+; BUG: if keyboard focus at daughter elements of window, key press not
+; works, because keu event associated with daughter element, not main window? 
+; Check by press "About" button before CTRL-ALT-Fx key, when
+; CTRL-ALT-Fx key not works. Note "About" button returns focus to main window.
+
 ; include '_debug_\window_key_trap.inc'
 
 ;========== END OF DEBUG FRAGMENT =============================================;
@@ -67,6 +72,7 @@ xor ecx,ecx                        ; Parm#1 = RCX = Exit code
 call [PostQuitMessage]
 xor eax,eax
 jmp .WinFinish
+
 
 ; Handler for user commands
 ; Buttons: Run Simple, Run Drawings, Defaults, Close buttons

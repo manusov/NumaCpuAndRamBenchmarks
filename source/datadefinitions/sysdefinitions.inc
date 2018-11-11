@@ -3,52 +3,114 @@
 ;     Make this module as separate file for useable by samples under debug     ;
 ;------------------------------------------------------------------------------;
 
-; Geometry parameters: Window 0 (parent), system information and options
-WIN0_XBASE = 100    ; Parent window start X position, pixels, if no auto-center
-WIN0_YBASE = 100    ; Parent window start Y position, pixels, if no auto-center
-WIN0_XSIZE = 750    ; Parent window start X size, pixels
-WIN0_YSIZE = 550+36 ; Parent window start Y size, pix., +36 for 2 debug routines
+; Block size for RAM benchmark
+CONST_RAM_BLOCK       EQU  32*1024*1024
 
-; Geometry parameters: Window 1 (daughter), drawings Speed = F(Block Size)
-WIN1_XBASE = 150    ; Daughter (drawings) window same parameters set 
-WIN1_YBASE = 150     
-WIN1_XSIZE = 760     
-WIN1_YSIZE = 560     
+; Constant for memory allocation option
+MEM_LARGE_PAGES = 020000000h
 
-; Geometry parameters: Area with drawings Speed = F(Block Size)
-SUBWINX    = 750+2  ; Plot sub-window X size, pixels
-SUBWINY    = 480+2  ; Plot sub-window Y size, pixels
-GRIDX      = 15     ; Divisor for drawing coordinate X-grid, vertical lines
-GRIDY      = 10     ; Divisor for drawing coordinate Y-grid, horizontal lines
-SHIFTX     = 1      ; X-shift plot sub window in the dialogue window, pixels
-SHIFTY     = 1      ; X-shift plot sub window in the dialogue window, pixels
-GRIDSTEPX  = 50     ; Addend for X-grid step
-GRIDSTEPY  = 48     ; Addend for Y-grid step
+; Constant for processor groups management, as WinAPI input parameter means
+; get total processors count, for all Processor Groups 
+ALL_PROCESSOR_GROUPS = 0000FFFFh 
 
-; Color parameters of Sub-Window with drawings Speed = F(Block Size)
-; Brush color values = 00bbggrrh, bb=blue, gg=green, rr=red, 1 byte per color
-BRUSH_GRID       = 00017001h        ; Grid with horizontal and vertical lines 
-BRUSH_LINE       = 0001F0F0h        ; Draw Line Speed = F (Block Size)
-BRUSH_BACKGROUND = 00250101h        ; Draw window background
-COLOR_TEXT_UNITS = 0001F001h        ; Text front color, units print
-COLOR_TEXT_BACK  = BRUSH_BACKGROUND ; Text back color
-COLOR_TEXT_INFO  = 00E0E0E0h        ; Text front color, system info print
-COLOR_TEXT_DUMP  = 00F04040h        ; Text front color, instruction dump print
+; Benchmarks repeat parameters, precision=f(repeats), for Cache&RAM mode
+L1_REPEATS            EQU  100000   ; Number of measur. iter. for objects, normal mode
+L2_REPEATS            EQU  50000
+L3_REPEATS            EQU  1000
+MEM_REPEATS           EQU  100
+CM_REPEATS            EQU  100000
+L1_REPEATS_SLOW       EQU  2000000  ; Number of measur. iter. for objects, slow mode
+L2_REPEATS_SLOW       EQU  500000
+L3_REPEATS_SLOW       EQU  10000
+MEM_REPEATS_SLOW      EQU  200
+CM_REPEATS_SLOW       EQU  1000000
 
-; WinAPI equations for DIB (Device Independent Bitmap)
-DIB_RGB_COLORS    = 0x00  ; Means mode: color table contain RGB values
-DIB_PAL_COLORS    = 0x01  ; Means mode: color tab. is indexes in the pal. table
-DIB_PAL_INDICES   = 0x02  ; Means mode: no color table exist, use default
-CLEARTYPE_QUALITY = 5     ; Quality code for create font and draw at grap. win. 
+; Thread control entry, or entire benchmark control if single thread
+; Note keep 128 bytes per entry, see ThreadEntry, can be non parametrized coding
+; Note keep all pairs: Affinity Mask + Affinity Group as 2 sequental qwords,
+; this rule required because WinAPI use with direct output store to this qwords 
+struct THCTRL
+EventHandle     dq  ?   ; Event Handle for operation complete signal 
+ThreadHandle    dq  ?   ; Thread Handle for execution thread
+ThreadAffinity  dq  ?   ; Affinity Mask = F (True Affinity Mask, Options) 
+ThreadGroup     dq  ?   ; Processor group, associated with affinity mask
+EntryPoint      dq  ?   ; Entry point to operation subroutine
+Base1           dq  ?   ; Source for read, destination for write and modify
+Base2           dq  ?   ; Destination for copy
+SizeBytes       dq  ?   ; Block size, units = bytes, for memory allocation 
+SizeInst        dq  ?   ; Block size, units = instructions, for benchmarking
+LargePages      dq  ?   ; Bit D0=Large Pages, other bits [1-63] = reserved
+Repeats         dq  ?   ; Number of measurement repeats
+AffinityMode    dq  ?   ; Affinity mode: 0=None, 1=Without groups, 2=With groups 
+Reserved1       dq  ?   ; Reserved 
+TrueBase        dq  ?   ; True (before alignment) memory block base for release
+OrigAffinity    dq  ?   ; Store original affinity mask, also storage for return 
+OrigGroup       dq  ?   ; Store processor group for original offinity mask 
+ends
 
-; Benchmarks deault Y-sizing parameters
-; This parameters set for first pass, 
-; auto adjusted as F(Maximum Detected Speed) for next passes,
-; if don't close Window 1 and press Run (Resize) button 
-; Settings for Cache&RAM mode
-Y_RANGE_MAX              = 300000               ; Default Y maximum 
-DEFAULT_Y_MBPS_PER_GRID  = Y_RANGE_MAX/10       ; Def. units (MBPS) per greed Y 
-DEFAULT_Y_MBPS_PER_PIXEL = Y_RANGE_MAX/SUBWINY  ; Def. units (MBPS) per pixel Y
+; NUMA node description entry, not a same as thread description enrty
+; Note keep 64 bytes per entry, see ThreadEntry, can be non parametrized coding
+; Note keep all pairs: Affinity Mask + Affinity Group as 2 sequental qwords,
+; this rule required because WinAPI use with direct output store to this qwords 
+struct NUMACTRL
+NodeID          dq  ?   ; NUMA Node number, if no NUMA, this field = 0 for all entries
+NodeAffinity    dq  ?   ; NUMA Node affinity mask
+NodeGroup       dq  ?   ; Reserved for Processors Group number
+AlignedBase     dq  ?   ; Block size after alignment, for read/write operation
+AlignedSize     dq  ?   ; Block base address after alignment, for r/w operation 
+TrueBase        dq  ?   ; Base address, returned when allocated, for release, 0=not used 
+Reserved        dq  2 DUP (?)    ; Reserved for alignment
+ends
 
-; Benchmarks visualization timings parameters
-TIMER_TICK       = 50     ; Milliseconds per tick, benchmarks progress timer
+; Maximum number of supported threads: total and per processor group
+MAX_THREADS            EQU  256      ; old = 64, this extension is UNDER CONSTRUCTION
+MAX_THREADS_PER_GROUP  EQU  64
+
+; Maximum number of supported NUMA nodes
+MAX_NODES             EQU  64
+
+; 8192 bytes, 64 entries for (multi) thread management
+THCTRL_SIZE           EQU  sizeof.THCTRL
+THREADS_CONTROL_SIZE  EQU  MAX_THREADS * THCTRL_SIZE
+
+; 512 bytes, 64 handles, separate list req. for WaitForMultipleObjects function  
+EVENT_SIZE            EQU  8
+EVENTS_CONTROL_SIZE   EQU  MAX_THREADS * EVENT_SIZE
+
+; 4096 bytes, 64 entries for NUMA nodes description, not a same as THREAD
+NUMACTRL_SIZE         EQU  sizeof.NUMACTRL
+NUMA_CONTROL_SIZE     EQU  MAX_NODES * NUMACTRL_SIZE  
+
+; Vector brief, test parameters
+VECTOR_BRIEF_DATA_SIZE       EQU  4096     ; Part of L1 (bytes) used as buffer
+
+; Vector brief, temporary buffer allocation parameters
+VECTOR_BRIEF_TEMP_DATA       EQU  0        ; Buffer for performance patterns
+VECTOR_BRIEF_TEMP_RESULTS    EQU  4096     ; Buffer for save results
+VECTOR_BRIEF_TEMP_TRANSIT    EQU  8192     ; Buffer for transit data 
+
+; Vector brief results description block, not supported data = 0
+struct VECTORBRIEF
+CpuName         db  48 DUP (?)  ; CPU name string
+Reserved        dq  ?           ; Reserved for string terminator byte + align
+TscClock        dq  ?           ; TSC clock, Hz, increments per second
+TscClockNs      dq  ?           ; Nanoseconds per TSC clock, double precision
+StdFeatures     dq  ?           ; EDX(low), ECX(high) after CPUID#00000001h
+ExtFeatures     dq  ?           ; EDX(low), ECX(high) after CPUID#80000001h
+AddFeatures     dq  ?           ; EBX(low), ECX(high) after CPUID#00000007h  
+OsContext       dq  ?           ; XCR0
+dtSse128read    dq  ?           ; TSC clocks per SSE128 Read pattern
+dtSse128write   dq  ?           ; TSC clocks per SSE128 Write pattern
+dtSse128copy    dq  ?           ; TSC clocks per SSE128 Copy pattern 
+dtAvx256read    dq  ?           ; TSC clocks per AVX256 Read pattern
+dtAvx256write   dq  ?           ; TSC clocks per AVX256 Write pattern
+dtAvx256copy    dq  ?           ; TSC clocks per AVX256 Copy pattern 
+dtAvx512read    dq  ?           ; TSC clocks per AVX512 Read pattern
+dtAvx512write   dq  ?           ; TSC clocks per AVX512 Write pattern
+dtAvx512copy    dq  ?           ; TSC clocks per AVX512 Copy pattern 
+dtSse128sqrt    dq  ?           ; TSC clocks per SSE128 Square Root pattern
+dtAvx256sqrt    dq  ?           ; TSC clocks per AVX256 Square Root pattern
+dtAvx512sqrt    dq  ?           ; TSC clocks per AVX512 Square Root pattern
+dtX87cos        dq  ?           ; TSC clocks per x87 Cosine (FCOS) pattern
+dtX87sincos     dq  ?           ; TSC clocks per x87 Sine+Cosine (FSINCOS) pat. 
+ends
