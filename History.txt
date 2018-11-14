@@ -80,3 +80,7 @@ v1.01.13
 Integrate debug features:
 Template debug, Application debug, Window debug.
 
+v1.01.14
+Fix NUMA highest node detection bug:
+check WinAPI-updated QWORD variable instead DWORD variable.
+

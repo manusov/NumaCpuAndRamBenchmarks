@@ -13,7 +13,7 @@
 
 GetOsNumaInfo:
 cld                          ; Clear direction, because STOSQ used
-push rbx rcx rdx rax rsi rbp r8 r9 r10 r11 rax	; R8-R11 because API
+push rbx rcx rdx rax rsi rbp r8 r9 r10 r11 0   ; R8-R11 because API
 mov rbp,rsp                  ; RBP used for restore RSP and addressing variables
 and rsp,0FFFFFFFFFFFFFFF0h   ; Align stack because WinAPI used
 sub rsp,32                   ; Make parameters shadow
@@ -30,25 +30,25 @@ jz .NumaNotAvailable             ; Go skip if function not declared by OS
 call rax                         ; Return EAX=0 if error, EAX>0 if no errors
 test rax,rax
 jz .NumaNotAvailable             ; Go skip if error returned
-cmp qword [rbp],65535            ; [RBP] = Number of nodes
+cmp dword [rbp],65535            ; dword [RBP] = Number of nodes
 ja .NumaNotAvailable             ; Go skip if invalid number of nodes
 ; Scan nodes
-xor esi,esi                      ; RSI = Start node number
-lea rdi,[rbx+4]                  ; RDI = Pointer to nodes list, qwords sequence
-.NumaScan:                       ; RBX = Pointer to nodes counter, dword
-mov ecx,esi                      ; RCX = Parm #1 = Node number
-mov rdx,rdi                      ; RDX = Parm #2 = Pointer to variable = Processor Mask
+xor esi,esi              ; RSI = Start node number
+lea rdi,[rbx+4]          ; RDI = Pointer to nodes list, qwords sequence
+.NumaScan:               ; RBX = Pointer to nodes counter, dword
+mov ecx,esi              ; RCX = Parm #1 = Node number
+mov rdx,rdi              ; RDX = Parm #2 = Pointer to variable = Processor Mask
 mov rax,[_GetNumaNodeProcessorMask]
 test rax,rax
-jz .NumaNotAvailable             ; Go skip if function not declared by OS 
-call rax                         ; Write qword to [rdx]
-test  rax,rax
-jnz @f                           ; Go skip blank if this node valid
+jz .NumaNotAvailable     ; Go skip if function not declared by OS 
+call rax                 ; Write qword to [rdx]
+test  rax,rax                
+jnz @f                   ; Go skip blank if this node valid
 mov qword [rdi],0
 @@:
-jz @f                            ; Go skip pointer advance if this node not valid
-inc dword [rbx]                  ; Memory at [RBX] = Valid nodes counter +1
-add rdi,8                        ; Nodes list pointer +8
+jz @f                    ; Go skip pointer advance if this node not valid
+inc dword [rbx]          ; Memory at dword [RBX] = Valid nodes counter +1
+add rdi,8                ; Nodes list pointer +8
 @@:
 mov rax,rdi
 sub rax,rbx
@@ -129,7 +129,7 @@ jmp ExitCpuClk
 ; without Vendor-Specific CPUID methods.                                 ;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save system info                ;
-;	         RSI = Pointer to 48KB transit buffer for WinAPI return data   ;
+;          RSI = Pointer to 48KB transit buffer for WinAPI return data   ;
 ;                                                                        ;
 ; OUTPUT:  CF = Error flag, 0(NC)=Executed OK, 1(C)=Error                ;
 ;          Output RDI valid only if CF=0(NC)                             ;
@@ -326,8 +326,8 @@ jmp .ExitOsMpInfo
 ; Get number of processor groups,                                        ;
 ; actual for support systems with > 64 logical processors                ;
 ;                                                                        ;
-; INPUT:   RDI = Destination pointer for save ACPI SRAT info             ;
-; OUTPUT:  RDI = Input RDI + 2, output size is WORD                      ;
+; INPUT:   RDI = Destination pointer for save Processor Groups info      ;
+; OUTPUT:  RDI = Input RDI + 6, output size is WORD + DWORD              ;
 ;------------------------------------------------------------------------;
 GetProcessorGroups:
 mov rbp,rsp
