@@ -6,7 +6,7 @@
 PRODUCT_ID     DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP      DB  'Program info',0
 ABOUT_ID       DB  'NUMA CPU&RAM Benchmarks'   , 0Dh,0Ah
-               DB  'v1.02.00 for Windows x64'  , 0Dh,0Ah
+               DB  'v1.02.01 for Windows x64'  , 0Dh,0Ah
                DB  '(C)2019 IC Book Labs'      , 0Dh,0Ah,0
 
 
@@ -94,8 +94,14 @@ LP_02            DB  'available, used by test',0
 ; NUMA option strings
 NUMA_00          DB  'not supported',0
 NUMA_01          DB  'no control (under OS control)',0
-NUMA_02          DB  'force optimal (local domains)',0
-NUMA_03          DB  'force non-optimal (remote domains)',0
+NUMA_02          DB  'force current domain only',0
+NUMA_03          DB  'force optimal (all local domains)',0
+NUMA_04          DB  'force non-optimal (remote domains)',0
+
+; PG option strings
+PG_00            DB  'not supported',0
+PG_01            DB  'no control (current group only)',0
+PG_02            DB  'force optimal (all groups)',0  
 
 ; Target Object option strings
 Target_00        DB  'L1 cache',0
@@ -113,5 +119,29 @@ Measure_03       DB  'careful adaptive',0
 
 ; String for block=none 
 Block_00         DB  'not used',0
+
+;------------------------------------------------------------------------------;
+;                             Error messages.                                  ;
+;               See also non-fatal warnings: file warnapistr.inc.              ;
+;------------------------------------------------------------------------------;
+
+; Error messages, visualized if can't start application
+; Application cannot start with this errors
+MessageNoCpuid	  DB  'CPUID instruction not supported or locked',0
+MessageNoCpuid1   DB  'CPUID function 1 not supported or locked',0
+MessageNoX87      DB  'x87 Floating Point Unit not supported or locked',0
+MessageNoTsc      DB  'Time Stamp Counter not supported or locked',0
+MessageClkError   DB  'Error measuring TSC frequency',0
+MessageMApiError  DB  'Memory information API return error',0
+MessageTApiError  DB  'CPU topological information API return error',0
+MessageBadWindow  DB  'Error initializing dialogue window',0
+
+; Error messages, visualized in runtime
+; Cannot execute required test if this errors detected
+RunErrorMemoryA   DB  'Benchmarks buffer memory allocation error',0  
+RunErrorMemoryR   DB  'Benchmarks buffer memory release error',0
+RunErrorTimings   DB  'Benchmarks timings measurement error',0 
+RunErrorArithm    DB  'Benchmarks address arithmetic error',0
+
 
 

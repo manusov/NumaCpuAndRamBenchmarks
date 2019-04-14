@@ -12,14 +12,6 @@ start:
 
 sub rsp,8*5
 
-; Pre-load library ADVAPI32.DLL, next step uses GetModuleHandle, GetProcAddress
-; for detect functions entry points. Returned handle and status ignored at this
-; step, because availability of library and functions detected at next step.
-; Note pre-load KERNEL32.DLL not required because static import used.
-lea rcx,[NameAdvapi32]
-call [LoadLibrary]
-mov [HandleAdvapi32],rax
-
 call SystemFunctionsLoad
 jc ErrorSkip
 
@@ -78,6 +70,21 @@ call [ExitProcess]
 SystemFunctionsLoad:
 push rbx rbp rsi rdi r12
 cld
+
+; Pre-load library ADVAPI32.DLL, next step uses GetModuleHandle, GetProcAddress
+; for detect functions entry points. Returned handle and status ignored at this
+; step, because availability of library and functions detected at next step.
+; Note pre-load KERNEL32.DLL not required because static import used.
+; Load this library, because it not loaded by statical import
+mov rbp,rsp
+and rsp,0FFFFFFFFFFFFFFF0h
+sub rsp,32
+lea rcx,[NameAdvapi32]
+call [LoadLibrary]
+mov [HandleAdvapi32],rax
+mov rsp,rbp
+
+
 ; Load functions of KERNEL32.DLL
 lea rcx,[NameKernel32]            ; RCX = Parm#1 = Pointer to module name string
 lea rsi,[FunctionsNamesKernel32]  ; RSI = Pointer to functions names list

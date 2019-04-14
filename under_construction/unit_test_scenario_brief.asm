@@ -56,7 +56,7 @@ GetMathPattern:
 lea rbx,[DummyPattern]
 ret
 
-SingleThreadBenchmark:
+RunTarget:
 DummyPattern:
 xor eax,eax
 ret

@@ -1,5 +1,6 @@
-; Template for debug method 1 of 3 = Template debug.
-; ( Use also 2 = Application debug, 3 = Window debug )
+
+; Template for integration tests.
+; Integration test for About window. 
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

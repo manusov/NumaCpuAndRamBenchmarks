@@ -133,20 +133,21 @@ and al,07Fh
 call GetMathPattern
 .L18:
 
-mov [rdi+THCTRL.EntryPoint],rbx           ; RAX = Subroutine address
-mov cl,[rsi+2]                            ; CL = Power of 2
+mov [rdi+THCTRL.EntryPoint],rbx      ; RAX = Subroutine address
+mov cl,[rsi+1]                       ; CL = Power of 2
 mov eax,1
 shl rax,cl
-mov [rdi+THCTRL.SizeInst],rax             ; RAX = Instructions count per 4K
-movzx eax,byte [rsi+3]                    ; RAX = Repeats count
+mov [rdi+THCTRL.SizeInst],rax        ; RAX = Instructions count per 4K
+movzx eax,byte [rsi+2]               ; RAX = Repeats count
 imul rax,rax,REPEATS_SCALE
-mov [rdi+THCTRL.Repeats],rax              ; RAX = Measurement repeats count
+mov [rdi+THCTRL.Repeats],rax         ; RAX = Measurement repeats count
 lea rax,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_DATA]
 mov [rdi+THCTRL.Base1],rax
 add rax,VECTOR_BRIEF_DATA_SIZE / 2
 mov [rdi+THCTRL.Base2],rax
-lea r8,[MathData]                         ; FIX THIS, USE Base3
-call SingleThreadBenchmark                ; Return RAX = dTSC per pattern
+lea r8,[MathData]                    ; FIX THIS, USE Base3
+mov rbx,rdi                          ; TODO. Can remove this if Get...Pattern return in RAX 
+call RunTarget                       ; Return RAX = dTSC per pattern
 pop rdi rsi
 
 .L12:

@@ -40,16 +40,22 @@ HandleAdvapi32                   DQ  ?
 
 ; Test USER parameters
 align 64
-UserParms        UPB
+UserParms  UPB
+
 ; Test INPUT parameters
 align 64
-InputParms       IPB
+InputParms  IPB
+
 ; Test OUTPUT parameters
 align 64
-OutputParms      OPB
+OutputParms  OPB
 
+; This fields use sequental store (STOS), must be sequentally,
+; without internal language-defined hidden alignments
+align 64
+SystemParameters  SYSPARMS
 
 ; Continue data section, multifunctional buffer
-align 4096                  ; Align by page, actual for Vector brief test 
+align 4096   ; Align by page, actual for Vector brief test 
 TEMP_BUFFER  DB  TEMP_BUFFER_SIZE DUP (?)
 

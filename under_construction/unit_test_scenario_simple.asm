@@ -1,11 +1,6 @@
-
-
-; 1) Line 46. ; TODO. As integer or as double, fix usage or comment, fix comment because ns as double ?
-; 2) TODO. Extend functionality: total memory, processor groups, plus.
-; 3) TODO. NUMA, Single Domain, All domains selection must be supported.
-; 4) TODO. Single Processor Group, All groups selection must be supported.
-
-
+; TODO. Bytes/KB/MB/GB units select criteria for all sizes output, 
+; synchronize units mode for all output strings,
+; local decision with different units can be non-ergonomic 
 
 ; Template for unit tests.
 ; Unit test for Simple benchmark scenario. 
@@ -37,26 +32,35 @@ sub rsp,8*5
 ; call [MessageBoxA]
 
 ; emulate options settings for unit test
+
 lea rbx,[InputParms]
-mov [rbx+IPB.UpdatedAsm],33  ; 35  ; 12
+
+mov [rbx+IPB.UpdatedAsm],34  ; 35  ; 12
 mov [rbx+IPB.OperandWidth],256
 mov [rbx+IPB.UpdatedThreads],1
 mov [rbx+IPB.UpdatedHT],1
 mov [rbx+IPB.UpdatedLP],2
 mov [rbx+IPB.UpdatedNUMA],3
+mov [rbx+IPB.UpdatedPG],2
 mov [rbx+IPB.UpdatedTarget],4
 mov [rbx+IPB.UpdatedMeasure],3
-mov [rbx+IPB.AllocatedBlock1],10000h
-mov [rbx+IPB.AllocatedBlock2],20000h
 mov [rbx+IPB.StartBlockSize],24576
 mov [rbx+IPB.MeasureRepeats],100000
+
+mov [rbx+IPB.AllocatedBlock1],10000h
+mov [rbx+IPB.AllocatedBlock2],20000h
+mov [rbx+IPB.MemoryTotal],( 1024*15 + 512 ) * 2
+mov [rbx+IPB.MemoryPerThread],1024*15 + 512
+
 lea rbx,[OutputParms]
+
 mov [rbx+OPB.OStimerDelta],1573000
-mov [rbx+OPB.TSCfrequencyHz],1000000000  ; TODO. As integer or as double, fix usage or comment, fix comment because ns as double ?
 mov [rbx+OPB.TSCtimerDelta],370000000
 
 mov rax,[Data_1]
 mov [rbx+OPB.TSCperiodNs],rax
+mov rax,[Data_2]
+mov [rbx+OPB.TSCfrequencyHz],rax
 
 ; call routines from "Run simple" scenario
 call ResultSimple 
@@ -81,6 +85,7 @@ include 'global\connect_const.inc'
 include 'scenario_simple\connect_const.inc'
 
 Data_1  DQ  0.5
+Data_2  DQ  1000000000.0  
 
 ; WinCaption   DB ' Unit test for Simple benchmark scenario' , 0
 ; MessageText  DB 'Template text...' , 0

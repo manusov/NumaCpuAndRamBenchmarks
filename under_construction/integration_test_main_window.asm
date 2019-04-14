@@ -1,5 +1,6 @@
-; Template for debug method 1 of 3 = Template debug.
-; ( Use also 2 = Application debug, 3 = Window debug )
+
+; Template for integration tests.
+; Integration test for GUI application main window. 
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'
@@ -13,7 +14,7 @@ start:
 sub rsp,8*5
 
 ; message box and wait user input
-xor ecx,ecx	                  ; RCX = Parm#1 = Parent window handle or 0
+xor ecx,ecx	              ; RCX = Parm#1 = Parent window handle or 0
 lea rdx,[ABOUT_ID]            ; RDX = Parm#2 = Pointer to "About" string
 lea r8,[ABOUT_CAP]            ; R8  = Parm#3 = Pointer to caption
 mov r9d,0040h                 ; R9  = Parm#4 = Message box icon type = Info

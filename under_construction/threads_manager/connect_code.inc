@@ -9,3 +9,8 @@ include 'threadroutine.inc'
 include 'threadsstart.inc'
 include 'threadsrestart.inc'
 include 'updatethreadslist.inc'
+
+include 'sessionstart.inc'
+include 'sessionstop.inc'
+include 'sessionprogress.inc'
+

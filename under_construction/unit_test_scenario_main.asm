@@ -3,6 +3,7 @@
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'
+include 'system_info\connect_equ.inc'
 include 'scenario_main\connect_equ.inc'
 
 format PE64 GUI
@@ -12,12 +13,13 @@ start:
 
 sub rsp,8*5
 
+lea rbx,[SystemParameters]
+call GetSystemParameters
+
 cld
 lea rsi,[MessageText]
 lea rdi,[TEMP_BUFFER]
-
 ; ...
-
 call StringWrite
 mov al,0
 stosb
@@ -32,17 +34,20 @@ xor ecx,ecx
 call [ExitProcess]
 
 include 'global\connect_code.inc'
+include 'system_info\connect_code.inc'
 include 'scenario_main\connect_code.inc'
 
 section '.data' data readable writeable
 
 include 'global\connect_const.inc'
+include 'system_info\connect_const.inc'
 include 'scenario_main\connect_const.inc'
 
 WinCaption   DB ' Unit test for Application Main Window scenario' , 0
-MessageText  DB 'Template text...' , 0
+MessageText  DB 'Build-only test...' , 0
 
 include 'global\connect_var.inc'
+include 'system_info\connect_var.inc'
 include 'scenario_main\connect_var.inc'
 
 section '.idata' import data readable writeable
