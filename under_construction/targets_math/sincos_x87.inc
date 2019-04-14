@@ -1,0 +1,89 @@
+;---------- Mathematics calculations performance patterns ---------------------;
+; INPUT:   RSI = Block #1 pointer (64-bit flat)                                ;
+;          RDI = Block #2 pointer (64-bit flat)                                ;
+;          R8  = Block #3 pointer (64-bit flat) , used for load data vector    ;
+;                For Read, Write, Modify use RSI as Source or Destination      ;
+;                For Copy use RSI = Source , RDI = Destination                 ;
+;                RSI, RDI used for Memory Performance Patterns only,           ;
+;                RSI, RDI don't used for THIS mathematics patterns             ;
+;          RCX = Block length, units = instructions                            ;
+;          RBP = Number of measurement repeats                                 ;
+; OUTPUT:  None                                                                ;
+;          Registers corrupted, but must save R14, R15                         ;
+;------------------------------------------------------------------------------;
+
+Pattern_SinCos_X87:
+finit
+Measurement_SinCos_X87:
+
+; Prepare big cycle (without tail)
+fld qword [r8]
+mov rdx,rcx                ; RDX = Reload length
+shr rdx,2                  ; RDX = Block length, convert from INSTRUCTIONS to 4xINSTRUCTION iterations, required future make 1 instr. iteration (!)
+jz Small_SinCos_X87        ; Go if Length < 4 instructions
+
+DumpStart_SinCos_X87:
+Block_SinCos_X87:
+
+fld st0
+fsincos
+ffree st0
+ffree st1
+fincstp
+fincstp
+
+fld st0
+fsincos
+ffree st0
+ffree st1
+fincstp
+fincstp
+
+fld st0
+fsincos
+ffree st0
+ffree st1
+fincstp
+fincstp
+
+fld st0
+fsincos
+ffree st0
+ffree st1
+fincstp
+fincstp
+
+dec rdx
+jnz Block_SinCos_X87         ; Cycle for block data transfer, DEC/JNZ is faster than LOOP!
+DumpStop_SinCos_X87:
+
+; Prepare tail cycle
+Small_SinCos_X87:
+mov edx,ecx
+and edx,00001111b            ; ECX = Extract tail length
+jz Measure_SinCos_X87
+
+; Tail cycle
+Tail_SinCos_X87:
+
+fld st0
+fsincos
+ffree st0
+ffree st1
+fincstp
+fincstp
+
+dec edx           
+jnz Tail_SinCos_X87          ; Cycle for tail data transfer, DEC/JNZ is faster than LOOP!
+
+; Measurement cycle
+Measure_SinCos_X87:
+
+ffree st0
+fincstp
+dec rbp
+jnz Measurement_SinCos_X87   ; Cycle for measurement, repeat same operation, DEC/JNZ is faster than LOOP!
+
+finit
+ret
+
