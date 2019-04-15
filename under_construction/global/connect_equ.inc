@@ -7,6 +7,7 @@ MEM_LARGE_PAGES       EQU  020000000h
 ; Selector for all processor groups
 ALL_PROCESSOR_GROUPS  EQU 0000FFFFh 
 
+
 ; Thread control entry, or entire benchmark control if single thread
 ; Note keep 128 bytes per entry, see ThreadEntry, can be non parametrized coding
 ; Note keep all pairs: Affinity Mask + Affinity Group as 2 sequental qwords,
@@ -34,8 +35,8 @@ ends
 ; Test USER parameters layout declaration
 struct UPB
 OptionAsm         dd  ?    ; Select test ASM method, one of procedures
-OptionTarget      dd  ?    ; Objects { L1, L2, L3, L4, DRAM, STORAGE, CUSTOM }
-OptionThreads     dd  ?    ; Number of threads, 0=auto SMP, 1-256 value
+OptionTarget      dd  ?    ; Objects { L1, L2, L3, L4, DRAM, CUSTOM }
+OptionParallel    dd  ?    ; Parallel { GRAY_NOT_SUP, DISABLED, ENABLED }
 OptionHT          dd  ?    ; HT { GRAY_NOT_SUP, DISABLED, ENABLED }
 OptionPG          dd  ?    ; PG { GRAY_NOT_SUP, DISABLED, ENABLED } 
 OptionNUMA        dd  ?    ; { GRAY_NOT_SUP, UNAWARE, FORCE LOCAL, FORCE REMOTE }
@@ -51,14 +52,14 @@ ends
 struct IPB
 ; First 8 items of IPB associated with first 8 items of UPB
 UpdatedAsm        dd  ?    ; Routine selector, set after detect features
-UpdatedTarget     dd  ?    ; Objects { L1, L2, L3, L4, DRAM, STORAGE, CUSTOM }
+UpdatedTarget     dd  ?    ; Objects { L1, L2, L3, L4, DRAM, CUSTOM }
 UpdatedThreads    dd  ?    ; Number of threads, set after detect features
 UpdatedHT         dd  ?    ; 0=Not sup. by platform, 1=sup. but not used, 2=used
 UpdatedPG         dd  ?    ; 0=Not sup. by platform, 1=sup. but not used, 2=used 
 UpdatedNUMA       dd  ?    ; 0=None, 1=No control, 2=Optimal, 3=Non optim. 
 UpdatedLP         dd  ?    ; 0=Not sup. by platform, 1=sup. but not used, 2=used
 UpdatedMeasure    dd  ?    ; 0=fast, 1=slow, 2=fast adaptive, 3=slow adaptive 
-; Memory allocation results
+; Two work blocks used by benchmark scenario
 AllocatedBlock1   dq  ?
 AllocatedBlock2   dq  ?
 ; This items generated as f( first 8 items, platform configuration )
@@ -70,6 +71,7 @@ MeasureRepeats    dd  ?    ; Number of measurement repeats
 GroupsCount       dd  ?    ; Number of Processor Groups
 DomainsCount      dd  ?    ; Number of NUMA domains
 PageSize          dq  ?    ; Memory page size, bytes
+; Memory allocation results
 MemoryTotal       dq  ?    ; Memory allocated, per all threads
 MemoryPerThread   dq  ?    ; Memory allocated, per each thread 
 ; Benchmarks select and routine dump support
@@ -90,19 +92,54 @@ OStimerDelta      dq  ?    ; delta time at units = 100 ns, 64-bit long integer
 TSCtimerDelta     dq  ?    ; delta time at units = 1 TSC clk., 64-bit long int. 
 ends
 
-
 ; Assembler Methods (AM) option values count and Bandwidth/Latency criteria
-AM_BYTE_COUNT     EQU  22     ; 22 bytes per methods primary list
-AM_LIMIT          EQU  36+1   ; 36 names for assembler methods
-LATENCY_MODE      EQU  35     ; modes ID = 35, 36 for latency measurement
+AM_BYTE_COUNT       EQU  22     ; 22 bytes per methods primary list
+LATENCY_MODE        EQU  35     ; modes ID = 35, 36 for latency measurement
 
-; Options limits
-HT_LIMIT          EQU  2
-LP_LIMIT          EQU  2
-NUMA_LIMIT        EQU  4
-PG_LIMIT          EQU  2
-TARGET_LIMIT      EQU  5 
-MEASURE_LIMIT     EQU  3
+; Options limits and values
+
+ASM_LIMIT           EQU  36+1   ; 36 names for assembler methods
+
+PARALLEL_LIMIT      EQU  2
+PARALLEL_NOT_SUP    EQU  0
+PARALLEL_NOT_USED   EQU  1
+PARALLEL_USED       EQU  2
+
+TARGET_LIMIT        EQU  5      ; Target Object: Cache, DRAM, Custom 
+TARGET_L1           EQU  0
+TARGET_L2           EQU  1
+TARGET_L3           EQU  2
+TARGET_L4           EQU  3
+TARGET_DRAM         EQU  4
+TARGET_CUSTOM       EQU  5
+
+HT_LIMIT            EQU  2      ; HT = Hyper Threading
+HT_NOT_SUPPORTED    EQU  0
+HT_NOT_USED         EQU  1
+HT_USED             EQU  2
+
+LP_LIMIT            EQU  2      ; LP = Large Pages
+LP_NOT_SUPPORTED    EQU  0
+LP_NOT_USED         EQU  1
+LP_USED             EQU  2
+
+NUMA_LIMIT          EQU  4      ; NUMA topology
+NUMA_NOT_SUPPORTED  EQU  0
+NUMA_NO_CONTROL     EQU  1
+NUMA_CURRENT_ONLY   EQU  2
+NUMA_OPTIMAL        EQU  3
+NUMA_NON_OPTIMAL    EQU  4    
+
+PG_LIMIT            EQU  2      ; PG = Processor Group
+PG_NOT_SUPPORTED    EQU  0
+PG_NO_CONTROL       EQU  1
+PG_OPTIMAL          EQU  2
+
+MEASURE_LIMIT       EQU  3      ; Measure repeats selection modes
+MEASURE_BRIEF       EQU  0
+MEASURE_CAREFUL     EQU  1    
+MEASURE_B_ADAPTIVE  EQU  2
+MEASURE_C_ADAPTIVE  EQU  3
 
 ;------------------------------------------------------------------------------;
 ;                  System parameters, detected at start.                       ;
@@ -190,7 +227,7 @@ CpuSignature      dd  ?              ; Resut EAX of CPUID#1 = TFMS
 ; D0=SSE, D1=AVX, D2=FMA, D3=AVX2
 ; D4=AVX512F (foundation part of AVX512)
 ; D5=SSE4.1 (for 128-bit NT Read, VMOVNTDQA xmm)
-; D6=RDRAND (for rnd. address in latency test)
+; D6=RDRAND (for randomization address in latency test)
 ; D7=HT (Hyper Threading)
 ; D[8-31]=Reserved bits
 ; HT bit can be updated by WinAPI results, note CPU can return HT support=1
@@ -280,6 +317,17 @@ SratOemRevision   dd  ?               ; OEM Revision, 32-bit number
 SratDomains       dd  ?               ; Number of NUMA Domains
 SratCpus          dd  ?               ; Number of CPUs (as Local APICs)
 SratRams          dd  ?               ; Number of RAMs (as Regions)
+; Performance pattern internal parameters
+; SSE4.1 validation required for 128-bit MOVNTDQA
+; AVX2 validation required for 256-bit VMOVNTDQA
+; Note non-temporal read recommended for AMD CPU only,
+; Note non-temporal write recommended for both Intel and AMD
+; IMPORTANT patch v0.98.0 = non-temporal read use BOTH FOR INTEL AND AMD
+; IMPORTANT patch v1.01.02 = this byte locked to 0, REJECT (V)MOVNTDQA
+; selection because optimal variant is PREFETCHNTA from SSE1 
+NonTemporalRead   dd  ?    ; 0 = Default (V)MOVNTPD write and PREFETCHNTA read 
+                           ; 1 = SSE4.1 use MOVNTDQA for read 128-bit 
+                           ; 2 = AVX2 use VMOVNTDQA for read 256-bit 
 ends
 
  

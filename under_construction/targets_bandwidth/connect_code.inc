@@ -1,9 +1,19 @@
 
 GetBandwidthPattern:
 movzx eax,al
-movzx eax,word [BandwidthPatterns + rax*2]
+imul eax,eax,6   ; sizeof.BANDWIDTH_ENTRY
+movzx eax,word [BandwidthPatterns + rax]
 lea rbx,[BandwidthPatternsBase + rax]
 ret
+
+GetBandwidthDump:
+movzx eax,al
+imul eax,eax,6   ; sizeof.BANDWIDTH_ENTRY
+movzx edx,byte [BandwidthPatterns + rax + 4]
+movzx eax,word [BandwidthPatterns + rax + 2]
+add rax,BandwidthPatternsBase
+ret
+
 
 ; Start offset for compact offsets encoding
 BandwidthPatternsBase:

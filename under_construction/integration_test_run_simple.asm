@@ -8,7 +8,7 @@ include 'scenario_main\connect_equ.inc'
 include 'scenario_simple\connect_equ.inc'
 include 'system_info\connect_equ.inc'
 include 'targets_bandwidth\connect_equ.inc'
-include 'targets_math\connect_equ.inc'
+include 'targets_latency\connect_equ.inc'
 include 'threads_manager\connect_equ.inc'
 
 format PE64 GUI
@@ -19,15 +19,14 @@ start:
 ; initializing stack frame
 sub rsp,8*5
 
-
 lea rbx,[SystemParameters]
 call GetSystemParameters
 
 
 ;-----------------------------------------;
 OPTION_ASM_METHOD          EQU  12  ; { asm methods (routines) list }
-OPTION_TARGET_OBJECT       EQU  0   ; { L1, L2, L3, L4, DRAM, STORAGE, CUSTOM }
-OPTION_THREADS_COUNT       EQU  0   ; { 0=default SMP AUTO or value 1-256 }  
+OPTION_TARGET_OBJECT       EQU  0   ; { L1, L2, L3, L4, DRAM, CUSTOM }
+OPTION_THREADS_COUNT       EQU  0   ; { 0=default Single or value 1-256 }  
 OPTION_HYPER_THREADING     EQU  0   ; { GRAY_NOT_SUP, DISABLED, ENABLED }
 OPTION_PROCESSOR_GROUPS    EQU  2   ; { GRAY_NOT_SUP, DISABLED, ENABLED }   
 OPTION_NUMA                EQU  0   ; { GRAY_NOT_SUP, UNAWARE, FORCE_ONE, FORCE LOCAL, FORCE REMOTE }
@@ -39,7 +38,7 @@ OPTION_CUSTOM_BLOCK_DELTA  EQU  0   ; Override delta block size or 0=default
 
 lea rsi,[UserParms]
 mov [rsi + UPB.OptionAsm]        , OPTION_ASM_METHOD
-mov [rsi + UPB.OptionThreads]    , OPTION_THREADS_COUNT
+mov [rsi + UPB.OptionParallel]   , OPTION_THREADS_COUNT
 mov [rsi + UPB.OptionHT]         , OPTION_HYPER_THREADING
 mov [rsi + UPB.OptionPG]         , OPTION_PROCESSOR_GROUPS 
 mov [rsi + UPB.OptionNUMA]       , OPTION_NUMA
@@ -102,7 +101,7 @@ include 'scenario_main\connect_code.inc'
 include 'scenario_simple\connect_code.inc'
 include 'system_info\connect_code.inc'
 include 'targets_bandwidth\connect_code.inc'
-include 'targets_math\connect_code.inc'
+include 'targets_latency\connect_code.inc'
 include 'threads_manager\connect_code.inc'
 
 section '.data' data readable writeable
@@ -112,7 +111,7 @@ include 'scenario_main\connect_const.inc'
 include 'scenario_simple\connect_const.inc'
 include 'system_info\connect_const.inc'
 include 'targets_bandwidth\connect_const.inc'
-include 'targets_math\connect_const.inc'
+include 'targets_latency\connect_const.inc'
 include 'threads_manager\connect_const.inc'
 
 include 'global\connect_var.inc'
@@ -120,7 +119,7 @@ include 'scenario_main\connect_var.inc'
 include 'scenario_simple\connect_var.inc'
 include 'system_info\connect_var.inc'
 include 'targets_bandwidth\connect_var.inc'
-include 'targets_math\connect_var.inc'
+include 'targets_latency\connect_var.inc'
 include 'threads_manager\connect_var.inc'
 
 section '.idata' import data readable writeable

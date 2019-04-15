@@ -89,8 +89,57 @@ and [r12 + SYSPARMS.CpuSpecFlags],01111111b
 lea r15,[MessageMApiError]
 lea rsi,[TEMP_BUFFER]
 call GetOsMemoryInfo
-; jc ErrorSysInfo
+jc ErrorSysInfo
 
+; Get large pages information by WinAPI
+call GetLargePagesInfo
+
+; Get processor groups topological information
+call GetProcessorGroups
+
+; Get NUMA topological information include domains list
+call GetOsNumaInfo
+
+; Get topology information by firmware objects (ACPI tables)
+lea rsi,[TEMP_BUFFER]
+call GetAcpiMadt
+call GetAcpiSrat
+
+; This added for support non-temporal read, important for AMD
+; SSE4.1 validation required for 128-bit MOVNTDQA
+; AVX2 validation required for 256-bit VMOVNTDQA
+; Note non-temporal operations used instead temporal if avoid caching required,
+; for example DRAM access, when block size > cache size.
+; Note non-temporal READ recommended for AMD CPU only,
+; Note non-temporal WRITE recommended both for Intel and AMD CPU.
+; Select non-temporal read performance patterns for AMD branch
+; If re-use this mode, note unlock entries at methlist.inc file,
+; and re-connect target performance include files
+
+xor ebx,ebx                    ; BL = 0 means NT Read by VMOVNTDQA not supported
+; patch v0.98.0 = non-temporal read use BOTH FOR INTEL AND AMD
+; lea rsi,[r12 + SYSPARMS.CpuVendorString]    ; This string get from current CPU
+; lea rdi,[Signature_AMD]      ; This is constant string
+; mov ecx,12                   ; CPU Vendor String size is 12 bytes
+; repe cmpsb
+; jne @f                       ; Go because NT Read recommended for AMD,  
+; end of patch v.0.98.0
+
+; patch v0.99.0 = disable VMOVNTDQA 
+; mov eax,[r12 + SYSPARMS.CpuSpecFlags]     ; even if supported by Intel
+; mov bl,2                     ; BL = 2 means both SSE4.1 and AVX2 supported
+; test al,00001000b            ; Check bit D3 = AVX2
+; jnz @f                       ; Go if 128 and 256 bit NT Read supported
+; mov bl,1                     ; BL = 1 means SSE4.1 only supported
+; test al,00100000b            ; Check bit D5 = SSE4.1
+; jnz @f                       ; Go if 128 bit NT Read supported 
+; mov bl,0                     ; BL = 0 means NT Read not supported
+; @@:
+; end of patch v.0.99.0
+
+mov [r12 + SYSPARMS.NonTemporalRead],ebx   ; This variable selects patterns set
+
+; Done
 ErrorSysInfo:   ; if CF=1, register R15 = Pointer to error string
 ret
 

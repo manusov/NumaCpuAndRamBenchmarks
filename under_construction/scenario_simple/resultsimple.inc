@@ -27,7 +27,7 @@ push rsi
 lea rsi,[AM_Strings_Prefix]     ; RSI = Pointer to strings sequence
 mov eax,[r8+IPB.UpdatedAsm]    ; AL = Selector
 inc al
-mov ah,AM_LIMIT
+mov ah,ASM_LIMIT
 call StringWriteSelected        ; Write string selected by AL from pool [rsi]
 pop rsi
 ; (2) Operand width, bits

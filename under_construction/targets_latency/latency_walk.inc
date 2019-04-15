@@ -12,12 +12,14 @@
 
 Pattern_Latency_Walk:
 mov rcx,[rsi]         ; qword [rsi] = walk list entry point, Block #1
-.WalkRepeat:
+WalkRepeat:
 mov rax,rcx
+DumpStart_Latency_Walk:
 .WalkLinked:          ; Walk linked list, use fetched data as next address
 mov rax,[rax]
 test rax,rax
 jnz .WalkLinked
+DumpStop_Latency_Walk:
 dec ebp
-jnz .WalkRepeat
+jnz WalkRepeat
 ret
