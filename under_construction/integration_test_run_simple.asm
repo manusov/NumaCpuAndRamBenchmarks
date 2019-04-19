@@ -24,21 +24,21 @@ call GetSystemParameters
 
 
 ;-----------------------------------------;
-OPTION_ASM_METHOD          EQU  12  ; { asm methods (routines) list }
-OPTION_TARGET_OBJECT       EQU  0   ; { L1, L2, L3, L4, DRAM, CUSTOM }
-OPTION_THREADS_COUNT       EQU  0   ; { 0=default Single or value 1-256 }  
-OPTION_HYPER_THREADING     EQU  0   ; { GRAY_NOT_SUP, DISABLED, ENABLED }
-OPTION_PROCESSOR_GROUPS    EQU  2   ; { GRAY_NOT_SUP, DISABLED, ENABLED }   
-OPTION_NUMA                EQU  0   ; { GRAY_NOT_SUP, UNAWARE, FORCE_ONE, FORCE LOCAL, FORCE REMOTE }
-OPTION_LARGE_PAGES         EQU  0   ; { GRAY_NOT_SUP, DISABLED, ENABLED }
-OPTION_MEASUREMENT         EQU  1   ; { FAST, SLOW, FAST_ADAPTIVE, SLOW_ADAPTIVE }
-OPTION_CUSTOM_BLOCK_START  EQU  0   ; Override start block size or 0=default
-OPTION_CUSTOM_BLOCK_END    EQU  0   ; Override end block size or 0=default
-OPTION_CUSTOM_BLOCK_DELTA  EQU  0   ; Override delta block size or 0=default
+OPTION_ASM_METHOD          EQU  12                   ; { asm methods (routines) list }
+OPTION_TARGET_OBJECT       EQU  TARGET_L1            ; { L1, L2, L3, L4, DRAM, CUSTOM }
+OPTION_PARALLEL            EQU  PARALLEL_USED        ; { NOT_SUP, NOT_USED, USED }  
+OPTION_HYPER_THREADING     EQU  HT_NOT_SUPPORTED     ; { GRAY_NOT_SUP, DISABLED, ENABLED }
+OPTION_PROCESSOR_GROUPS    EQU  PG_NO_CONTROL        ; { GRAY_NOT_SUP, DISABLED, ENABLED }
+OPTION_NUMA                EQU  NUMA_NOT_SUPPORTED   ; { GRAY_NOT_SUP, UNAWARE, FORCE_ONE, FORCE LOCAL, FORCE REMOTE }
+OPTION_LARGE_PAGES         EQU  LP_NOT_SUPPORTED     ; { GRAY_NOT_SUP, DISABLED, ENABLED }
+OPTION_MEASUREMENT         EQU  MEASURE_CAREFUL      ; { FAST, SLOW, FAST_ADAPTIVE, SLOW_ADAPTIVE }
+OPTION_CUSTOM_BLOCK_START  EQU  0                    ; Override start block size or 0=default
+OPTION_CUSTOM_BLOCK_END    EQU  0                    ; Override end block size or 0=default
+OPTION_CUSTOM_BLOCK_DELTA  EQU  0                    ; Override delta block size or 0=default
 
 lea rsi,[UserParms]
 mov [rsi + UPB.OptionAsm]        , OPTION_ASM_METHOD
-mov [rsi + UPB.OptionParallel]   , OPTION_THREADS_COUNT
+mov [rsi + UPB.OptionParallel]   , OPTION_PARALLEL
 mov [rsi + UPB.OptionHT]         , OPTION_HYPER_THREADING
 mov [rsi + UPB.OptionPG]         , OPTION_PROCESSOR_GROUPS 
 mov [rsi + UPB.OptionNUMA]       , OPTION_NUMA
@@ -58,28 +58,28 @@ call SessionStop
 
 ;-----------------------------------------;
 ; emulate options settings for unit test
-lea rbx,[InputParms]
-mov [rbx+IPB.UpdatedAsm],34  ; 35  ; 12
-mov [rbx+IPB.OperandWidth],256
-mov [rbx+IPB.UpdatedThreads],1
-mov [rbx+IPB.UpdatedHT],1
-mov [rbx+IPB.UpdatedLP],2
-mov [rbx+IPB.UpdatedNUMA],3
-mov [rbx+IPB.UpdatedPG],2
-mov [rbx+IPB.UpdatedTarget],4
-mov [rbx+IPB.UpdatedMeasure],3
-mov [rbx+IPB.StartBlockSize],24576
-mov [rbx+IPB.MeasureRepeats],100000
-mov [rbx+IPB.AllocatedBlock1],10000h
-mov [rbx+IPB.AllocatedBlock2],20000h
-mov [rbx+IPB.MemoryTotal],( 1024*15 + 512 ) * 2
-mov [rbx+IPB.MemoryPerThread],1024*15 + 512
-lea rbx,[OutputParms]
-mov [rbx+OPB.OStimerDelta],1573000
-mov [rbx+OPB.TSCtimerDelta],370000000
-xor eax,eax
-mov [rbx+OPB.TSCperiodNs],rax
-mov [rbx+OPB.TSCfrequencyHz],rax
+;lea rbx,[InputParms]
+;mov [rbx+IPB.UpdatedAsm],34  ; 35  ; 12
+;mov [rbx+IPB.OperandWidth],256
+;mov [rbx+IPB.UpdatedThreads],1
+;mov [rbx+IPB.UpdatedHT],1
+;mov [rbx+IPB.UpdatedLP],2
+;mov [rbx+IPB.UpdatedNUMA],3
+;mov [rbx+IPB.UpdatedPG],2
+;mov [rbx+IPB.UpdatedTarget],4
+;mov [rbx+IPB.UpdatedMeasure],3
+;mov [rbx+IPB.StartBlockSize],24576
+;mov [rbx+IPB.MeasureRepeats],100000
+;mov [rbx+IPB.AllocatedBlock1],10000h
+;mov [rbx+IPB.AllocatedBlock2],20000h
+;mov [rbx+IPB.MemoryTotal],( 1024*15 + 512 ) * 2
+;mov [rbx+IPB.MemoryPerThread],1024*15 + 512
+;lea rbx,[OutputParms]
+;mov [rbx+OPB.OStimerDelta],1573000
+;mov [rbx+OPB.TSCtimerDelta],370000000
+;xor eax,eax
+;mov [rbx+OPB.TSCperiodNs],rax
+;mov [rbx+OPB.TSCfrequencyHz],rax
 ;-----------------------------------------;
 
 ; call routines from "Run simple" scenario

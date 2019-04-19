@@ -1,11 +1,22 @@
-; Required 48 Kilobytes miscellaneous buffer
-TEMP_BUFFER_SIZE      EQU 49152
+
+;------------------------------------------------------------------------------;
+;  System support data definitions: constants, structures, macro definitions.  ;
+;     Make this module as separate file for useable by samples under debug     ;
+;------------------------------------------------------------------------------;
+
+; Block size for RAM and Storage benchmarks, default values 
+; must be corrected by platform configuration checks
+DEFAULT_DRAM_BLOCK      EQU  32*1024*1024
 
 ; Constant for memory allocation option
 MEM_LARGE_PAGES       EQU  020000000h
 
 ; Selector for all processor groups
 ALL_PROCESSOR_GROUPS  EQU 0000FFFFh 
+
+
+; Required 48 Kilobytes miscellaneous buffer
+TEMP_BUFFER_SIZE      EQU 49152
 
 
 ; Thread control entry, or entire benchmark control if single thread
@@ -31,6 +42,40 @@ OrigAffinity    dq  ?   ; Store original affinity mask, also storage for return 
 OrigGroup       dq  ?   ; Store processor group for original offinity mask (STORED BY THREAD, NOT BY INITIALIZER) 
 ends
 
+; NUMA node description entry, not a same as thread description enrty
+; Note keep 64 bytes per entry, see ThreadEntry, can be non parametrized coding
+; Note keep all pairs: Affinity Mask + Affinity Group as 2 sequental qwords,
+; this rule required because WinAPI use with direct output store to this qwords 
+struct NUMACTRL
+NodeID          dq  ?   ; NUMA Node number, if no NUMA, this field = 0 for all entries
+NodeAffinity    dq  ?   ; NUMA Node affinity mask
+NodeGroup       dq  ?   ; Processors Group number, 0 if single group platform
+AlignedBase     dq  ?   ; Block size after alignment, for read/write operation
+AlignedSize     dq  ?   ; Block base address after alignment, for r/w operation 
+TrueBase        dq  ?   ; Base address, returned when allocated, for release, 0=not used 
+Reserved        dq  2 DUP (?)    ; Reserved for alignment
+ends
+
+
+; Maximum number of supported threads: total and per processor group
+MAX_THREADS            EQU  256      ; old = 64, this extension is UNDER CONSTRUCTION
+MAX_THREADS_PER_GROUP  EQU  64
+
+; Maximum number of supported NUMA nodes
+MAX_NODES             EQU  64
+
+; 8192 bytes, 64 entries for (multi) thread management
+THCTRL_SIZE           EQU  sizeof.THCTRL
+THREADS_LIST_SIZE     EQU  MAX_THREADS * THCTRL_SIZE
+
+; 512 bytes, 64 handles, separate list req. for WaitForMultipleObjects function  
+EVENT_SIZE            EQU  8
+EVENTS_LIST_SIZE      EQU  MAX_THREADS * EVENT_SIZE
+
+; 4096 bytes, 64 entries for NUMA nodes description, not a same as THREAD
+NUMACTRL_SIZE         EQU  sizeof.NUMACTRL
+NUMA_LIST_SIZE        EQU  MAX_NODES * NUMACTRL_SIZE  
+
 
 ; Test USER parameters layout declaration
 struct UPB
@@ -39,9 +84,9 @@ OptionTarget      dd  ?    ; Objects { L1, L2, L3, L4, DRAM, CUSTOM }
 OptionParallel    dd  ?    ; Parallel { GRAY_NOT_SUP, DISABLED, ENABLED }
 OptionHT          dd  ?    ; HT { GRAY_NOT_SUP, DISABLED, ENABLED }
 OptionPG          dd  ?    ; PG { GRAY_NOT_SUP, DISABLED, ENABLED } 
-OptionNUMA        dd  ?    ; { GRAY_NOT_SUP, UNAWARE, FORCE LOCAL, FORCE REMOTE }
+OptionNUMA        dd  ?    ; NUMA { GRAY_NOT_SUP, UNAWARE, SINGLE_DOMAIN, FORCE LOCAL, FORCE REMOTE }
 OptionLP          dd  ?    ; LP { GRAY_NOT_SUP, DISABLED, ENABLED }  
-OptionMeasure     dd  ?    ; 0=fast, 1=slow, 2=fast adaptive, 3=slow adaptive 
+OptionMeasure     dd  ?    ; Measurement repeats { 0=fast, 1=slow, 2=fast adaptive, 3=slow adaptive } 
 CustomBlockStart  dq  ?    ; Override start block size, or 0=default
 CustomBlockEnd    dq  ?    ; Override end block size, or 0=default
 CustomBlockDelta  dq  ?    ; Override delta block size, or 0=default
@@ -56,7 +101,7 @@ UpdatedTarget     dd  ?    ; Objects { L1, L2, L3, L4, DRAM, CUSTOM }
 UpdatedThreads    dd  ?    ; Number of threads, set after detect features
 UpdatedHT         dd  ?    ; 0=Not sup. by platform, 1=sup. but not used, 2=used
 UpdatedPG         dd  ?    ; 0=Not sup. by platform, 1=sup. but not used, 2=used 
-UpdatedNUMA       dd  ?    ; 0=None, 1=No control, 2=Optimal, 3=Non optim. 
+UpdatedNUMA       dd  ?    ; 0=None, 1=No control, 2-Single domain, 3=Optimal, 4=Non optim. 
 UpdatedLP         dd  ?    ; 0=Not sup. by platform, 1=sup. but not used, 2=used
 UpdatedMeasure    dd  ?    ; 0=fast, 1=slow, 2=fast adaptive, 3=slow adaptive 
 ; Two work blocks used by benchmark scenario
@@ -118,10 +163,10 @@ HT_NOT_SUPPORTED    EQU  0
 HT_NOT_USED         EQU  1
 HT_USED             EQU  2
 
-LP_LIMIT            EQU  2      ; LP = Large Pages
-LP_NOT_SUPPORTED    EQU  0
-LP_NOT_USED         EQU  1
-LP_USED             EQU  2
+PG_LIMIT            EQU  2      ; PG = Processor Group
+PG_NOT_SUPPORTED    EQU  0
+PG_NO_CONTROL       EQU  1
+PG_OPTIMAL          EQU  2
 
 NUMA_LIMIT          EQU  4      ; NUMA topology
 NUMA_NOT_SUPPORTED  EQU  0
@@ -130,10 +175,10 @@ NUMA_CURRENT_ONLY   EQU  2
 NUMA_OPTIMAL        EQU  3
 NUMA_NON_OPTIMAL    EQU  4    
 
-PG_LIMIT            EQU  2      ; PG = Processor Group
-PG_NOT_SUPPORTED    EQU  0
-PG_NO_CONTROL       EQU  1
-PG_OPTIMAL          EQU  2
+LP_LIMIT            EQU  2      ; LP = Large Pages
+LP_NOT_SUPPORTED    EQU  0
+LP_NOT_USED         EQU  1
+LP_USED             EQU  2
 
 MEASURE_LIMIT       EQU  3      ; Measure repeats selection modes
 MEASURE_BRIEF       EQU  0

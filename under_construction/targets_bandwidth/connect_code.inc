@@ -9,6 +9,7 @@ ret
 GetBandwidthDump:
 movzx eax,al
 imul eax,eax,6   ; sizeof.BANDWIDTH_ENTRY
+movzx ecx,byte [BandwidthPatterns + rax + 5]
 movzx edx,byte [BandwidthPatterns + rax + 4]
 movzx eax,word [BandwidthPatterns + rax + 2]
 add rax,BandwidthPatternsBase

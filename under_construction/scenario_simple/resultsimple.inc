@@ -82,7 +82,8 @@ pop rsi
 ; (9) Operation block size per thread
 call StringWrite_CRLF_Equal
 mov rax,[r8+IPB.StartBlockSize]
-mov bl,0FFh          ; BL = Units select for size print, 0FFh = auto
+; mov bl,0FFh          ; BL = Units select for size print, 0FFh = auto
+mov bl,1               ; TODO. Possible adaptive, but "15.5K" is optimal, yet "K" fixed
 call SizePrint64
 ; (10) Measurement profile, brief/careful/brief adaptive/careful adaptive
 call StringWrite_CRLF_Equal

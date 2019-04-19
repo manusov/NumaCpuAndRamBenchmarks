@@ -9,6 +9,7 @@ ret
 GetLatencyDump:
 movzx eax,al
 imul eax,eax,6   ; sizeof.BANDWIDTH_ENTRY
+movzx ecx,byte [LatencyPatterns + rax + 5]
 movzx edx,byte [LatencyPatterns + rax + 4]
 movzx eax,word [LatencyPatterns + rax + 2]
 add rax,LatencyPatternsBase

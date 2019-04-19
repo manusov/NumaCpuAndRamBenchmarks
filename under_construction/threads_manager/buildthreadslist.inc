@@ -74,7 +74,8 @@ jz .ExitBuildThreads                   ; Go if error creating thread
 mov [rsi + THCTRL.ThreadHandle],rax    ; Store thread handle in the per-thread list
 ; Setup affinity mask (include processor group) from NUMA to Thread Entry
 mov rax,[rbx + NUMACTRL.NodeAffinity]
-cmp [r12 + IPB.UpdatedHT],1            ; 1 means HT supported but not used
+cmp [r12 + IPB.UpdatedHT],HT_NOT_USED  ; detect means HT supported but not used
+mov rcx,rax
 jne .AfterMasking                      ; Go skip masking for other variants
 mov rcx,05555555555555555h
 and rcx,rax
@@ -97,14 +98,23 @@ add rax,rcx
 mov [rsi + THCTRL.Base2],rax
 ; Setup block size, bytes, this field must be updated per draw iteration
 mov [rsi + THCTRL.SizeBytes],rcx
+
 ; Setup block size, instructions, this field must be updated per draw iteration
-mov eax,[r12 + IPB.OperandWidth]
-shr rax,3
+; mov eax,[r12 + IPB.OperandWidth]
+; shr rax,3
+; jz .ErrorBuildThreads
+; xchg rax,rcx
+; xor edx,edx
+; div rcx 
+; mov [rsi + THCTRL.SizeInst],rax
+mov ecx,[r12 + IPB.OperandWidth]
+shr rcx,3
 jz .ErrorBuildThreads
-xchg rax,rcx
+mov rax,[r12 + IPB.StartBlockSize]
 xor edx,edx
 div rcx 
 mov [rsi + THCTRL.SizeInst],rax
+
 ; Setup Large Page option
 mov eax,[r12 + IPB.UpdatedLP]
 mov [rsi + THCTRL.LargePages],rax

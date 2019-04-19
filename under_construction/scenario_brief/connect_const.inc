@@ -115,7 +115,7 @@ MsgResultBrief  DB  'TSC clock (MHz)',0
                 DB  0Dh,0Ah, 'Processor features, detect by CPUID',0
                 DB  'AVX 256-bit',0
                 DB  'AVX2 256-bit',0
-                DB  'AVX3 512-bit = AVX512F (Foundation)',0
+                DB  'AVX3 512-bit, AVX512F (Foundation)',0
                 DB  'AVX512CD (Conflict Detection)',0
                 DB  'AVX512PF (Prefetch)',0
                 DB  'AVX512ER (Exponential and Reciprocal)',0

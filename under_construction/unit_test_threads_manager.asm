@@ -51,6 +51,14 @@ ErrorSkip:
 xor ecx,ecx
 call [ExitProcess]
 
+; only for build unit test, dummy routines
+GetBandwidthPattern:  
+GetBandwidthDump:
+GetLatencyPattern:
+GetLatencyDump:
+MeasureTsc:
+ret
+
 ;------------------------------------------------------------------------------;
 ; Load some functions from KERNEL32.DLL system library.                        ;  
 ; This functions not declared in the import section and required manually load ;
