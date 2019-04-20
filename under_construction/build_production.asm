@@ -1,3 +1,8 @@
+; TODO. Unload dynamical import, advapi 32.
+; TODO. Message if build main window error.
+
+
+
 ; Template for debug method 1 of 3 = Template debug.
 ; ( Use also 2 = Application debug, 3 = Window debug )
 

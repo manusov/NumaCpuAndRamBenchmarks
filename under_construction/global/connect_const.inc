@@ -1,4 +1,9 @@
 
+; Base point for compact offsets encoding,
+; note all used offsets must be POSITIVE relative this point
+BasePointGui:
+
+
 ;------------------------------------------------------------------------------;
 ;        Data definitions: application name, vendor and version strings.       ;
 ;------------------------------------------------------------------------------;
@@ -6,7 +11,7 @@
 PRODUCT_ID     DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP      DB  'Program info',0
 ABOUT_ID       DB  'NUMA CPU&RAM Benchmarks'   , 0Dh,0Ah
-               DB  'v1.02.03 for Windows x64'  , 0Dh,0Ah
+               DB  'v1.02.04 for Windows x64'  , 0Dh,0Ah
                DB  '(C)2019 IC Book Labs'      , 0Dh,0Ah,0
 
 
@@ -78,8 +83,8 @@ AM_33  DB  'Non-temporal copy SSE-128 (PREFETCHNTA+MOVAPS+MOVNTPS)',0  ; 33
 ; also if (V)MOVNTDQA is supported, but non-optimal
 AM_34  DB  'Non-temporal read AVX-256 (PREFETCHNTA+VMOVAPD)',0         ; 34
 ; Additions for latency measurement
-AM_35  DB  'Measure latency, randomization by LCM method',0            ; 35  
-AM_36  DB  'Measure latency, randomization by RDRAND',0                ; 36
+AM_35  DB  'Measure latency (LCM)',0                                   ; 35  
+AM_36  DB  'Measure latency (RDRAND)',0                                ; 36
 
 ; Hyper-threading option strings, for simple result window
 HT_00            DB  'disabled by platform',0

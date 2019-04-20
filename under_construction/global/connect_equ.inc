@@ -6,17 +6,17 @@
 
 ; Block size for RAM and Storage benchmarks, default values 
 ; must be corrected by platform configuration checks
-DEFAULT_DRAM_BLOCK      EQU  32*1024*1024
+DEFAULT_DRAM_BLOCK    EQU  32*1024*1024
 
 ; Constant for memory allocation option
 MEM_LARGE_PAGES       EQU  020000000h
 
 ; Selector for all processor groups
-ALL_PROCESSOR_GROUPS  EQU 0000FFFFh 
+ALL_PROCESSOR_GROUPS  EQU  0000FFFFh 
 
 
 ; Required 48 Kilobytes miscellaneous buffer
-TEMP_BUFFER_SIZE      EQU 49152
+TEMP_BUFFER_SIZE      EQU  49152
 
 
 ; Thread control entry, or entire benchmark control if single thread
@@ -62,19 +62,19 @@ MAX_THREADS            EQU  256      ; old = 64, this extension is UNDER CONSTRU
 MAX_THREADS_PER_GROUP  EQU  64
 
 ; Maximum number of supported NUMA nodes
-MAX_NODES             EQU  64
+MAX_NODES              EQU  64
 
 ; 8192 bytes, 64 entries for (multi) thread management
-THCTRL_SIZE           EQU  sizeof.THCTRL
-THREADS_LIST_SIZE     EQU  MAX_THREADS * THCTRL_SIZE
+THCTRL_SIZE            EQU  sizeof.THCTRL
+THREADS_LIST_SIZE      EQU  MAX_THREADS * THCTRL_SIZE
 
 ; 512 bytes, 64 handles, separate list req. for WaitForMultipleObjects function  
-EVENT_SIZE            EQU  8
-EVENTS_LIST_SIZE      EQU  MAX_THREADS * EVENT_SIZE
+EVENT_SIZE             EQU  8
+EVENTS_LIST_SIZE       EQU  MAX_THREADS * EVENT_SIZE
 
 ; 4096 bytes, 64 entries for NUMA nodes description, not a same as THREAD
-NUMACTRL_SIZE         EQU  sizeof.NUMACTRL
-NUMA_LIST_SIZE        EQU  MAX_NODES * NUMACTRL_SIZE  
+NUMACTRL_SIZE          EQU  sizeof.NUMACTRL
+NUMA_LIST_SIZE         EQU  MAX_NODES * NUMACTRL_SIZE  
 
 
 ; Test USER parameters layout declaration
