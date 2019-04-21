@@ -85,19 +85,40 @@ mov edx,HANDLE_L1_CACHE
 mov r8d,HANDLE_CUSTOM_BLOCK
 movzx r9d,al
 call [CheckRadioButton]
+
 ; Options, Carefully mode (slow)
+;mov rcx,rbx
+;mov edx,HANDLE_CAREFUL_MEASUREMENT  ; HANDLE_SLOW_MODE
+;mov r8d,edx
+;mov r9d,edx                      ; Selected=this for set to "1"
+;call [CheckRadioButton]          ; Selected=0 for clear to "0"
+
 mov rcx,rbx
-mov edx,HANDLE_CAREFUL_MEASUREMENT  ; HANDLE_SLOW_MODE
-mov r8d,edx
-mov r9d,edx                      ; Selected=this for set to "1"
-call [CheckRadioButton]                     ; Selected=0 for clear to "0"
+mov edx,HANDLE_BRIEF_MEASUREMENT             ; first at group
+mov r8d,HANDLE_CAREFUL_ADAPTIVE_MEASUREMENT  ; last at group
+mov r9d,HANDLE_CAREFUL_MEASUREMENT           ; selected at group
+call [CheckRadioButton]
+
+; Options, Approximation mode
+;mov rcx,rbx
+;mov edx,HANDLE_APPROXIMATION_NONE
+;mov r8d,edx
+;mov r9d,edx                      ; Selected=this for set to "1"
+;call [CheckRadioButton]                     ; Selected=0 for clear to "0"
+
+mov rcx,rbx
+mov edx,HANDLE_APPROXIMATION_NONE   ; first at group
+mov r8d,HANDLE_APPROXIMATION_X32    ; last at group
+mov r9d,HANDLE_APPROXIMATION_NONE   ; selected at group
+call [CheckRadioButton]
+
 ; Options, Editable field for custom block size
 mov rcx,[SubHandles-128+HANDLE_CUSTOM_EDIT*8]  ; RCX = Parm#1 = Destination element handle
 mov edx,WM_SETTEXT                 ; RDX = Parm#2 = Command, "WM" means Window Message
 xor r8d,r8d                        ; R8  = Parm#3 = Don't used
 lea r9,[Edit_Size]                 ; R9  = Parm#4 = Source buffer  
 ; Select block size
-lea rsi,[CacheL1Data]
+lea rsi,[SystemParameters.CpuCache.CpuidL1Data]
 mov rbx,0FFFFFFFF00000000h
 mov rax,[rsi+00]                   ; RAX = L1 Data Cache size
 test rax,rax

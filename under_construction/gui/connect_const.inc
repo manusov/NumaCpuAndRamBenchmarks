@@ -17,17 +17,17 @@ DIALELEMENT  ClassButton , BasePointGui , 0003 , 0162 , 0743 , 0192 , WS_VISIBLE
 DIALELEMENT  ClassButton , BasePointGui , 0003 , 0349 , 0743 , 0179 , WS_VISIBLE+WS_CHILD+BS_GROUPBOX   ; 18 = Frame for buttons, Y+36 when add 2 debug routines
 ; Sysinfo strings
 ; TODO. Make access CpuVendorString, CpuNameString by TEMP_BUFFER, single regular method for all accesses 
-DIALELEMENT  ClassStatic , CpuVendorString  , 0010 , 0012 , 0110 , 0018 , WS_VISIBLE+WS_CHILD   ; 19 = CPU Vendor String
-DIALELEMENT  ClassStatic , TEMP_BUFFER+000  , 0113 , 0012 , 0220 , 0018 , WS_VISIBLE+WS_CHILD   ; 20 = CPU TFMS
-DIALELEMENT  ClassStatic , CpuNameString    , 0248 , 0012 , 0348 , 0018 , WS_VISIBLE+WS_CHILD   ; 21 = CPU Name String
-DIALELEMENT  ClassStatic , TEMP_BUFFER+080  , 0608 , 0012 , 0110 , 0018 , WS_VISIBLE+WS_CHILD   ; 22 = CPU TSC Frequency, items 1-4 same string
-DIALELEMENT  ClassStatic , TEMP_BUFFER+160  , 0010 , 0030 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 23 = Cache types/levels list
-DIALELEMENT  ClassStatic , TEMP_BUFFER+320  , 0010 , 0048 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 24 = ACPI MADT String
-DIALELEMENT  ClassStatic , TEMP_BUFFER+480  , 0010 , 0066 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 25 = ACPI SRAT String
-DIALELEMENT  ClassStatic , TEMP_BUFFER+640  , 0010 , 0084 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 26 = ACPI SLIT String 
-DIALELEMENT  ClassStatic , TEMP_BUFFER+800  , 0010 , 0102 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 27 = NUMA API String
-DIALELEMENT  ClassStatic , TEMP_BUFFER+960  , 0010 , 0120 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 28 = OS Processors String
-DIALELEMENT  ClassStatic , TEMP_BUFFER+960  , 0010 , 0138 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 29 = OS Memory String
+DIALELEMENT  ClassStatic , SystemParameters.CpuVendorString , 0010 , 0012 , 0110 , 0018 , WS_VISIBLE+WS_CHILD   ; 19 = CPU Vendor String
+DIALELEMENT  ClassStatic , TEMP_BUFFER + 000                , 0113 , 0012 , 0220 , 0018 , WS_VISIBLE+WS_CHILD   ; 20 = CPU TFMS
+DIALELEMENT  ClassStatic , SystemParameters.CpuNameString   , 0248 , 0012 , 0348 , 0018 , WS_VISIBLE+WS_CHILD   ; 21 = CPU Name String
+DIALELEMENT  ClassStatic , TEMP_BUFFER + 080                , 0608 , 0012 , 0112 , 0018 , WS_VISIBLE+WS_CHILD   ; 22 = CPU TSC Frequency, items 1-4 same string
+DIALELEMENT  ClassStatic , TEMP_BUFFER + 160                , 0010 , 0030 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 23 = Cache types/levels list
+DIALELEMENT  ClassStatic , TEMP_BUFFER + 320                , 0010 , 0048 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 24 = ACPI MADT String + table-specific extended info
+DIALELEMENT  ClassStatic , TEMP_BUFFER + 480                , 0010 , 0066 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 25 = ACPI SRAT String + table-specific extended info
+DIALELEMENT  ClassStatic , TEMP_BUFFER + 640                , 0010 , 0084 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 26 = ACPI SLIT String 
+DIALELEMENT  ClassStatic , TEMP_BUFFER + 800                , 0010 , 0102 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 27 = NUMA API String
+DIALELEMENT  ClassStatic , TEMP_BUFFER + 960                , 0010 , 0120 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 28 = OS Processors String
+DIALELEMENT  ClassStatic , TEMP_BUFFER + 1120               , 0010 , 0138 , 0730 , 0020 , WS_VISIBLE+WS_CHILD   ; 29 = OS Memory String
 ; Method options (CPU instruction set), started from first conditionally supported method: MMX
 METHODS_BASE = (36-START_HANDLE_WIN0)*16 + DialogueContent_Win0 + 8
 MMX64_METHOD_1  = (36-36)*16
@@ -44,6 +44,7 @@ AVX512_METHOD_2 = (46-36)*16
 AVX512_METHOD_3 = (47-36)*16
 FMA256_METHOD_1 = (48-36)*16
 FMA512_METHOD_1 = (49-36)*16
+RDRAND_METHOD   = (51-36)*16
 ; Handles
 HANDLE_X86_READ    = 30   ; This must be FIRST
 HANDLE_MMX64_READ  = 36
@@ -85,8 +86,8 @@ DIALELEMENT  ClassButton , AM_36 , 0483 , 0252 , 0260 , 0018 , WS_VISIBLE+WS_CHI
 ; Parallel operations and hyper-threading
 PARALLEL_NUMA_PG_BASE = (52-START_HANDLE_WIN0)*16 + DialogueContent_Win0 + 8
 E_PARALLEL_THREADS = (52-52)*16
-E_HYPER_THREADING  = (53-53)*16
-E_PROCESSOR_GROUPS = (54-54)*16
+E_HYPER_THREADING  = (53-52)*16
+E_PROCESSOR_GROUPS = (54-52)*16
 ; Handles
 HANDLE_PARALLEL_THREADS  = 52
 HANDLE_HYPER_THREADING   = 53
@@ -97,7 +98,7 @@ DIALELEMENT  ClassButton , HT_D_00 , 0010 , 0386 , 0180 , 0018 , WS_VISIBLE+WS_C
 DIALELEMENT  ClassButton , PG_D_00 , 0010 , 0404 , 0180 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTOCHECKBOX+WS_TABSTOP              ; 54 = Use processor groups
 ; NUMA Control, base is 46 because options group addressing
 NUMA_ABSENT       = (55-52)*16
-NUMA_SINGLE       = (56-52)*16
+NUMA_FORCE_SINGLE = (56-52)*16
 NUMA_FORCE_LOCAL  = (57-52)*16
 NUMA_FORCE_REMOTE = (58-52)*16
 ; Handles
@@ -132,14 +133,14 @@ DIALELEMENT  ClassButton , Target_02    , 0220 , 0404 , 0115 , 0018 , WS_VISIBLE
 DIALELEMENT  ClassButton , Target_03    , 0220 , 0422 , 0115 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 62 = L4 analyse
 DIALELEMENT  ClassButton , Target_04    , 0220 , 0440 , 0115 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 63 = DRAM analyse
 DIALELEMENT  ClassButton , Target_D_05  , 0220 , 0458 , 0155 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTORADIOBUTTON+WS_TABSTOP           ; 64 = Custom size
-DIALELEMENT  ClassEdit   , Edit_Size    , 0373 , 0456 , 0075 , 0020 , WS_VISIBLE+WS_CHILD+WS_BORDER+WS_TABSTOP+ES_AUTOHSCROLL     ; 65 = Custom size value edit
+DIALELEMENT  ClassEdit   , Edit_Size    , 0376 , 0456 , 0075 , 0020 , WS_VISIBLE+WS_CHILD+WS_BORDER+WS_TABSTOP+ES_AUTOHSCROLL     ; 65 = Custom size value edit
 ; Large Pages Control, base is 46 because options group addressing
 LARGE_PAGES_BASE = (66-START_HANDLE_WIN0)*16 + DialogueContent_Win0 + 8
 E_LARGE_PAGES = (66-66)*16
 ; Handle
 HANDLE_LARGE_PAGES = 66
 ; Option
-DIALELEMENT  ClassButton , LP_D_00      , 0220 , 0498 , 0180 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTOCHECKBOX+WS_TABSTOP              ; 66 = Enable large pages
+DIALELEMENT  ClassButton , LP_D_00      , 0220 , 0494 , 0180 , 0018 , WS_VISIBLE+WS_CHILD+BS_AUTOCHECKBOX+WS_TABSTOP              ; 66 = Enable large pages
 ; Measurement repeats modes
 MEASUREMNNT_BASE = (67-START_HANDLE_WIN0)*16 + DialogueContent_Win0 + 8
 BRIEF_MEASUREMENT            = (67-67)*16
@@ -222,6 +223,38 @@ Measure_D_03     DB  'careful adaptive',0
 Approx_D_00      DB  'No approximations',0
 Approx_D_01      DB  'Approximation X by 16',0
 Approx_D_02      DB  'Approximation X by 32',0
+
+; System Information strings
+TextTfms         DB  'TFMS=',0
+TextTsc          DB  'TSC=',0
+TextMHz          DB  'MHz',0
+TextCache        DB  'Cache (KB)',0
+TextTrace        DB  'Trace=',0
+TextL1Code       DB  'L1Code=',0
+TextL1Data       DB  'L1Data=',0
+TextL2Unified    DB  'L2Unified=',0
+TextL3Unified    DB  'L3Unified=',0
+TextKuOps        DB  'KuOps',0
+TextMadt         DB  'MADT tags',0
+TextOemRev       DB  'OEM Rev=',0
+TextLocalApics   DB  'Local APICs=',0
+TextIoApics      DB  'I/O APICs=',0
+TextSrat         DB  'SRAT tags',0
+TextDomains      DB  'Domains=',0
+TextCPUs         DB  'CPUs=',0
+TextRAMs         DB  'RAMs=',0
+TextSlit         DB  'SLIT tags',0
+TextNoMadt       DB  'ACPI MADT table not found',0
+TextNoSrat       DB  'ACPI SRAT table not found',0
+TextNoSlit       DB  'ACPI SLIT table not found',0
+TextNumaNodes    DB  'NUMA Nodes=',0
+TextOsCpuCount   DB  'OS processors count=',0
+TextOsCpuMasks   DB  'mask=',0
+TextProcGroups   DB  'Processor groups=',0
+TextProcTotal    DB  'Processors total=',0
+TextPhysMemory   DB  'OS physical memory (MB)=',0
+TextAvlMemory    DB  'Available (MB)=',0
+TextLargePage    DB  'Minimal large page (MB)=',0
 
 ; Buttons strings
 TextRunSimple    DB  'Run simple',0

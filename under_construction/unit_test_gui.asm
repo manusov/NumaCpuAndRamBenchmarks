@@ -5,6 +5,9 @@ include 'win64a.inc'
 include 'global\connect_equ.inc'
 include 'gui\connect_equ.inc'
 
+; This for build unit test
+VECTOR_BRIEF_TEMP_TRANSIT  EQU  0
+
 format PE64 GUI
 entry start
 section '.text' code readable executable
@@ -74,6 +77,11 @@ ErrorProgram:
 ; Done
 xor ecx,ecx
 call [ExitProcess]
+
+; This for build unit test
+RunVectorBrief:
+ResultVectorBrief:
+ret
 
 include 'global\connect_code.inc'
 include 'gui\connect_code.inc'

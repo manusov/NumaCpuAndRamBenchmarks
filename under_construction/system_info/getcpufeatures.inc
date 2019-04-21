@@ -21,7 +21,8 @@
 ;                       D5=SSE4.1 (for 128-bit NT Read, VMOVNTDQA xmm)   ;
 ;                       D6=RDRAND (for rnd. address in latency test)     ;
 ;                       D7=HT (Hyper Threading)                          ;
-;                       D[8-31]=Reserved bits                            ;
+;                       D8=MMX                                           ;
+;                       D[9-31]=Reserved bits                            ;
 ;                                                                        ;
 ; Can destroy registers, volatile by Microsoft x64 calling convention.   ; 
 ;------------------------------------------------------------------------;
@@ -67,8 +68,13 @@ bt ecx,30
 jnc .DoneRDRAND
 or si,0040h               ; ESI.6 = RDRAND
 .DoneRDRAND:
-; Start check optional features, check SSE
+; Start check optional features, check MMX support 
 ; SI = Bitmap, here SI=0, ESI.[31-16]=Bitmap
+bt edx,23                 ; EDX.23 = MMX feature bit
+jnc .DoneMMX              ; Go skip if MMX not supported 
+or esi,100h               ; Set ESI.8 = MMX
+.DoneMMX:
+; Check SSE support
 bt edx,25                 ; EDX.25 = SSE feature bit
 jnc .Store                ; Go skip SSE, AVX, FMA if SSE not supported
 inc esi                   ; Set ESI.0 = SSE
@@ -117,7 +123,8 @@ or esi,00010000b          ; Set ESI.4 = AVX512F
 ; Store result
 .Store:
 xchg eax,esi
-movzx eax,al              ; Clear reserved bits EAX[8-31]
+;- movzx eax,al           ; Clear reserved bits EAX[8-31]
+movzx eax,ax              ; Clear reserved bits EAX[16-31]
 stosd 
 ; Exit
 clc                       ; CF=0 (NC) means CPU features check OK

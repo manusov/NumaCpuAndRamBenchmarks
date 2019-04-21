@@ -83,7 +83,7 @@ test eax,eax
 jz @f                            ; Skip clear HT flag if argument not valid
 cmp eax,1
 jne @f                           ; Skip clear HT flag if number of threads <> 1
-and [r12 + SYSPARMS.CpuSpecFlags],01111111b
+and [r12 + SYSPARMS.CpuSpecFlags],01111111101111111b
 @@:
 ; Get memory information by WinAPI
 lea r15,[MessageMApiError]
@@ -104,6 +104,7 @@ call GetOsNumaInfo
 lea rsi,[TEMP_BUFFER]
 call GetAcpiMadt
 call GetAcpiSrat
+call GetAcpiSlit
 
 ; This added for support non-temporal read, important for AMD
 ; SSE4.1 validation required for 128-bit MOVNTDQA

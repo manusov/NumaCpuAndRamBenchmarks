@@ -269,12 +269,14 @@ CpuNameString     db  48 DUP (?)     ; Result of CPUID#80000002h-80000004h
 CNterminator      db  4  DUP (?)     ; Terminator byte + alignment for dwords     
 CpuSignature      dd  ?              ; Resut EAX of CPUID#1 = TFMS
 ; CPU feature flags, ordered by NCRB functionality
+; TODO. Make this bit flags sequental: MMX-SSE-SSE4-AVX-AVX2-AVX512-... ?
 ; D0=SSE, D1=AVX, D2=FMA, D3=AVX2
 ; D4=AVX512F (foundation part of AVX512)
 ; D5=SSE4.1 (for 128-bit NT Read, VMOVNTDQA xmm)
 ; D6=RDRAND (for randomization address in latency test)
 ; D7=HT (Hyper Threading)
-; D[8-31]=Reserved bits
+; D8=MMX
+; D[9-31]=Reserved bits
 ; HT bit can be updated by WinAPI results, note CPU can return HT support=1
 ; when CPU support HT but HT disabled by CMOS setup option or OS
 CpuSpecFlags      dd  ?   ; Special flags
@@ -355,13 +357,18 @@ MadtOemRevision   dd  ?               ; OEM Revision, 32-bit number
 MadtLocalApics	  dd  ?               ; Number of CPU Local APICs
 MadtIoApics       dd  ?               ; Number of I/O APICs
 ; SRAT = System (Static) Resources Affinity Table extracted info
-; Text format same as MADT, see upper block
+; Text header format same as MADT, see upper block
 SratText          db  14 DUP (?)      ; ACPI SRAT Text Tags
 SratReserved      db  2  DUP (?)      ; Reserved for dword alignment 14 to 16
 SratOemRevision   dd  ?               ; OEM Revision, 32-bit number
 SratDomains       dd  ?               ; Number of NUMA Domains
 SratCpus          dd  ?               ; Number of CPUs (as Local APICs)
 SratRams          dd  ?               ; Number of RAMs (as Regions)
+; SLIT = System Locality Distance Information Table extracted info
+; Text header format same as MADT, see upper block
+SlitText          db  14 DUP (?)      ; ACPI SLIT Text Tags
+SlitReserved      db  2  DUP (?)      ; Reserved for dword alignment 14 to 16
+SlitOemRevision   dd  ?               ; OEM Revision, 32-bit number
 ; Performance pattern internal parameters
 ; SSE4.1 validation required for 128-bit MOVNTDQA
 ; AVX2 validation required for 256-bit VMOVNTDQA

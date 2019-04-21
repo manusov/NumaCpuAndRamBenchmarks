@@ -3,10 +3,10 @@
 ; MADT = Multiple APIC Description Table (multiprocessing info)          ;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save ACPI MADT info             ;
-;	         RSI = Pointer to 48KB transit buffer                    ;
+;	         RSI = Pointer to 48KB transit buffer                          ;
 ;                      for load ACPI table                               ;
 ;                                                                        ;
-; OUTPUT:  RDI = Input RDI + 28 , buffer size fixed = 26 bytes           ;
+; OUTPUT:  RDI = Input RDI + 28 , buffer size fixed = 28 bytes           ;
 ;          Destination memory at [input RDI] = Results, 0=Not detected	 ;
 ;          6 bytes [00-05] = OEM ID (ACPI MADT relative)                 ;
 ;          8 bytes [06-13] = Manufacturer Model ID (ACPI MADT relative)  ;
@@ -25,7 +25,6 @@ and rsp,0FFFFFFFFFFFFFFF0h
 sub rsp,32                       ; Make parameters shadow
 mov edx,'APIC'                   ; RDX = ACPI table signature
 mov ecx,28                       ; RCX = Output buffer size, for MADT mode
-cld
 ; Parse ACPI table header
 call HelperAcpiHeader
 jc AcpiNotAvailable              ; Go if error or this ACPI table not found 
@@ -58,6 +57,7 @@ xchg eax,edx
 stosd                   ; Store number of I/O APICs found , or RAMs for SRAT
 ; Exit, RBP mus be valid as input value
 AcpiNotAvailable:
+AcpiDone:
 mov rsp,rbp
 pop rax rbp rsi rbx
 ret
@@ -70,14 +70,15 @@ ret
 ; INPUT:   RDI = Destination pointer for save ACPI SRAT info             ;
 ;	         RSI = Pointer to 48KB transit buffer for load ACPI table      ;
 ;                                                                        ;
-; OUTPUT:  RDI = Input RDI + 32 , buffer size fixed = 30 bytes           ;
+; OUTPUT:  RDI = Input RDI + 32 , buffer size fixed = 32 bytes           ;
 ;          Destination memory at [input RDI] = Results, 0=Not detected	 ;
-;          6 bytes [00-05] = OEM ID (ACPI MADT relative)                 ;
-;          8 bytes [06-13] = Manufacturer Model ID (ACPI MADT relative)  ;
-;          Dword   [14-17] = OEM revision (ACPI MADT relative)           ;
-;          Dword   [18-21] = Number of NUMA Domains                      ;
-;          Dword   [22-25] = Number of CPUs (as Local APICs)             ;
-;          Dword   [26-29] = Number of RAMs (as Regions)                 ;
+;          6 bytes [00-05] = OEM ID (ACPI SRAT relative)                 ;
+;          8 bytes [06-13] = Manufacturer Model ID (ACPI SRAT relative)  ;
+;          2 bytes [14-15] = Reserved for alignment                      ;
+;          Dword   [16-19] = OEM revision (ACPI SRAT relative)           ;
+;          Dword   [20-23] = Number of NUMA Domains                      ;
+;          Dword   [24-27] = Number of CPUs (as Local APICs)             ;
+;          Dword   [28-31] = Number of RAMs (as Regions)                 ;
 ;                                                                        ;
 ; Can destroy registers, volatile by Microsoft x64 calling convention.   ; 
 ;------------------------------------------------------------------------;
@@ -88,7 +89,6 @@ and rsp,0FFFFFFFFFFFFFFF0h
 sub rsp,32                       ; Make parameters shadow
 mov edx,'SRAT'                   ; RDX = ACPI table signature
 mov ecx,32                       ; RCX = Output buffer size, for SRAT mode
-cld
 ; Parse ACPI table header
 call HelperAcpiHeader
 jc AcpiNotAvailable              ; Go if error or this ACPI table not found 
@@ -147,6 +147,36 @@ stosd                    ; Store number of NUMA Domains
 ; Continue in the common branch
 jmp EntryStoreAcpi
 
+
+;------------------------------------------------------------------------;
+; Read and analysing ACPI SLIT table                                     ;
+; SLIT = System Locality Distance Information Table (NUMA info)          ;
+; NUMA = Non Uniform Memory Access                                       ;
+;                                                                        ;
+; INPUT:   RDI = Destination pointer for save ACPI SLIT info             ;
+;	         RSI = Pointer to 48KB transit buffer for load ACPI table      ;
+;                                                                        ;
+; OUTPUT:  RDI = Input RDI + 20 , buffer size fixed = 20 bytes           ;
+;          Destination memory at [input RDI] = Results, 0=Not detected	 ;
+;          6 bytes [00-05] = OEM ID (ACPI SLIT relative)                 ;
+;          8 bytes [06-13] = Manufacturer Model ID (ACPI SLIT relative)  ;
+;          2 bytes [14-15] = Reserved for alignment                      ;
+;          Dword   [16-19] = OEM revision (ACPI SLIT relative)           ;
+;                                                                        ;
+; Can destroy registers, volatile by Microsoft x64 calling convention.   ; 
+;------------------------------------------------------------------------;
+GetAcpiSlit:
+push rbx rsi rbp rax             ; Note push rax for make local variable
+mov rbp,rsp                      ; RBP used for restore RSP and addr. variables
+and rsp,0FFFFFFFFFFFFFFF0h
+sub rsp,32                       ; Make parameters shadow
+mov edx,'SLIT'                   ; RDX = ACPI table signature
+mov ecx,20                       ; RCX = Output buffer size, for SRAT mode
+; Parse ACPI table header
+call HelperAcpiHeader
+jmp AcpiDone                     ; Go done, yet without table-specific decode 
+
+
 ;------------------------------------------------------------------------;
 ; Helper for parse ACPI table header                                     ;
 ; INPUT:   RSI = Pointer to transit buffer for load ACPI table           ;
@@ -165,6 +195,7 @@ jmp EntryStoreAcpi
 ;------------------------------------------------------------------------;
 
 HelperAcpiHeader:
+cld
 push rbp rax                     ; Note push rax for variable space: 2 dwords
 mov rbp,rsp                      ; RBP used for restore RSP and addr. variables
 and rsp,0FFFFFFFFFFFFFFF0h       ; Align stack
@@ -175,7 +206,7 @@ cld                              ; Clear direction, because STOSB used
 mov [rbp+4],ecx                  ; Store size for adjust if not available
 mov al,0
 rep stosb                        ; Pre-blank output and advance RDI
-; Save signature at temporary storage, for branch MADT/SRAT
+; Save signature at temporary storage, for branch MADT/SRAT/SLIT
 mov [rbp],edx
 ; Get ACPI table
 ; Parm#1 = RCX = Table provider signature, ACPI is one of variants  
@@ -222,7 +253,7 @@ xor eax,eax
 stosw
 ; Copy revision dword
 movsd
-; RSI = MADT/SRAT start address, skip header
+; RSI = MADT/SRAT/SLIT start address, skip header
 lea rsi,[rdx+44]
 ; RBX = Table end address, used as scan limit
 add rbx,rdx

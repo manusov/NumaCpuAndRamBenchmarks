@@ -1,4 +1,9 @@
 
+
+; Field for custom block size edit
+BlockSizeEdit     DQ  ?    ; CUSTOM for selection: L1/L2/L3/L4/Custom
+
+
 ;------------------------------------------------------------------------------;
 ;               MSG message descriptor structure (for Win64).                  ;
 ;------------------------------------------------------------------------------;
