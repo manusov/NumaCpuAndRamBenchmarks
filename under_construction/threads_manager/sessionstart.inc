@@ -115,9 +115,9 @@ je .L10
 cmp al,MEASURE_B_ADAPTIVE
 je .L10
 add rcx,REPEAT_SERIES_BYTES
+.L10:
 mov eax,[rdi + IPB.UpdatedTarget]
 mov eax,[rcx + rax * REPEAT_ENTRY_BYTES]
-.L10:
 cmp [rdi + IPB.UpdatedAsm],LATENCY_MODE
 jb .L13
 xor edx,edx

@@ -79,11 +79,43 @@ cmp esi,HANDLE_CUSTOM_BLOCK        ; Compare with LAST handle
 jbe @b                             ; Cycle for radio buttons group
 @@:
 sub esi,HANDLE_L1_CACHE           ; 0 = First toggle button
-.ObjectOff:
 mov [rdi+UPB.OptionTarget],esi     ; Note SIL means bits SI.[7-0]
 
+; Extract USE LARGE PAGES, for this option detect both GRAY and CHECKED 
+xor eax,eax                        ; LP_NOT_SUPPORTED
+test dword [LARGE_PAGES_BASE + E_LARGE_PAGES],WS_DISABLED
+jnz @f                             ; Go if toggler button disabled (gray)
+mov esi,HANDLE_LARGE_PAGES
+call SendMessageGetCheck           ; Result = ZF flag
+mov eax,LP_NOT_USED
+jnz @f
+inc eax                            ; LP_USED 
+@@:
+mov [rdi+UPB.OptionLP],eax         ; Write option state = EAX
 
+; Extract MEASUREMENT MODE (FAST/SLOW/ADAPTIVE), for this option detect CHECKED only
+mov esi,HANDLE_BRIEF_MEASUREMENT
+@@:
+call SendMessageGetCheck
+jz @f                                         ; Go if BST_CHECKED
+inc esi
+cmp esi,HANDLE_CAREFUL_ADAPTIVE_MEASUREMENT   ; Compare with LAST handle
+jbe @b                                        ; Cycle for radio buttons group
+@@:
+sub esi,HANDLE_BRIEF_MEASUREMENT              ; 0 = First toggle button
+mov [rdi+UPB.OptionMeasure],esi               ; Write option state = ESI
 
+; Extract MEASUREMENT APPROXIMATION MODE, for this option detect CHECKED only
+mov esi,HANDLE_APPROXIMATION_NONE
+@@:
+call SendMessageGetCheck
+jz @f                                         ; Go if BST_CHECKED
+inc esi
+cmp esi,HANDLE_APPROXIMATION_X32              ; Compare with LAST handle
+jbe @b                                        ; Cycle for radio buttons group
+@@:
+sub esi,HANDLE_APPROXIMATION_NONE             ; 0 = First toggle button
+mov [rdi+UPB.OptionApprox],esi                ; Write option state = ESI
 
 ; Done
 ret

@@ -224,6 +224,30 @@ Approx_D_00      DB  'No approximations',0
 Approx_D_01      DB  'Approximation X by 16',0
 Approx_D_02      DB  'Approximation X by 32',0
 
+; Additions for drawings window
+
+; Unknown tested target object
+Unknown_Object   DB  '?',0
+
+; Text strings for number of threads
+Threads_String   DB  'Threads='
+Threads_Number   DB  2+1 DUP (0)
+
+; Text strings for paging options
+NPages_String    DB  '4K pages',0
+LPages_String    DB  'Large pages',0
+
+; Text strings for NUMA options
+NumaOff_String   DB  ' ',0
+NumaU_String     DB  'NUMA unaware',0
+NumaL_String     DB  'NUMA local',0
+NumaR_String     DB  'NUMA remote',0
+
+; Text strings for number of repeats
+Repeats_String   DB  'Repeats='
+Repeats_Number   DB  9+1 DUP (0) 
+
+
 ; System Information strings
 TextTfms         DB  'TFMS=',0
 TextTsc          DB  'TSC=',0
@@ -311,3 +335,92 @@ ClassWindow1  DB  'FASM64WIN1',0  ; Class for Window 1 (my object)
 ClassButton   DB  'BUTTON',0      ; Class BUTTON (reference to windows classes)
 ClassStatic   DB  'STATIC',0      ; Class STATIC (reference to windows classes)
 ClassEdit     DB  'EDIT',0        ; Class EDIT (reference to windows classes)
+
+
+
+;------------------------------------------------------------------------------;
+;                         Window 1 elements list.                              ;
+;------------------------------------------------------------------------------;
+
+; Window 1 = Measurement window, drawings Y=F(X).
+; List of GUI window elements descriptors.
+
+; If x2=BasePoint, Result=StringsNull-StringsNull=0
+START_HANDLE_WIN1 = 16
+DialogueContent_Win1:
+; Buttons and ASM method string
+HANDLE_BUTTON_RUN1    = 16
+HANDLE_BUTTON_CANCEL1 = 17
+HANDLE_TEXT_METHOD1   = 18
+HANDLE_TEXT_OBJECT1   = 19
+HANDLE_THREADS1       = 20
+HANDLE_TEXT_REPEATS1  = 21
+HANDLE_LARGE_PAGES1   = 22
+HANDLE_NUMA_MODE1     = 23
+; "AM" label name prefix means "Assembler Method" means CPU Instruction Set
+DIALELEMENT  ClassButton , TextRestart     , 0605 , 0523 , 0080 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON  ; 16 = Restart button
+DIALELEMENT  ClassButton , TextCancel      , 0690 , 0523 , 0080 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON  ; 17 = Cancel button
+
+; TODO. Drawings window control elements
+;DIALELEMENT  ClassStatic , AM_00           , 0017 , 0492 , 0500 , 0020 , WS_VISIBLE+WS_CHILD                ; 18 = Selected ASM method string
+;DIALELEMENT  ClassStatic , Unknown_Object  , 0017 , 0510 , 0200 , 0020 , WS_VISIBLE+WS_CHILD                ; 19 = Selected analysed object string
+;DIALELEMENT  ClassStatic , Threads_String  , 0125 , 0510 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 20 = Number of threads string
+;DIALELEMENT  ClassStatic , Repeats_String  , 0222 , 0510 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 21 = Number of repeats string
+;DIALELEMENT  ClassStatic , NPages_String   , 0358 , 0510 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 22 = Large pages string
+;DIALELEMENT  ClassStatic , NumaOff_String  , 0448 , 0510 , 0108 , 0020 , WS_VISIBLE+WS_CHILD                ; 23 = NUMA mode string
+;---
+
+; Terminator
+DIALSTOP
+; End of list
+
+
+;------------------------------------------------------------------------------;
+;            BITMAPINFOHEADRE descriptor structure (for Win64).                ;
+;------------------------------------------------------------------------------;
+
+; This structure used when initializing graphics window context, drawings Y=F(X)
+;--------------------------------------------------------------
+; Name		          Size    Comments
+;--------------------------------------------------------------
+; biSize           dd ?   Number of bytes
+; biWidth          dd ?   Width
+; biHeight         dd ?   Height
+; biPlanes         dw ?   Bit Planes
+; biBitCount       dw ?   Bits Per Pixel
+; biCompression    dd ?   Compression Mode
+; biSizeImage      dd ?   Image size, not required for uncompressed
+; biXPelsPerMeter  dd ?   X pixels per meter, here not required
+; biYPelsPerMeter  dd ?   Y pixels per meter, here not required
+; biClrUsed        dd ?   Number of colors used, here not required (true color)
+; biClrImportant   dd ?   Number of important colors, 0=All, here not used
+;                         Important colors - used for visualization.
+;                         0 means all colors used for visualization.
+;--------------------------------------------------------------
+
+BitmapInfo    BITMAPINFOHEADER 40,SUBWINX,SUBWINY,1,32,BI_RGB,0,0,0,0,0
+
+
+;------------------------------------------------------------------------------;
+;                             GUI color brushes.                               ;
+;------------------------------------------------------------------------------;
+
+; Used for graphics window, drawings Y=F(X)
+; Brush color values = 00bbggrrh, bb=blue, gg=green, rr=red, 1 byte per color
+
+BrushesList:
+DD  BRUSH_GRID         ; Grid with horizontal and vertical lines 
+DD  BRUSH_LINE         ; Draw Line Speed = F (Block Size)
+DD  BRUSH_BACKGROUND   ; Draw window background
+
+
+;------------------------------------------------------------------------------;
+;               Strings for Window 1 - benchmarks drawings.                    ; 
+;------------------------------------------------------------------------------;
+
+; Window name, visualized at top of GUI window
+WindowTitle_Win1  DB  'Speed = F (Block Size)',0
+
+
+
+

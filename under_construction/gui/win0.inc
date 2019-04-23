@@ -250,6 +250,12 @@ call GuiToUserParms
 
 ;-----------------------------------------;
 
+; TODO.
+; Check errors after this subroutines "JC ERROR" and visual error strings from pool.
+
+; TODO.
+; Regularize naming. Session to SimpleSession... / DrawSession... ? 
+
 call SessionStart
 call SessionProgress
 call SessionStop
@@ -275,6 +281,34 @@ xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
 call [EnableWindow]
 push rbx               ; save handle for restore parent window activity
 ; TODO. call ExecuteDraw
+; TODO. GuiToUserParms
+
+; TODO. Move this to drawings window event handler ?
+; call DrawSessionStart
+; call DrawSessionProgress
+; call DrawSessionStop
+
+;--- bound of added ---
+
+; Create (Open) daughter window = Window 1
+; Build child window for drawings Speed=F(Size)
+; Terminology notes: WS = Window Style
+lea rsi,[WindowTitle_Win1]    ; RSI = Window name string pointer
+lea rdi,[Dialogue_Win1]       ; RSI = Dialogue descriptor pointer
+mov r10d,WS_VISIBLE+WS_DLGFRAME+WS_SYSMENU ; R10 = Window Style
+mov r11d,WIN1_XBASE           ; R11 = Window X-base
+mov r12d,WIN1_YBASE           ; R12 = Window Y-base
+mov r13d,WIN1_XSIZE           ; R13 = Window X-size
+mov r14d,WIN1_YSIZE           ; R14 = Window Y-size
+mov ax,0101h                  ; AH  = 1 , Means parent=RBX
+xchg al,[Win1_Init]           ; AL  = 1 , if window 1 already initialized
+call CreateApplicationWindow  ; RBX = Parent Handle
+; Wait events for Window 1
+lea rdi,[DialogueMsg_Win1]	  ; RDI = MSG structure
+call WaitEvent                ; Window 1 work as callbacks inside this
+
+;--- bound of added ---
+
 pop rbx
 jmp .ReturnParentWindow
 

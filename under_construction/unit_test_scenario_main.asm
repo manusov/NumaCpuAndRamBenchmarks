@@ -44,7 +44,7 @@ include 'system_info\connect_const.inc'
 include 'scenario_main\connect_const.inc'
 
 WinCaption   DB ' Unit test for Application Main Window scenario' , 0
-MessageText  DB 'Build-only test...' , 0
+MessageText  DB 'Build and run system info subroutine test...' , 0
 
 include 'global\connect_var.inc'
 include 'system_info\connect_var.inc'

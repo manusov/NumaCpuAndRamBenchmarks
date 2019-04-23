@@ -81,6 +81,10 @@ call [ExitProcess]
 ; This for build unit test
 RunVectorBrief:
 ResultVectorBrief:
+SessionStart:
+SessionProgress:
+SessionStop:
+ResultSimple:
 ret
 
 include 'global\connect_code.inc'
@@ -91,14 +95,14 @@ section '.data' data readable writeable
 include 'global\connect_const.inc'
 include 'gui\connect_const.inc'
 
-WinCaption   DB ' Unit test for GUI' , 0
-MessageText  DB 'Template text...' , 0
+;WinCaption   DB ' Unit test for GUI' , 0
+;MessageText  DB 'Template text...' , 0
 
 ; this for unit test
 ; TODO. Make this as part of temporary buffer, for regular access method
-CpuVendorString  DB  'UNIT TEST',0
-CpuNameString    DB  'UNIT TEST',0
-CacheL1Data      DB  12*3 DUP (1)  
+;CpuVendorString  DB  'UNIT TEST',0
+;CpuNameString    DB  'UNIT TEST',0
+;CacheL1Data      DB  12*3 DUP (1)  
 
 ; variables area start here
 include 'global\connect_var.inc'

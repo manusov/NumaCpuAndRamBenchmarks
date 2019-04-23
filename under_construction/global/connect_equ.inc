@@ -77,6 +77,8 @@ NUMACTRL_SIZE          EQU  sizeof.NUMACTRL
 NUMA_LIST_SIZE         EQU  MAX_NODES * NUMACTRL_SIZE  
 
 
+; TODO. Check usable CustomBlockEnd, CustomBlockDelta.
+
 ; Test USER parameters layout declaration
 struct UPB
 OptionAsm         dd  ?    ; Select test ASM method, one of procedures
@@ -86,7 +88,8 @@ OptionHT          dd  ?    ; HT { GRAY_NOT_SUP, DISABLED, ENABLED }
 OptionPG          dd  ?    ; PG { GRAY_NOT_SUP, DISABLED, ENABLED } 
 OptionNUMA        dd  ?    ; NUMA { GRAY_NOT_SUP, UNAWARE, SINGLE_DOMAIN, FORCE LOCAL, FORCE REMOTE }
 OptionLP          dd  ?    ; LP { GRAY_NOT_SUP, DISABLED, ENABLED }  
-OptionMeasure     dd  ?    ; Measurement repeats { 0=fast, 1=slow, 2=fast adaptive, 3=slow adaptive } 
+OptionMeasure     dd  ?    ; Measurement repeats { 0=fast, 1=slow, 2=fast adaptive, 3=slow adaptive }
+OptionApprox      dd  ?    ; Approximation for X { 0=none, 1=X16, 2=X32 } 
 CustomBlockStart  dq  ?    ; Override start block size, or 0=default
 CustomBlockEnd    dq  ?    ; Override end block size, or 0=default
 CustomBlockDelta  dq  ?    ; Override delta block size, or 0=default
