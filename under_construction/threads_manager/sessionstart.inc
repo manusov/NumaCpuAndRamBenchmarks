@@ -41,14 +41,16 @@ mov [rdi + IPB.UpdatedTarget],edx
 push rbx
 cmp eax,LATENCY_MODE
 jae .L3
-push rax
+push rax                  ; this branch for bandwidth patterns
 call GetBandwidthPattern  
 pop rax
 call GetBandwidthDump
 jmp .L4
-.L3:
+.L3:                      ; this branch for latency patterns
+sub eax,LATENCY_MODE      ; first latency method ID must be 0
 push rax
-call GetLatencyPattern  
+call GetLatencyPattern
+mov [rdi + IPB.WalkRoutine],rax  
 pop rax
 call GetLatencyDump
 .L4:
@@ -116,6 +118,12 @@ add rcx,REPEAT_SERIES_BYTES
 mov eax,[rdi + IPB.UpdatedTarget]
 mov eax,[rcx + rax * REPEAT_ENTRY_BYTES]
 .L10:
+cmp [rdi + IPB.UpdatedAsm],LATENCY_MODE
+jb .L13
+xor edx,edx
+mov ecx,10
+div ecx        ; If Latency mode, make measurement repeats / 10
+.L13:
 mov [rdi + IPB.MeasureRepeats],eax
 
 ; Setup measurement scenario as block sizes sequence,
@@ -207,15 +215,26 @@ mov [rdi + IPB.AllocatedBlock1],rax
 mov rax,[rcx + THCTRL.Base2]
 mov [rdi + IPB.AllocatedBlock2],rax
 
+; Re-measure TSC clock before start benchmarks
+push rdi
+lea rdi,[OutputParms.DeltaTSC]
+call MeasureTsc
+pop rdi
+
 ; Start threads before per-iterations calls 
 ; TODO. Check status required after call ( CF flag )
 lea rcx,[ThreadsList]
 mov edx,[rdi + IPB.UpdatedThreads]
 call ThreadsStart
 
-; Re-measure TSC clock before start benchmarks
-lea rdi,[OutputParms.DeltaTSC]
-call MeasureTsc
+; Replace fill pattern to walk pattern for latency mode
+; lea rcx,[ThreadsList]
+; cmp [rdi + IPB.UpdatedAsm],LATENCY_MODE
+; jb .L20
+; mov r8d,[rdi + IPB.UpdatedThreads]
+; mov r9,[rdi + IPB.WalkRoutine]
+; call ThreadsUpdatePattern
+; .L20:
 
 ; Initialization done, next phase is per-iterations calls
 ret

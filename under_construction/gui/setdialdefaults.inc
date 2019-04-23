@@ -60,11 +60,11 @@ call [CheckRadioButton]
 ; Options, NUMA Absent, Local, Remote
 test [rsi+NUMA_FORCE_LOCAL],edi  ; Check NUMA present, ZF=1(Z) if present
 mov rcx,rbx
-mov edx,HANDLE_NUMA_ABSENT
+mov edx,HANDLE_NUMA_UNAWARE
 mov r8d,HANDLE_NUMA_REMOTE                  
 mov r9d,HANDLE_NUMA_LOCAL        ; Selected="Local" if NUMA present
 jz @f                            ; Go if NUMA present, for use "Local"
-mov r9d,HANDLE_NUMA_ABSENT       ; Selected="No control" if NUMA absent
+mov r9d,HANDLE_NUMA_UNAWARE      ; Selected="No control" if NUMA absent
 @@:
 call [CheckRadioButton]
 ; Options, L1,L2,L3 Caches, RAM, Custom Block

@@ -23,6 +23,15 @@ lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
 call ThreadsReStart
 
+; Replace fill pattern to walk pattern for latency mode
+lea rcx,[ThreadsList]
+cmp [rsi + IPB.UpdatedAsm],LATENCY_MODE
+jb .L20
+mov r8d,[rsi + IPB.UpdatedThreads]
+mov r9,[rsi + IPB.WalkRoutine]
+call ThreadsUpdatePattern
+.L20:
+
 ; Get start time point
 lea rcx,[rsp+32]
 call [GetSystemTimeAsFileTime]

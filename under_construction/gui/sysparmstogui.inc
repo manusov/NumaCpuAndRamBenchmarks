@@ -68,7 +68,7 @@ or [rbx+E_PROCESSOR_GROUPS],edx
 ; Note at this point, RDI, RBX, EAX, EDX valid from previous step
 cmp [rdi + SYSPARMS.NumaNodes],2    ; Check number of NUMA nodes
 jae @f                          ; Skip clear MD checkbox if Domains>1
-or [rbx+NUMA_ABSENT],edx        ; Disable No NUMA checkbox, but can be selected
+or [rbx+NUMA_UNAWARE],edx       ; Disable No NUMA checkbox, but can be selected
 or [rbx+NUMA_FORCE_SINGLE],edx  ; Disable Force Local checkbox
 or [rbx+NUMA_FORCE_LOCAL],edx   ; Disable Force Local checkbox
 or [rbx+NUMA_FORCE_REMOTE],edx  ; Disable Force Remote checkbox

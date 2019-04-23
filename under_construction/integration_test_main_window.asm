@@ -26,9 +26,9 @@ sub rsp,8*5
 
 ; message box and wait user input
 ; xor ecx,ecx	              ; RCX = Parm#1 = Parent window handle or 0
-; lea rdx,[ABOUT_ID]            ; RDX = Parm#2 = Pointer to "About" string
-; lea r8,[ABOUT_CAP]            ; R8  = Parm#3 = Pointer to caption
-; mov r9d,0040h                 ; R9  = Parm#4 = Message box icon type = Info
+; lea rdx,[ABOUT_ID]        ; RDX = Parm#2 = Pointer to "About" string
+; lea r8,[ABOUT_CAP]        ; R8  = Parm#3 = Pointer to caption
+; mov r9d,0040h             ; R9  = Parm#4 = Message box icon type = Info
 ; call [MessageBoxA]
 
 
@@ -36,9 +36,7 @@ sub rsp,8*5
 ; TODO. Interpreting and visual error status code
 call GetSystemParameters
 jc ErrorProgram
-
 call SysParmsToBuffer
-
 call SysParmsToGui
 
 ; Create (Open) parent window = Window 0

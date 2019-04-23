@@ -4,6 +4,7 @@ movzx eax,al
 imul eax,eax,6   ; sizeof.LATENCY_ENTRY
 movzx eax,word [LatencyPatterns + rax]
 lea rbx,[LatencyPatternsBase + rax]
+lea rax,[Pattern_Latency_Walk]
 ret
 
 GetLatencyDump:

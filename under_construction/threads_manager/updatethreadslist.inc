@@ -14,7 +14,7 @@
 ; Can destroy registers, volatile by Microsoft x64 calling convention.         ;
 ;------------------------------------------------------------------------------;
 
-UpdateThreadsList:
+ThreadsUpdateBlockSize:
 mov rax,r9
 mov r10d,[rdx + IPB.OperandWidth]
 shr r10d,3
@@ -22,7 +22,7 @@ jz .Error
 xor edx,edx
 div r10 
 
-.UpdateBlockSize:
+@@:
 ; Update block size, bytes, this field must be updated per draw iteration
 mov [rcx + THCTRL.SizeBytes],r9
 ; Update block size, instructions, this field must be updated per draw iteration
@@ -30,7 +30,7 @@ mov [rcx + THCTRL.SizeInst],rax
 ; Cycle
 add rcx,THCTRL_SIZE
 dec r8d
-jnz .UpdateBlockSize 
+jnz @b 
 
 ; Exit points
 clc
@@ -38,3 +38,18 @@ ret
 .Error:
 stc
 ret
+
+
+; Same operation for thread routine,
+; this required for latency measurement mode,
+; when change fill pattern to walk pattern
+
+ThreadsUpdatePattern:
+@@:
+mov [rcx + THCTRL.EntryPoint],r9
+; Cycle
+add rcx,THCTRL_SIZE
+dec r8d
+jnz @b 
+ret
+ 

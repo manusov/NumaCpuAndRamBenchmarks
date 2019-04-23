@@ -10,7 +10,7 @@
 
 BuildThreadsList:
 cld
-push rbx rsi rdi rbp r12 r13 r14 r15 0  ; Note push 0 for local variable
+push rbx rsi rdi rbp r12 r13 r14 r15 0 0  ; Note push 0,0 for local variables
 mov rbp,rsp                         ; RBP = Save RSP at procedure entry
 and rsp,0FFFFFFFFFFFFFFF0h          ; Stack alignment
 sub rsp,32                          ; Make parameters shadow because WinAPI calls
@@ -31,8 +31,10 @@ div rcx                             ; EAX = R15D = Threads / Node, means
 mov r15d,eax                        ;       frequency of next NODE selection
 mov [rbp+00],eax                    ;       when build THREADS
 
+
 ; Threads build cycle
 .ThreadsBuild:
+
 ; Create event for thread start, store event handle
 xor ecx,ecx                            ; RCX = Parm#1 = lpEventAttributes  
 mov edx,1                              ; RDX = Parm#2 = bManualReset
@@ -43,6 +45,7 @@ test rax,rax                           ; Status=0 means error
 jz .ErrorBuildThreads                  ; Go if error creating event
 mov [rsi + THCTRL.EventStart],rax      ; Store handle in the threads block
 stosq 
+
 ; Create event for thread done, store event handle
 xor ecx,ecx                            ; RCX = Parm#1 = lpEventAttributes  
 mov edx,1                              ; RDX = Parm#2 = bManualReset
@@ -53,6 +56,7 @@ test rax,rax                           ; Status=0 means error
 jz .ErrorBuildThreads                  ; Go if error creating event
 mov [rsi + THCTRL.EventDone],rax       ; Store handle in the threads block
 mov [rdi +  EVENTS_LIST_SIZE - 8],rax 
+
 ; Create thread, store event handle
 xor ecx,ecx                            ; RCX = Parm#1 = Security
 xor edx,edx                            ; RDX = Parm#2 = Stack size, 0=default
@@ -72,6 +76,7 @@ add rsp,32+16                          ; Remove parameters shadow + 2 parameters
 test rax,rax                           ; Status=0 means error
 jz .ExitBuildThreads                   ; Go if error creating thread
 mov [rsi + THCTRL.ThreadHandle],rax    ; Store thread handle in the per-thread list
+
 ; Setup affinity mask (include processor group) from NUMA to Thread Entry
 mov rax,[rbx + NUMACTRL.NodeAffinity]
 cmp [r12 + IPB.UpdatedHT],HT_NOT_USED  ; detect means HT supported but not used
@@ -85,17 +90,22 @@ mov rcx,rax                            ; Restore unmasked if masked to zero
 mov [rsi + THCTRL.ThreadAffinity],rcx 
 mov rax,[rbx + NUMACTRL.NodeGroup]
 mov [rsi + THCTRL.ThreadGroup],rax 
+
 ; Setup asm method subroutine entry point address from IPB to Thread Entry
 mov rax,[r12 + IPB.PatternRoutine]
 mov [rsi + THCTRL.EntryPoint],rax
+
 ; Setup base address for block1, block2, note 2 blocks because block copy sup.
 mov rax,[rbx + NUMACTRL.AlignedBase]
+add rax,[rbp+08]
 mov [rsi + THCTRL.OrigBase],rax
-mov rcx,[r12 + IPB.MemoryPerThread]
+mov rcx,[r12 + IPB.MemoryPerThread]  ; here ALLOCATED size
+add [rbp+08],rcx
 shr rcx,1
 mov [rsi + THCTRL.Base1],rax
 add rax,rcx
 mov [rsi + THCTRL.Base2],rax
+
 ; Setup block size, bytes, this field must be updated per draw iteration
 mov [rsi + THCTRL.SizeBytes],rcx
 
@@ -110,7 +120,7 @@ mov [rsi + THCTRL.SizeBytes],rcx
 mov ecx,[r12 + IPB.OperandWidth]
 shr rcx,3
 jz .ErrorBuildThreads
-mov rax,[r12 + IPB.StartBlockSize]
+mov rax,[r12 + IPB.StartBlockSize]  ; here OPERATIONAL size
 xor edx,edx
 div rcx 
 mov [rsi + THCTRL.SizeInst],rax
@@ -118,26 +128,31 @@ mov [rsi + THCTRL.SizeInst],rax
 ; Setup Large Page option
 mov eax,[r12 + IPB.UpdatedLP]
 mov [rsi + THCTRL.LargePages],rax
+
 ; Setup number of repeat measurement iterations
 mov eax,[r12 + IPB.MeasureRepeats]
 mov [rsi + THCTRL.Repeats],rax 
+
 ; Select next NUMA node if THREADS per NODES counter done
 dec r15d                ; R15D = Threads per NUMA node ratio
 jnz .AfterCountNode 
 mov r15d,[rbp+00]
+mov qword [rbp+08],0    ; Blank block offset because next NUMA node
 add rbx,NUMACTRL_SIZE   ; RBX = Nodes entries pointer
 .AfterCountNode:
+
 ; Cycle for Threads
 add rsi,THCTRL_SIZE     ; RSI  = Threads entries pointer
 inc r14d                ; R14D = Threads counter for Thread ID
 dec r13d                ; R13D = Threads counter for cycle
 jnz .ThreadsBuild
 
+
 ; Exit points
 clc                     ; CF=0 means status = no errors 
 .ExitBuildThreads:
 mov rsp,rbp             ; Restore RSP at subroutine entry, because stack alignment
-pop rax r15 r14 r13 r12 rbp rdi rsi rbx  ; First pop rax remove local variable
+pop rax rax r15 r14 r13 r12 rbp rdi rsi rbx  ; First, second pop rax remove local variables
 ret
 .ErrorBuildThreads:
 stc                     ; CF=1 means status = error detected

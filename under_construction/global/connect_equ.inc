@@ -120,7 +120,8 @@ PageSize          dq  ?    ; Memory page size, bytes
 MemoryTotal       dq  ?    ; Memory allocated, per all threads
 MemoryPerThread   dq  ?    ; Memory allocated, per each thread 
 ; Benchmarks select and routine dump support
-PatternRoutine    dq  ?    ; Pointer to target benchmark routine
+PatternRoutine    dq  ?    ; Pointer to target benchmark routine, fill routine for latency
+WalkRoutine       dq  ?    ; Second routine, required for latency measurement
 DumpMethodStart   dq  ?    ; Start of fragment, visualized as dump during benchmarks
 DumpMethodLength  dd  ?    ; Length of fragment, visualized as dump during benchmarks, bytes
 ends

@@ -32,7 +32,6 @@ dec r10
 ; Address and size
 mov rbx,rsi
 mov rbp,rcx
-
 ; Random unsorting linear list
 .BuildRandom:                ; This cycle for build random offsets list
 rdrand rax
