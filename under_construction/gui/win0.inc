@@ -288,7 +288,17 @@ push rbx               ; save handle for restore parent window activity
 ; call DrawSessionProgress
 ; call DrawSessionStop
 
+; or:
+; call DrawSessionStart = at this routine, before build win1
+; call DrawSessionProgress = at win1 callback
+; call DrawSessionStop = at this routine, after build win1 
+
+
 ;--- bound of added ---
+
+
+call DrawSessionStart 
+
 
 ; Create (Open) daughter window = Window 1
 ; Build child window for drawings Speed=F(Size)
@@ -306,6 +316,10 @@ call CreateApplicationWindow  ; RBX = Parent Handle
 ; Wait events for Window 1
 lea rdi,[DialogueMsg_Win1]	  ; RDI = MSG structure
 call WaitEvent                ; Window 1 work as callbacks inside this
+
+
+call DrawSessionStop
+
 
 ;--- bound of added ---
 

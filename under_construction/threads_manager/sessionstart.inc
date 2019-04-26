@@ -150,8 +150,8 @@ shr rcx,1          ; TODO. ( Size/2 - 512 ) for "Run simple", other logic requir
 sub rcx,512
 .L9:
 mov [rdi + IPB.StartBlockSize],rcx
-; TODO. mov [rdi + IPB.EndBlockSize],rcx
-; TODO. mov [rdi + IPB.DeltaBlockSize],rax
+; TODO. mov [rdi + IPB.EndBlockSize],rcx     ; use this fields or remove it from IPB structure
+; TODO. mov [rdi + IPB.DeltaBlockSize],rax   ; use this fields or remove it from IPB structure
 
 ; Setup Processor Groups parameters
 mov eax,[rbx + SYSPARMS.ProcessorGroups]

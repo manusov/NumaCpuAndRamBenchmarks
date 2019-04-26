@@ -9,3 +9,7 @@ include 'guitouserparms.inc'
 include 'sendmsggc.inc'
 include 'win0.inc'
 include 'win1.inc'
+
+include 'drawsessionstart.inc'
+include 'drawsessionstop.inc'
+include 'drawsessionprogress.inc'

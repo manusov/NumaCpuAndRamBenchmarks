@@ -211,21 +211,19 @@ mov al,[rcx]
 cmp al,0             ; 0 = Halted
 je .EndPaint
 cmp al,1             ; 1 = First drawings (grid)
-je .FirstPaint
-
-
+je .FirstPaint       ; Go if this is first pass, draw axes
 ; ...
-; ...
+; ... draw y=f(x), not a first pass
+
+call DrawSessionProgress
+
 ; ...
 jmp .EndPaint
 
 
 .FirstPaint:
 mov byte [rcx],2          ; [rcx] = [Win1_Running]
-
-; TODO. Now this is field of structure DRPM
-; mov [DrawCount],ebp
-
+mov [DrawParms + DRPM.DrawCount],ebp
 ; Draw
 mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
 mov rdx,[HandleFont]         ; Parm#2 = RDX = Handle to Selected Object
@@ -246,8 +244,8 @@ mov rdx,rdi                  ; Parm#2 = RDX = Pointer to RECT strucnure
 mov r8,[HandlesBrushes+16]   ; Parm#3 = R8 = Handle to a color brush
 call [FillRect]
 ; Coordinate X-grid, vertical lines
-mov r12d,1                   ; R12D = Base point, X
-mov r13d,SUBWINY-1           ; R13D = Base point, Y
+mov r12d,GRIDBLANKX          ; R12D = Base point, X
+mov r13d,SUBWINY-GRIDBLANKY  ; R13D = Base point, Y
 mov r14d,GRIDX               ; R14D = Number of lines
 .XVgrid:
 lea eax,[r12d+1]             ; Line width = 1 pixel
@@ -259,15 +257,15 @@ mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
 mov rdx,rdi                  ; Parm#2 = RDX = Pointer to RECT strucnure
 mov r8,[HandlesBrushes+00]   ; Parm#3 = R8 = Handle to a color brush
 call [FillRect]              ; Fill rectangle function
-add r12d,GRIDSTEPX
-dec r14d
+add r12d,GRIDSTEPX           ; Add X grid step
+dec r14d                     ; Cycle for X-grid vertical lines
 jnz .XVgrid
 ; Coordinate Y-grid, horizontal lines
-mov r12d,SUBWINY-1           ; R12D = Base point, Y
+mov r12d,SUBWINY-GRIDBLANKY  ; R12D = Base point, Y
 mov r13d,GRIDY               ; R13D = Number of lines
 .YHgrid:
 lea eax,[r12d-1]
-mov [rdi+RECT.left],1
+mov [rdi+RECT.left],GRIDBLANKX
 mov [rdi+RECT.top],eax
 mov [rdi+RECT.right],SUBWINX
 mov [rdi+RECT.bottom],r12d
@@ -275,9 +273,115 @@ mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
 mov rdx,rdi                  ; Parm#2 = RDX = Pointer to RECT strucnure
 mov r8,[HandlesBrushes+00]   ; Parm#3 = R8 = Handle to a color brush
 call [FillRect]              ; Fill rectangle function
-sub r12d,GRIDSTEPY
-dec r13d
+sub r12d,GRIDSTEPY           ; Subtract Y grid step
+dec r13d                     ; Cycle for Y-grid vertical lines
 jnz .YHgrid
+; Numbers for X-grid vertical lines and Y-grid horizontal lines
+push rbx                     ; Save RBX=Handle, this also important for stack alignment: 5 parms. functions
+mov bh,2                     ; BH = Counter, Pass#1 = XGrid, Pass#2 = YGrid
+mov r14d,GRIDX               ; R14D = Number of lines, X
+mov r12d,GRIDBLANKX          ; R12D = Base point, X
+mov r13d,SUBWINY-20          ; R13D = Base point Y
+
+xor ebp,ebp                  ; EBP = Units value
+
+.BothGrids:
+; xor ebp,ebp                  ; EBP = Units value
+.XVYHtext:
+
+;; Set region for text string write
+;; Here don't align stack because PUSH RBX
+;mov rcx,rdi                  ; Parm#1 = RCX = Pointer to RECT structure to store parameters
+;mov edx,r12d                 ; Parm#2 = RDX = X coordinate up/left corner
+;mov r8d,r13d                 ; Parm#3 = R8 = Y coordinate up/left corner  ,  TODO MAKE EQU INSTEAD NUMBER.
+;lea r9d,[r12d + 65]          ; Parm#4 = R9 = X coordinate down/right corner  ,  TODO MAKE EQU INSTEAD NUMBER. ; old = 65
+;lea eax,[r13d + 18]                                                         ;  TODO MAKE EQU INSTEAD NUMBER. ; old = +18 
+;push rax                     ; Parm#5 = Y coordinate down/right corner
+;sub rsp,32                   ; Create parameters shadow
+;call [SetRect]               ; Set region rectangle function 
+;add rsp,32+8                 ; Remove parameters shadow and one parameter
+;; Build ASCII string
+;push rdi
+;lea rdi,[BigTexts]           ; RDI = Pointer for print decimal string as ASCII
+;mov rdx,rdi
+;mov bl,0                     ; BL = Template control for print number, 0=No template
+;mov eax,ebp                  ; EAX = Value for print, Bytes/KB/MB
+;call DecimalPrint32          ; Print number
+;mov al,0
+;stosb                        ; Store terminator byte = 0
+;pop rdi
+
+
+; Build ASCII string
+push rdi
+lea rdi,[BigTexts]           ; RDI = Pointer for print decimal string as ASCII
+mov rdx,rdi
+mov bl,0                     ; BL = Template control for print number, 0=No template
+mov eax,ebp                  ; EAX = Value for print, Bytes/KB/MB
+;mov r10,rdi
+call DecimalPrint32          ; Print number
+;mov r11,rdi
+;sub r11,r10
+;imul r11,r11,8
+mov al,0
+stosb                        ; Store terminator byte = 0
+pop rdi
+
+;cmp bh,1
+;je @f
+;xor r11d,r11d
+;@@:
+
+; Set region for text string write
+; Here don't align stack because PUSH RBX
+mov rcx,rdi                  ; Parm#1 = RCX = Pointer to RECT structure to store parameters
+mov edx,r12d                 ; Parm#2 = RDX = X coordinate up/left corner
+; lea edx,[r12d + r11d]
+
+mov r8d,r13d                 ; Parm#3 = R8 = Y coordinate up/left corner  ,  TODO MAKE EQU INSTEAD NUMBER.
+;lea r9d,[r12d + r11d + 65]  ; Parm#4 = R9 = X coordinate down/right corner  ,  TODO MAKE EQU INSTEAD NUMBER. ; old = +65
+lea r9d,[r12d + 65]
+
+lea eax,[r13d + 18]                                                          ;  TODO MAKE EQU INSTEAD NUMBER. ; old = +18 
+push rax                     ; Parm#5 = Y coordinate down/right corner
+sub rsp,32                   ; Create parameters shadow
+call [SetRect]               ; Set region rectangle function 
+add rsp,32+8                 ; Remove parameters shadow and one parameter
+
+lea rdx,[BigTexts]
+
+; Draw text
+; Here don't align stack because PUSH RBX , Parm#2 = RDX = Pointer to text string
+mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context, Parm#2 = RDX set by previous step
+mov r8,-1                    ; Parm#3 = R8 = String length, -1 means NULL-terminated string
+mov r9,rdi                   ; Parm#4 = R9 = Pointer to RECT structure, initialized by [SetRect] function
+push DT_LEFT                 ; Parm#5 = Method of formatting/alignment of text string
+sub rsp,32                   ; Create parameters shadow
+call [DrawText]              ; Draw text function 
+add rsp,32+8                 ; Remove parameters shadow and 1 parameter
+; Cycle for lines of selected grid
+cmp bh,1
+je .YGrid
+; TODO.
+; Make compact offsets with base register = offset DrawParms
+add ebp,[DrawParms + DRPM.ValueGridX]   ; Addend per X grid
+add r12d,GRIDSTEPX
+jmp .CycleGrids
+.YGrid:
+add ebp,[DrawParms + DRPM.ValueGridY]   ; Addend per Y grid
+sub r13d,GRIDSTEPY
+.CycleGrids:
+dec r14d
+jnz .XVYHtext 
+; Cycle for horizontal and vertical grids
+mov r14d,GRIDY - 1                             ; R14D = Number of lines, Y
+mov r12d,GRIDBLANKX - 15 - 35                  ; R12D = X coordinate , TODO MAKE EQU INSTEAD NUMBER. OR ADAPTIVE RIGHT ALIGNED
+mov r13d,SUBWINY-GRIDBLANKY - GRIDSTEPY - 15   ; R13D = Y coordinate
+mov ebp,[DrawParms + DRPM.ValueGridY]
+dec bh
+jnz .BothGrids
+pop rbx
+
 
 
 

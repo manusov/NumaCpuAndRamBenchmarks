@@ -1,0 +1,5 @@
+
+DrawSessionStop:
+call SessionStop
+
+ret

@@ -41,25 +41,28 @@ WIN1_YBASE = 150
 WIN1_XSIZE = 780     
 WIN1_YSIZE = 580     
 
-; Geometry parameters: Area with drawings Speed = F(Block Size)
-SUBWINX    = 772    ; Plot sub-window X size, pixels
+; Geometry parameters: Area with drawings Speed = F(Block Size), X parameters
+SUBWINX    = 773    ; Plot sub-window X size, pixels
+GRIDX      = 11     ; Number of vertical lines in the coordinate X-grid
+GRIDBLANKX = 70     ; Coordinate X blank offset for point X=0
+GRIDSTEPX  = 64     ; Coordinate addend for X-grid step
+SHIFTX     = 0      ; X-shift plot sub window in the dialogue window, pixels
+; Continue geometry parameters, Y parameters 
 SUBWINY    = 502    ; Plot sub-window Y size, pixels
-GRIDX      = 15     ; Divisor for drawing coordinate X-grid, vertical lines
-GRIDY      = 10     ; Divisor for drawing coordinate Y-grid, horizontal lines
-SHIFTX     = 1      ; X-shift plot sub window in the dialogue window, pixels
-SHIFTY     = 1      ; X-shift plot sub window in the dialogue window, pixels
-GRIDSTEPX  = 50     ; Addend for X-grid step
-GRIDSTEPY  = 48     ; Addend for Y-grid step
+GRIDY      = 10     ; Number of horizontal lines in the coordinate Y-grid
+GRIDBLANKY = 25     ; Coordinate Y blank offset for point Y=0
+GRIDSTEPY  = 48     ; Coordinate addend for Y-grid step
+SHIFTY     = 0      ; Y-shift plot sub window in the dialogue window, pixels
 
 ; Color parameters of Sub-Window with drawings Speed = F(Block Size)
 ; Brush color values = 00bbggrrh, bb=blue, gg=green, rr=red, 1 byte per color
-BRUSH_GRID       = 00C8C8C8h     ; Grid with horizontal and vertical lines 
-BRUSH_LINE       = 0001F0F0h     ; Draw Line Speed = F (Block Size)
-BRUSH_BACKGROUND = 00FEFEFEh     ; Draw window background
-COLOR_TEXT_UNITS = 0001F001h     ; Text front color, units print
-COLOR_TEXT_BACK  = 00250101h     ; Text back color
-COLOR_TEXT_INFO  = 00E0E0E0h     ; Text front color, system info print
-COLOR_TEXT_DUMP  = 00F04040h     ; Text front color, instruction dump print
+BRUSH_GRID       = 00C8C8C8h         ; Grid with horizontal and vertical lines 
+BRUSH_LINE       = 0001F0F0h         ; Draw Line Speed = F (Block Size)
+BRUSH_BACKGROUND = 0FEFEFEh          ; Draw window background
+COLOR_TEXT_UNITS = 00414141h         ; Text front color, units print
+COLOR_TEXT_BACK  = BRUSH_BACKGROUND  ; Text back color
+COLOR_TEXT_INFO  = 00E0E0E0h         ; Text front color, system info print
+COLOR_TEXT_DUMP  = 00F04040h         ; Text front color, instruction dump print
 
 ; WinAPI equations for DIB (Device Independent Bitmap)
 DIB_RGB_COLORS    = 0x00  ; Means mode: color table contain RGB values
@@ -73,9 +76,21 @@ CLEARTYPE_QUALITY = 5     ; Quality code for create font and draw at grap. win.
 ; if don't close Window 1 and press Run (Resize) button 
 ; Settings for Cache&RAM mode
 ; Speed units = MBPS (Megabytes per Second), Latency units = ns (nanoseconds)
-Y_RANGE_MAX              = 300000               ; Default Y maximum 
-DEFAULT_Y_MBPS_PER_GRID  = Y_RANGE_MAX/10       ; Default units per greed Y 
-DEFAULT_Y_MBPS_PER_PIXEL = Y_RANGE_MAX/SUBWINY  ; Default units per pixel Y
+
+; TODO
+; Y_RANGE_MAX              = 300000               ; Default Y maximum 
+
+; TODO
+; DEFAULT_Y_MBPS_PER_GRID  = Y_RANGE_MAX/10       ; Default units per greed Y 
+
+Y_RANGE_MAX_BANDWIDTH = 300000
+Y_RANGE_MAX_LATENCY = 100
+Y_RANGE_DIV = 10
+DEFAULT_Y_MBPS_PER_GRID  = Y_RANGE_MAX_BANDWIDTH / Y_RANGE_DIV    ; Default units per grid Y , megabytes per second
+DEFAULT_Y_NS_PER_GRID = Y_RANGE_MAX_LATENCY / Y_RANGE_DIV         ; Default units per grid Y , nanoseconds
+
+; TODO
+; DEFAULT_Y_MBPS_PER_PIXEL = Y_RANGE_MAX/SUBWINY  ; Default units per pixel Y
 
 ; TODO. Update timers constant logic.
 
@@ -86,13 +101,20 @@ TIMER_VISUAL  = 50     ; Milliseconds per tick, benchmarks progress visual
 ; Benchmarks visualization timings parameters
 TIMER_TICK       = 50     ; Milliseconds per tick, benchmarks progress timer
 
+; TODO. Floating point values make double. Xmultiplier ?, YdivisorFloat
+; TODO. Remove unused fields from DRPM structure.
+
 ; Draw parameters layout declaration
+
+; TODO. Reorder for qwords alignment 8
+
 struct DRPM
 ; Benchmarks units control
 ; Used indexed access from this base, include next groups, don't reorder variables!
 ValueGridX         dd  ?      ; Units per horizontal grid cell
 ValueGridY         dd  ?      ; Units per vertical grid cell
-SelectUnits        db  ?      ; Units select: 0=Bytes, 1=Kilobytes, 2=Megabytes
+SelectUnits        dd  ?      ; Units select: 0=Bytes, 1=Kilobytes, 2=Megabytes
+SelectMode         dd  ?      ; Measurement mode: 0=Bandwidth, 1=Latency
 ; Benchmarks statistics and drawings X-counter
 ; Used indexed access from this base, include next groups, don't reorder variables!
 StatClksMinimum    dq  ?      ; Minimum clocks per iteration
