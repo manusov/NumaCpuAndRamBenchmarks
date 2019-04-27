@@ -11,6 +11,6 @@ align 2
 LatencyPatterns:
 ; Include files connect for performance patterns
 ; Latency measurement, note for both fill methods (LCM, RDRAND) dump walk method only
-LATENCY_ENTRY  Pattern_Latency_LCM    , DumpStart_Latency_Walk , DumpStart_Latency_Walk  , 8   ; ID = 0
-LATENCY_ENTRY  Pattern_Latency_RDRAND , DumpStart_Latency_Walk , DumpStart_Latency_Walk  , 8   ; ID = 1  
-LATENCY_ENTRY  Pattern_Latency_Walk   , DumpStart_Latency_Walk , DumpStart_Latency_Walk  , 8   ; ID = 2   
+LATENCY_ENTRY  Pattern_Latency_LCM    , DumpStart_Latency_Walk , DumpStop_Latency_Walk  , 8   ; ID = 0
+LATENCY_ENTRY  Pattern_Latency_RDRAND , DumpStart_Latency_Walk , DumpStop_Latency_Walk  , 8   ; ID = 1  
+LATENCY_ENTRY  Pattern_Latency_Walk   , DumpStart_Latency_Walk , DumpStop_Latency_Walk  , 8   ; ID = 2   

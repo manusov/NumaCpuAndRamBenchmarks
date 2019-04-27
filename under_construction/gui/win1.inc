@@ -229,7 +229,7 @@ mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
 mov rdx,[HandleFont]         ; Parm#2 = RDX = Handle to Selected Object
 call [SelectObject]
 mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
-mov edx,COLOR_TEXT_UNITS     ; Parm#2 = RDX = Text front color value = 00bbggrrh
+mov edx,COLOR_TEXT_VALUES    ; Parm#2 = RDX = Text front color value = 00bbggrrh
 call [SetTextColor]
 mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
 mov edx,COLOR_TEXT_BACK      ; Parm#2 = RDX = Text background color value = 00bbggrrh
@@ -248,7 +248,7 @@ mov r12d,GRIDBLANKX          ; R12D = Base point, X
 mov r13d,SUBWINY-GRIDBLANKY  ; R13D = Base point, Y
 mov r14d,GRIDX               ; R14D = Number of lines
 .XVgrid:
-lea eax,[r12d+1]             ; Line width = 1 pixel
+lea rax,[r12 + 1]            ; Line width = 1 pixel
 mov [rdi+RECT.left],r12d
 mov [rdi+RECT.top],ebp
 mov [rdi+RECT.right],eax
@@ -264,7 +264,7 @@ jnz .XVgrid
 mov r12d,SUBWINY-GRIDBLANKY  ; R12D = Base point, Y
 mov r13d,GRIDY               ; R13D = Number of lines
 .YHgrid:
-lea eax,[r12d-1]
+lea rax,[r12 - 1]
 mov [rdi+RECT.left],GRIDBLANKX
 mov [rdi+RECT.top],eax
 mov [rdi+RECT.right],SUBWINX
@@ -276,80 +276,55 @@ call [FillRect]              ; Fill rectangle function
 sub r12d,GRIDSTEPY           ; Subtract Y grid step
 dec r13d                     ; Cycle for Y-grid vertical lines
 jnz .YHgrid
+
+; TODO.
+; Probably better separate fragments with subroutine,
+; instead single cycle for X and Y grids.
+
 ; Numbers for X-grid vertical lines and Y-grid horizontal lines
 push rbx                     ; Save RBX=Handle, this also important for stack alignment: 5 parms. functions
 mov bh,2                     ; BH = Counter, Pass#1 = XGrid, Pass#2 = YGrid
 mov r14d,GRIDX               ; R14D = Number of lines, X
 mov r12d,GRIDBLANKX          ; R12D = Base point, X
 mov r13d,SUBWINY-20          ; R13D = Base point Y
-
 xor ebp,ebp                  ; EBP = Units value
-
 .BothGrids:
-; xor ebp,ebp                  ; EBP = Units value
 .XVYHtext:
-
-;; Set region for text string write
-;; Here don't align stack because PUSH RBX
-;mov rcx,rdi                  ; Parm#1 = RCX = Pointer to RECT structure to store parameters
-;mov edx,r12d                 ; Parm#2 = RDX = X coordinate up/left corner
-;mov r8d,r13d                 ; Parm#3 = R8 = Y coordinate up/left corner  ,  TODO MAKE EQU INSTEAD NUMBER.
-;lea r9d,[r12d + 65]          ; Parm#4 = R9 = X coordinate down/right corner  ,  TODO MAKE EQU INSTEAD NUMBER. ; old = 65
-;lea eax,[r13d + 18]                                                         ;  TODO MAKE EQU INSTEAD NUMBER. ; old = +18 
-;push rax                     ; Parm#5 = Y coordinate down/right corner
-;sub rsp,32                   ; Create parameters shadow
-;call [SetRect]               ; Set region rectangle function 
-;add rsp,32+8                 ; Remove parameters shadow and one parameter
-;; Build ASCII string
-;push rdi
-;lea rdi,[BigTexts]           ; RDI = Pointer for print decimal string as ASCII
-;mov rdx,rdi
-;mov bl,0                     ; BL = Template control for print number, 0=No template
-;mov eax,ebp                  ; EAX = Value for print, Bytes/KB/MB
-;call DecimalPrint32          ; Print number
-;mov al,0
-;stosb                        ; Store terminator byte = 0
-;pop rdi
-
-
 ; Build ASCII string
 push rdi
 lea rdi,[BigTexts]           ; RDI = Pointer for print decimal string as ASCII
 mov rdx,rdi
 mov bl,0                     ; BL = Template control for print number, 0=No template
 mov eax,ebp                  ; EAX = Value for print, Bytes/KB/MB
-;mov r10,rdi
 call DecimalPrint32          ; Print number
-;mov r11,rdi
-;sub r11,r10
-;imul r11,r11,8
+mov rcx,rdi
+sub rcx,rdx
 mov al,0
 stosb                        ; Store terminator byte = 0
 pop rdi
-
-;cmp bh,1
-;je @f
-;xor r11d,r11d
-;@@:
-
+; Calculate correction value for Y axis grid values print
+mov r10d,9
+sub r10,rcx
+jbe .RejectAddend 
+imul r10,r10,7
+; Reject corrections if horizontal axis or overflow
+cmp bh,1
+je .DoneAddend
+.RejectAddend:
+xor r10,r10
+.DoneAddend:
 ; Set region for text string write
 ; Here don't align stack because PUSH RBX
 mov rcx,rdi                  ; Parm#1 = RCX = Pointer to RECT structure to store parameters
-mov edx,r12d                 ; Parm#2 = RDX = X coordinate up/left corner
-; lea edx,[r12d + r11d]
-
-mov r8d,r13d                 ; Parm#3 = R8 = Y coordinate up/left corner  ,  TODO MAKE EQU INSTEAD NUMBER.
-;lea r9d,[r12d + r11d + 65]  ; Parm#4 = R9 = X coordinate down/right corner  ,  TODO MAKE EQU INSTEAD NUMBER. ; old = +65
-lea r9d,[r12d + 65]
-
-lea eax,[r13d + 18]                                                          ;  TODO MAKE EQU INSTEAD NUMBER. ; old = +18 
+lea rdx,[r12 + r10]          ; Parm#2 = RDX = X coordinate up/left corner
+mov r8d,r13d                 ; Parm#3 = R8  = Y coordinate up/left corner  ,  TODO MAKE EQU INSTEAD NUMBER.
+lea r9,[r12 + r10 + 65]      ; Parm#4 = R9  = X coordinate down/right corner  ,  TODO MAKE EQU INSTEAD NUMBER. ; old = +65
+lea rax,[r13 + 18]                                                            ;  TODO MAKE EQU INSTEAD NUMBER. ; old = +18 
 push rax                     ; Parm#5 = Y coordinate down/right corner
 sub rsp,32                   ; Create parameters shadow
 call [SetRect]               ; Set region rectangle function 
 add rsp,32+8                 ; Remove parameters shadow and one parameter
-
 lea rdx,[BigTexts]
-
 ; Draw text
 ; Here don't align stack because PUSH RBX , Parm#2 = RDX = Pointer to text string
 mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context, Parm#2 = RDX set by previous step
@@ -375,16 +350,171 @@ dec r14d
 jnz .XVYHtext 
 ; Cycle for horizontal and vertical grids
 mov r14d,GRIDY - 1                             ; R14D = Number of lines, Y
-mov r12d,GRIDBLANKX - 15 - 35                  ; R12D = X coordinate , TODO MAKE EQU INSTEAD NUMBER. OR ADAPTIVE RIGHT ALIGNED
+mov r12d,GRIDBLANKX - 68                       ; R12D = X coordinate , TODO MAKE EQU INSTEAD NUMBER. OR ADAPTIVE RIGHT ALIGNED
 mov r13d,SUBWINY-GRIDBLANKY - GRIDSTEPY - 15   ; R13D = Y coordinate
 mov ebp,[DrawParms + DRPM.ValueGridY]
 dec bh
 jnz .BothGrids
 pop rbx
 
+; Prepare for X-units, here change color
+mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
+mov edx,COLOR_TEXT_UNITS     ; Parm#2 = RDX = Text front color value = 00bbggrrh
+call [SetTextColor]
+; TODO.
+; Make compact offsets with base register = offset DrawParms
+mov eax,[DrawParms + DRPM.SelectUnits]
+lea r12,[U_B]                ; R12 = Pointer to text string, Cache&RAM mode
+cmp al,0
+je @f
+lea r12,[U_KB]
+cmp al,1
+je @f
+lea r12,[U_MB]
+@@:
+; TODO. Make EQU instead in-line constants
+mov edx,SUBWINX-40 - 9       ; Parm#2 = RDX = X coordinate up/left corner
+mov r8d,SUBWINY-40 - 3       ; Parm#3 = R8  = Y coordinate up/left corner
+mov r9d,SUBWINX-4 - 9        ; Parm#4 = R9  = X coordinate down/right corner
+mov eax,SUBWINY-22 - 3       ; RAX = Transit for Parm#5 = Y coordinate down/right corner
+call TextConstDraw
 
+; Prepare for Y-units
+lea r12,[U_MBPS]             ; R12 = Pointer to text string , Mode = Cache&RAM
+cmp [DrawParms + DRPM.SelectMode],0
+je @f
+lea r12,[U_NS]
+@@:
+mov edx,7                    ; Parm#2 = RDX = X coordinate up/left corner
+mov r8d,5                    ; Parm#3 = R8 = Y coordinate up/left corner
+mov r9d,40+7+20 + 24         ; Parm#4 = R9 = X coordinate down/right corner
+mov eax,18+5                 ; RAX = Transit for Parm#5 = Y coordinate down/right corner
+call TextConstDraw
 
+; Target method CPU instructions dump
+lea r12,[InputParms]
+xor r15,r15
+mov r14,[r12 + IPB.DumpMethodStart]
+mov r13d,[r12 + IPB.DumpMethodLength]
+cmp r13d,128
+jbe @f
+mov r13d,128
+@@:
+mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
+mov edx,COLOR_TEXT_DUMP      ; Parm#2 = RDX = Text front color value = 00bbggrrh
+call [SetTextColor]
+.AsmDump:
+lea r12,[BigTexts]
+push rdi
+mov rdi,r12
+mov al,[r14 + r15]
+call HexPrint8
+mov al,0
+stosb
+pop rdi
+; Set coordinates. TODO. Make EQU.
+mov edx,SUBWINX-250 + 64
+mov r8d,95 + 48
+mov r9d,SUBWINX-005 + 64
+mov eax,95+18 + 48
+; Adjust coordinates
+mov ecx,r15d                 ; R15 = counter, ECX = counter temporary copy #1
+mov r10d,r15d                ; R10 = counter temporary copy #2  
+and ecx,07h                  ; Bits 0-2 used for X-positioning
+imul ecx,ecx,21              ; X scale = 21 pixels per char
+add edx,ecx                  ; Add offset to X-start
+add r9d,ecx                  ; Add offset to X-end
+shr r10d,3
+and r10d,0Fh                 ; Bits 3-6 used for Y-positioning
+imul r10d,r10d,18            ; Y scale = 18 pixels per char 
+add r8d,r10d                 ; Add offset to Y-start
+add eax,r10d                 ; Add offset to Y-end
+call TextConstDraw
+inc r15
+dec r13d
+jnz .AsmDump 
 
+; TSC clock frequency
+push rbx rdi
+lea rdi,[DrawValueTSC]
+mov word [rdi],0000h + '?'
+mov rax,[OutputParms + OPB.TSCfrequencyMHz]     ; RAX = TSC Frequency, MHz
+test rax,rax
+jz @f
+mov bx,0100h
+call DoublePrint
+mov al,0
+stosb
+@@:
+pop rdi rbx
+mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
+mov edx,COLOR_TEXT_INFO      ; Parm#2 = RDX = Text front color value = 00bbggrrh
+call [SetTextColor]
+mov edx,SUBWINX - 187        ; Parm#2 = RDX = X coordinate up/left corner
+mov r8d,6                    ; Parm#3 = R8 = Y coordinate up/left corner
+mov r9d,SUBWINX - 5          ; Parm#4 = R9 = X coordinate down/right corner
+mov eax,6+18                 ; RAX = Transit for Parm#5 = Y coordinate down/right corner
+lea r12,[DrawTextTSC]        ; R12 = Pointer to text string
+call TextConstDraw
+
+; Initializing parameters for benchmark statistics, bandwidth and timings
+lea r14,[DrawParms]
+; Timings, CPI (Clocks Per Instructions)
+mov edx,SUBWINX - 300
+mov r8d,24 + 23
+mov r9d,SUBWINX - 188 
+mov eax,42 + 23
+mov r11,[r14 + DRPM.StatClksMinimum]
+lea r12,[DrawTextMinimum]
+lea r15,[DrawValueMinimum]
+call TextConstCpiMbps
+; Statistics, MBPS maximum
+mov r8d,24 + 23 + 18*1
+mov eax,42 + 23 + 18*2
+mov r11,[r14 + DRPM.StatClksMaximum]
+lea r12,[DrawTextMaximum]
+lea r15,[DrawValueMaximum]
+call TextConstCpiMbps
+; Statistics, MBPS average
+mov r8d,24 + 23 + 18*2
+mov eax,42 + 23 + 18*2
+mov r11,[r14 + DRPM.StatClksAverage]
+lea r12,[DrawTextAverage]
+lea r15,[DrawValueAverage]
+call TextConstCpiMbps
+; Statistics, MBPS median
+mov r8d,24 + 23 + 18*3
+mov eax,42 + 23 + 18*3
+mov r11,[r14 + DRPM.StatClksMedian]
+lea r12,[DrawTextMedian]
+lea r15,[DrawValueMedian]
+call TextConstCpiMbps
+
+; Bandwidth, MBPS (Megabytes Per Second)
+lea r12,[DrawTextMBPS]        ; This must be non-volatile register
+lea r15,[DrawValueMBPS]
+; Statistics, MBPS minimum
+mov edx,SUBWINX - 132
+mov r8d,24 + 23
+mov r9d,SUBWINX - 5
+mov eax,42 + 23
+mov r11,[r14 + DRPM.StatClksMinimum]
+call TextConstCpiMbps            ; MBPS (Megabytes per Second) visual
+; Statistics, MBPS maximum
+mov r8d,24 + 23 + 18*1
+mov eax,42 + 23 + 18*1
+mov r11,[r14 + DRPM.StatClksMaximum]
+call TextConstCpiMbps            ; MBPS (Megabytes per Second) visual
+; Statistics, MBPS average, this for statistics, MBPS average = F (clocks average)
+mov r8d,24 + 23 + 18*2
+mov eax,42 + 23 + 18*2
+mov r11,[r14 + DRPM.StatClksAverage]
+call TextConstCpiMbps            ; MBPS (Megabytes per Second) visual
+; TODO. Statistics MBPS, median. Note. doubles can be ordered as integer because shifted order.
+mov r8d,24 + 23 + 18*3
+mov eax,42 + 23 + 18*3
+mov r11,[r14 + DRPM.StatClksMedian]
+call TextConstCpiMbps            ; MBPS (Megabytes per Second) visual
 
 ; End of prepare, visual prepared objects
 .DrawVisual:
@@ -411,4 +541,52 @@ lea rdx,[PaintStruc]
 ; BUG at v1.01.xx ?
 call [EndPaint]
 jmp .WinStatus
+
+
+; Helpers
+; Note about stack re-alignment when subroutines call
+; TODO. Comment and remove to Helper_<old name>.
+
+
+TextConstDraw:
+mov rcx,rdi                  ; Parm#1 = RCX = Pointer to RECT structure to store parameters
+; push rax                   ; This for stack align
+push rax                     ; Parm#5 = Y coordinate down/right corner
+sub rsp,32                   ; Create parameters shadow
+call [SetRect]               ; Set region rectangle function 
+; add rsp,32+8+8             ; Remove parameters shadow, 1 parameter, align
+add rsp,32+8
+mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
+mov rdx,r12                  ; Parm#2 = RDX = Pointer to text string
+mov r8,-1                    ; Parm#3 = R8 = String length, -1 means NULL-terminated string
+mov r9,rdi                   ; Parm#4 = R9 = Pointer to RECT structure, initialized by [SetRect] function
+; push rax                   ; This for stack align
+push DT_LEFT                 ; Parm#5 = Method of formatting/alignment of text string
+sub rsp,32                   ; Create parameters shadow
+call [DrawText]              ; Set region rectangle function 
+; add rsp,32+8+8             ; Remove parameters shadow, 1 parameter, align
+add rsp,32+8
+ret
+
+
+TextConstCpiMbps:
+push rbx rdx rdi r9 rax  ; RAX pushed for stack re-alignment when subroutine call
+
+push rax rdi
+; lea rdi,[DrawValueMBPS]    ; RDI = Destination string
+mov rdi,r15
+mov ecx,12-2                 ; 12 (not 9) for blank if variable X-size font 
+mov ax,0000h + '?'
+stosw
+mov al,' '
+rep stosb                    ; Blank entire field, if next value shorter then previous
+pop rdi rax
+
+; TODO. At other (?) subroutine, calculate statistics.
+
+call TextConstDraw 
+
+pop rax r9 rdi rdx rbx
+ret
+
 

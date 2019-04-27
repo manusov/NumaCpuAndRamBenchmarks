@@ -11,7 +11,7 @@ BasePointGui:
 PRODUCT_ID     DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP      DB  'Program info',0
 ABOUT_ID       DB  'NUMA CPU&RAM Benchmarks'   , 0Dh,0Ah
-               DB  'v1.02.08 for Windows x64'  , 0Dh,0Ah
+               DB  'v1.02.09 for Windows x64'  , 0Dh,0Ah
                DB  '(C)2019 IC Book Labs'      , 0Dh,0Ah,0
 
 
@@ -22,6 +22,7 @@ U_MB           DB  'MB',0
 U_GB           DB  'GB',0
 U_TB           DB  'TB',0
 U_MBPS         DB  'MBPS',0
+U_NS           DB  'nanoseconds',0
 
 
 ; Options strings, used for 1)GUI, 2)result strings and 3)under drawings
@@ -108,7 +109,9 @@ PG_00            DB  'not supported',0
 PG_01            DB  'no control (current group only)',0
 PG_02            DB  'force optimal (all groups)',0  
 
-; Target Object option strings
+; Unknown tested target object
+Unknown_Object   DB  'Unknown target',0
+; Target Object option strings, must be sequentally with previous string
 Target_00        DB  'L1 cache',0
 Target_01        DB  'L2 cache',0
 Target_02        DB  'L3 cache',0

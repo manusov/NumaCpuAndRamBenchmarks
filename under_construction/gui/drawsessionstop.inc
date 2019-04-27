@@ -1,5 +1,6 @@
 
 DrawSessionStop:
+
 call SessionStop
 
 ret

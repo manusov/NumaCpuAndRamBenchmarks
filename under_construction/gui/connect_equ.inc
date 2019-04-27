@@ -56,13 +56,14 @@ SHIFTY     = 0      ; Y-shift plot sub window in the dialogue window, pixels
 
 ; Color parameters of Sub-Window with drawings Speed = F(Block Size)
 ; Brush color values = 00bbggrrh, bb=blue, gg=green, rr=red, 1 byte per color
-BRUSH_GRID       = 00C8C8C8h         ; Grid with horizontal and vertical lines 
-BRUSH_LINE       = 0001F0F0h         ; Draw Line Speed = F (Block Size)
-BRUSH_BACKGROUND = 0FEFEFEh          ; Draw window background
-COLOR_TEXT_UNITS = 00414141h         ; Text front color, units print
-COLOR_TEXT_BACK  = BRUSH_BACKGROUND  ; Text back color
-COLOR_TEXT_INFO  = 00E0E0E0h         ; Text front color, system info print
-COLOR_TEXT_DUMP  = 00F04040h         ; Text front color, instruction dump print
+BRUSH_GRID        = 00C8C8C8h         ; Grid with horizontal and vertical lines 
+BRUSH_LINE        = 0001F0F0h         ; Draw Line Speed = F (Block Size)
+BRUSH_BACKGROUND  = 0FEFEFEh          ; Draw window background
+COLOR_TEXT_VALUES = 00414141h         ; Text front color, grid numeric values print
+COLOR_TEXT_UNITS  = 00E82121h         ; Text front color, units print
+COLOR_TEXT_BACK   = BRUSH_BACKGROUND  ; Text back color
+COLOR_TEXT_INFO   = COLOR_TEXT_UNITS  ; Text front color, system info print
+COLOR_TEXT_DUMP   = 0001B001h         ; Text front color, instruction dump print
 
 ; WinAPI equations for DIB (Device Independent Bitmap)
 DIB_RGB_COLORS    = 0x00  ; Means mode: color table contain RGB values
@@ -107,6 +108,7 @@ TIMER_TICK       = 50     ; Milliseconds per tick, benchmarks progress timer
 ; Draw parameters layout declaration
 
 ; TODO. Reorder for qwords alignment 8
+; TODO. For fast systems, use MBPS/GBPS modes.
 
 struct DRPM
 ; Benchmarks units control
@@ -120,6 +122,7 @@ SelectMode         dd  ?      ; Measurement mode: 0=Bandwidth, 1=Latency
 StatClksMinimum    dq  ?      ; Minimum clocks per iteration
 StatClksMaximum    dq  ?      ; Maximum clocks per iteration
 StatClksAverage    dq  ?      ; Average clocks per iteration
+StatClksMedian     dq  ?      ; Median clocks per iteration
 StatClksSum        dq  ?      ; Clocks sum for averaging
 DrawCount          dd  ?      ; Pixels counter for X-progress when drawing
 DrawPreviousY      dd  ?      ; Previous coordinate for vertical lines draw if required, when ABS(X(i)-X(i+1)) > 1

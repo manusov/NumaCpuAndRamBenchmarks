@@ -226,12 +226,9 @@ Approx_D_02      DB  'Approximation X by 32',0
 
 ; Additions for drawings window
 
-; Unknown tested target object
-Unknown_Object   DB  '?',0
-
 ; Text strings for number of threads
 Threads_String   DB  'Threads='
-Threads_Number   DB  2+1 DUP (0)
+Threads_Number   DB  3+1 DUP (0)
 
 ; Text strings for paging options
 NPages_String    DB  '4K pages',0
@@ -240,13 +237,13 @@ LPages_String    DB  'Large pages',0
 ; Text strings for NUMA options
 NumaOff_String   DB  ' ',0
 NumaU_String     DB  'NUMA unaware',0
+NumaS_String     DB  'NUMA single',0
 NumaL_String     DB  'NUMA local',0
 NumaR_String     DB  'NUMA remote',0
 
 ; Text strings for number of repeats
 Repeats_String   DB  'Repeats='
-Repeats_Number   DB  9+1 DUP (0) 
-
+Repeats_Number   DB  12+1 DUP (0) 
 
 ; System Information strings
 TextTfms         DB  'TFMS=',0
@@ -358,16 +355,16 @@ HANDLE_TEXT_REPEATS1  = 21
 HANDLE_LARGE_PAGES1   = 22
 HANDLE_NUMA_MODE1     = 23
 ; "AM" label name prefix means "Assembler Method" means CPU Instruction Set
+; Drawings window control elements
 DIALELEMENT  ClassButton , TextRestart     , 0605 , 0523 , 0080 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON  ; 16 = Restart button
 DIALELEMENT  ClassButton , TextCancel      , 0690 , 0523 , 0080 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON  ; 17 = Cancel button
-
-; TODO. Drawings window control elements
-;DIALELEMENT  ClassStatic , AM_00           , 0017 , 0492 , 0500 , 0020 , WS_VISIBLE+WS_CHILD                ; 18 = Selected ASM method string
-;DIALELEMENT  ClassStatic , Unknown_Object  , 0017 , 0510 , 0200 , 0020 , WS_VISIBLE+WS_CHILD                ; 19 = Selected analysed object string
-;DIALELEMENT  ClassStatic , Threads_String  , 0125 , 0510 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 20 = Number of threads string
-;DIALELEMENT  ClassStatic , Repeats_String  , 0222 , 0510 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 21 = Number of repeats string
-;DIALELEMENT  ClassStatic , NPages_String   , 0358 , 0510 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 22 = Large pages string
-;DIALELEMENT  ClassStatic , NumaOff_String  , 0448 , 0510 , 0108 , 0020 , WS_VISIBLE+WS_CHILD                ; 23 = NUMA mode string
+; Drawings window down comments strings
+DIALELEMENT  ClassStatic , AM_00           , 0017 , 0512 , 0500 , 0020 , WS_VISIBLE+WS_CHILD                ; 18 = Selected ASM method string
+DIALELEMENT  ClassStatic , Unknown_Object  , 0017 , 0530 , 0200 , 0020 , WS_VISIBLE+WS_CHILD                ; 19 = Selected analysed object string
+DIALELEMENT  ClassStatic , Threads_String  , 0135 , 0530 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 20 = Number of threads string
+DIALELEMENT  ClassStatic , Repeats_String  , 0232 , 0530 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 21 = Number of repeats string
+DIALELEMENT  ClassStatic , NPages_String   , 0368 , 0530 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 22 = Large pages string
+DIALELEMENT  ClassStatic , NumaOff_String  , 0458 , 0530 , 0108 , 0020 , WS_VISIBLE+WS_CHILD                ; 23 = NUMA mode string
 ;---
 
 ; Terminator
@@ -419,7 +416,23 @@ DD  BRUSH_BACKGROUND   ; Draw window background
 ;------------------------------------------------------------------------------;
 
 ; Window name, visualized at top of GUI window
-WindowTitle_Win1  DB  'Speed = F (Block Size)',0
+WindowTitle_Win1  DB  'Performance = F (Block Size)',0
+
+; Text strings for write timings in the drawings window
+; 12 (not 9) for blank area with variable (font char defined) Xsize
+; CPI = Clocks Per Instruction
+DrawTextTSC          DB  'TSC clock (MHz)  = '
+DrawValueTSC         DB  12 DUP (' '), 0
+DrawTextMinimum      DB  'Minimum (CPI) = '
+DrawValueMinimum     DB  12 DUP (' '),0
+DrawTextMaximum      DB  'Maximum (CPI) = '
+DrawValueMaximum     DB  12 DUP (' '),0
+DrawTextAverage      DB  'Average (CPI) = '
+DrawValueAverage     DB  12 DUP (' '),0
+DrawTextMedian       DB  'Median (CPI) = '
+DrawValueMedian      DB  12 DUP (' '),0
+DrawTextMBPS         DB  'MBPS = '
+DrawValueMBPS        DB  12 DUP (' '),0  
 
 
 
