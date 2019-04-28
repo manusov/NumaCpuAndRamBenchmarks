@@ -138,4 +138,68 @@ inc edx
 @@:
 mov [rdi + DRPM.ValueGridY],eax
 mov [rdi + DRPM.SelectMode],edx
+
+; Align stack and create parameters shadow, required for use WinAPI
+mov rbp,rsp
+and rsp,0FFFFFFFFFFFFFFF0h
+sub rsp,32
+
+; Initializing handles and run thread with DrawSessionThread  subroutine 
+lea rsi,[DrawThreadParms]
+mov rdi,rsi
+cld
+; Create event for thread start, store event handle
+xor ecx,ecx          ; RCX = Parm#1 = lpEventAttributes  
+mov edx,1            ; RDX = Parm#2 = bManualReset
+xor r8d,r8d          ; R8  = Parm#3 = bInitialState
+xor r9d,r9d          ; R9  = Parm#4 = Name, 0=None
+call [CreateEvent]   ; Call WinAPI function
+test rax,rax         ; Status=0 means error
+jz .Error            ; Go if error creating event
+stosq                ; Store handle in the thread parameters, EventStart 
+; Create event for thread done, store event handle
+xor ecx,ecx          ; RCX = Parm#1 = lpEventAttributes  
+mov edx,1            ; RDX = Parm#2 = bManualReset
+xor r8d,r8d          ; R8  = Parm#3 = bInitialState
+xor r9d,r9d          ; R9  = Parm#4 = Name, 0=None
+call [CreateEvent]   ; Call WinAPI function
+test rax,rax         ; Status=0 means error
+jz .Error            ; Go if error creating event
+stosq                ; Store handle in the thread parameters, EventDone 
+; Create thread, store event handle
+xor ecx,ecx                 ; RCX = Parm#1 = Security
+xor edx,edx                 ; RDX = Parm#2 = Stack size, 0=default
+lea r8,[DrawSessionThread]  ; R8  = Parm#3 = Execute routine pointer
+xor r9d,r9d                 ; R9  = Parm#4 = Subroutine parameter, not used here
+push rcx                    ; Parm#6 = Thread ID return , 0=None
+push rcx                    ; Parm#5 = Creating Flags = Not suspended, run immediately
+sub rsp,32                  ; Make parameters shadow
+call [CreateThread]         ; Call WinAPI function
+add rsp,32+16               ; Remove parameters shadow + 2 parameters
+test rax,rax                ; Status=0 means error
+jz .Error                   ; Go if error creating thread
+stosq                       ; Store handle in the thread parameters, ThreadHandle 
+; Clear measurement counter and array of measurement results
+mov ecx,MEASURE_POINTS_COUNT * 2 + 2  ; + 4 dwords: 2 counters + break flag + align
+xor eax,eax
+rep stosq
+
+; Wait for measurement thread run, this event at thread entry point
+mov rcx,[rsi + DTHP.EventStart]  ; RCX = Parm#1 = Handle for start event
+mov edx,10000                    ; RDX = Parm#2 = 10 seconds
+call [WaitForSingleObject]
+test rax,rax                     ; special encoding, 0 means event detected OK 
+jnz .Error
+
+; Done, no errors, parallel thread with  DrawSessionThread  subroutine RUNNING
+clc
+.L90:
+mov rsp,rbp
 ret
+
+; Exit point for errors detected
+.Error:
+stc
+jmp .L90
+
+

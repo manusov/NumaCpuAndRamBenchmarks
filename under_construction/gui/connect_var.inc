@@ -113,9 +113,10 @@ GraphRect        RECT          ; Rectangle definition for visualized area
 ; no pre-defined values. 
 
 ; Draw parameters 
-align 64
+align 8
 DrawParms  DRPM
 
-
-
+; Parallel thread for measurements at draw window, state parameters.
+align 8
+DrawThreadParms  DTHP
 

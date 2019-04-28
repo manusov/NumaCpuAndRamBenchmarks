@@ -57,8 +57,8 @@ SHIFTY     = 0      ; Y-shift plot sub window in the dialogue window, pixels
 ; Color parameters of Sub-Window with drawings Speed = F(Block Size)
 ; Brush color values = 00bbggrrh, bb=blue, gg=green, rr=red, 1 byte per color
 BRUSH_GRID        = 00C8C8C8h         ; Grid with horizontal and vertical lines 
-BRUSH_LINE        = 0001F0F0h         ; Draw Line Speed = F (Block Size)
-BRUSH_BACKGROUND  = 0FEFEFEh          ; Draw window background
+BRUSH_LINE        = 000101F0h         ; Draw Line Speed = F (Block Size)
+BRUSH_BACKGROUND  = 00F9F9F9h         ; Draw window background
 COLOR_TEXT_VALUES = 00414141h         ; Text front color, grid numeric values print
 COLOR_TEXT_UNITS  = 00E82121h         ; Text front color, units print
 COLOR_TEXT_BACK   = BRUSH_BACKGROUND  ; Text back color
@@ -124,17 +124,38 @@ StatClksMaximum    dq  ?      ; Maximum clocks per iteration
 StatClksAverage    dq  ?      ; Average clocks per iteration
 StatClksMedian     dq  ?      ; Median clocks per iteration
 StatClksSum        dq  ?      ; Clocks sum for averaging
-DrawCount          dd  ?      ; Pixels counter for X-progress when drawing
+TimerCount         dd  ?      ; Timer ticks count ; OLD = Pixels counter for X-progress when drawing
 DrawPreviousY      dd  ?      ; Previous coordinate for vertical lines draw if required, when ABS(X(i)-X(i+1)) > 1
-; Benchmark block size and repeats
+; Benchmark drawings scale parameters
+; Better store value for multiply (not divide) at each iteration, for minimize CPU resources utilization
+Ymultiplier        dq  ?      ; ???
+
+
+; Benchmark block size and repeats, rejected for 1.02.xx
 ; Used indexed access from this base, include next groups, don't reorder variables!
-BenchRepeats       dq  ?      ; Number of repeats for measurement, pre-calibration
-BenchInstructions  dq  ?      ; Number of target instructions at all block (not cycle only), example=VMOVAPD
-BenchBPI           dq  ?      ; Number of bytes per target instruction
+; BenchRepeats       dq  ?      ; Number of repeats for measurement, pre-calibration
+; BenchInstructions  dq  ?      ; Number of target instructions at all block (not cycle only), example=VMOVAPD
+; BenchBPI           dq  ?      ; Number of bytes per target instruction
 ; Benchmark parameters ---
-Xmultiplier        dd  ?      ; XTimerTick * Xmultiplier = RCX for performance pattern
-YdivisorFloat      dd  ?      ; ( ( Frequency * Decimal Megabytes transferred ) / clocks ) / Ydivisor = DrawYCoordinateOffset
+; Xmultiplier        dd  ?      ; XTimerTick * Xmultiplier = RCX for performance pattern
+; YdivisorFloat      dd  ?      ; ( ( Frequency * Decimal Megabytes transferred ) / clocks ) / Ydivisor = DrawYCoordinateOffset
 ; Auto Y-scale (by Restart/ReSize button at Window 1)
-MaximumMBPSorNs    dd  ?      ; Maximum detected Megabytes per Second (Speed) or nanoseconds (Latency) for auto Y-scale
+; MaximumMBPSorNs    dd  ?      ; Maximum detected Megabytes per Second (Speed) or nanoseconds (Latency) for auto Y-scale
 ends
+
+MEASURE_POINTS_COUNT  EQU  640
+
+; Benchmarking drawings measurement parallel thread state structure.
+struct DTHP
+EventStart      dq  ?   ; Event handle for signaling this thread starts
+EventDone       dq  ?   ; Event handle for signaling this thread terminates 
+ThreadHandle    dq  ?   ; Event handle for this thread 
+MeasureCounter  dd  ?   ; Number of stored results, 0 means no stores before run, maximum MEASURE_POINTS_COUNT (640)
+VisualCounter   dd  ?   ; Number of visualized results, required because results generation and timer ticks is asynchronous
+MeasureBreak    dd  ?   ; Flag for measurement break, 0=None,   BIDIRECTIONAL SIGNALING IS REJECTED BECAUSE RESIZE BUTTON BUG: 1=Break or Done, signaling is BIDIRECTIONAL: Break and Done
+MeasureAlign    dd  ?   ; This required for QWORD alignment 
+MeasureArray    dq  MEASURE_POINTS_COUNT * 2 dup (?)  ; Array of measurements results, unsigned integer 64-bit, [instructions count] + [delta TSC]    
+ends
+ 
+
 

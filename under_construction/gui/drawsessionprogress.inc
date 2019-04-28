@@ -1,4 +1,0 @@
-
-DrawSessionProgress:
-
-ret

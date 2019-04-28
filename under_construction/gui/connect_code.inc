@@ -12,4 +12,4 @@ include 'win1.inc'
 
 include 'drawsessionstart.inc'
 include 'drawsessionstop.inc'
-include 'drawsessionprogress.inc'
+include 'drawsessionthread.inc'

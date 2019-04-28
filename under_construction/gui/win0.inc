@@ -294,11 +294,11 @@ push rbx               ; save handle for restore parent window activity
 ; call DrawSessionStop = at this routine, after build win1 
 
 
-;--- bound of added ---
+;--- DEBUG: bound of added ---
 
 
+; At this point, parallel thread with DrawSessionThread subroutine STARTED.
 call DrawSessionStart 
-
 
 ; Create (Open) daughter window = Window 1
 ; Build child window for drawings Speed=F(Size)
@@ -317,11 +317,12 @@ call CreateApplicationWindow  ; RBX = Parent Handle
 lea rdi,[DialogueMsg_Win1]	  ; RDI = MSG structure
 call WaitEvent                ; Window 1 work as callbacks inside this
 
-
+; At this point, parallel thread with DrawSessionThread subroutine HALTED and REMOVED.
 call DrawSessionStop
 
 
-;--- bound of added ---
+;--- DEBUG: bound of added ---
+
 
 pop rbx
 jmp .ReturnParentWindow

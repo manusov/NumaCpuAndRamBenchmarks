@@ -52,6 +52,8 @@ jmp .WinFinish
 ; TODO.
 ; Initializing statistics
 ; call InitStatistics
+mov [DrawParms + DRPM.DrawPreviousY],0
+; TODO. Make this at InitStatistics subroutine 
 
 
 ; Build buttons
@@ -110,15 +112,12 @@ sub rsp,32                             ; Create parameters shadow
 call [CreateFont]
 add rsp,32+80                          ; Remove parameters shadow and 10 parameters
 mov [HandleFont],rax 
-
-; TODO.
 ; Create and set timer, for benchmarks progress (but not for measure)
-;mov rcx,rbx                            ; Parm#1 = RCX = Parent window handle
-;xor edx,edx                            ; Parm#2 = RDX = Event ID
-;mov r8d,TIMER_TICK                     ; Parm#3 = R8 = Timer ticks period, ms
-;xor r9d,r9d                            ; Parm#4 = R9 = Notify function pointer, not used here
-;call [SetTimer]
-
+mov rcx,rbx                            ; Parm#1 = RCX = Parent window handle
+xor edx,edx                            ; Parm#2 = RDX = Event ID
+mov r8d,TIMER_TICK                     ; Parm#3 = R8 = Timer ticks period, ms
+xor r9d,r9d                            ; Parm#4 = R9 = Notify function pointer, not used here
+call [SetTimer]
 ; End of initialization, enable draw counter
 mov [Win1_Running],1
 jmp .WinStatus
@@ -128,6 +127,8 @@ jmp .WinStatus
 .WinDestroy:
 push rcx rdx r8 r9
 sub rsp,32
+; Stop measurement thread
+mov [DrawThreadParms + DTHP.MeasureBreak],1
 ; De-Initialize graphics context
 mov rcx,[HandleMemDC]
 call [DeleteDC]
@@ -180,8 +181,16 @@ jne .WinDefaultProc   ; Run default OS handler if Window 1 not initialized yet
 cmp r8,HANDLE_BUTTON_CANCEL1
 je .WinDestroy                        ; Go if "Cancel" button
 cmp r8,HANDLE_BUTTON_RUN1
-jne .WinDefaultProc                   ; Go if not "Run" button
+jne .WinDefaultProc                   ; Go if not "Resize" button
 ; ...
+; ...
+
+; DEBUG. REDUNDANT WITH INITSTATISTICS
+mov [Win1_Running],1
+mov [DrawThreadParms + DTHP.MeasureCounter],0
+mov [DrawThreadParms + DTHP.VisualCounter],0
+mov [DrawParms + DRPM.DrawPreviousY],0
+; DEBUG. REDUNDANT WITH INITSTATISTICS
 ; ...
 ; ...
 jmp .WinStatus
@@ -189,9 +198,26 @@ jmp .WinStatus
 
 ; Handler for timer event: tick
 .WinTimer:
-; ...
-; ...
-; ...
+lea rcx,[Win1_Running]
+lea rdx,[DrawParms + DRPM.TimerCount]     ; For two variables: COUNT, PREVIOUS Y
+xor eax,eax                ; This clear entire RAX
+cmp [rcx],al               ; 0=Stop, 1=First, 2=Progress
+je .SkipTimer              ; Skip if halted
+inc dword [rdx]            ; Counter +1
+
+; cmp dword [rdx],SUBWINX - 134 ; TODO. Make EQU.
+; jbe .YetNotHalt            ; Skip if limit not reached yet
+; mov qword [rdx],rax        ; Count=0 means READY TO NEXT START, clear BOTH DWORDS: COUNT and PREVIOUS Y 
+
+cmp [DrawThreadParms + DTHP.MeasureBreak],0
+je .YetNotHalt 
+mov [rcx],al               ; Running=0 means HALTED
+.YetNotHalt:
+mov rcx,rbx                ; Parm#1 = RCX = Window handle 
+xor edx,edx                ; Parm#2 = RDX = Pointer to invalidated region, 0=All window
+xor r8d,r8d                ; Parm#3 = R8  = Background erase flag, 0=Background unchanged
+call [InvalidateRect]      ; This cause callback WM_PAINT operation
+.SkipTimer:
 jmp .WinStatus
 
 
@@ -215,15 +241,107 @@ je .FirstPaint       ; Go if this is first pass, draw axes
 ; ...
 ; ... draw y=f(x), not a first pass
 
-call DrawSessionProgress
+; TODO. Replace to DrawSessionThread
+; call DrawSessionProgress
+
+
+
+; Setup drawings
+
+;;- DEBUG
+;;- mov eax,[DrawParms + DRPM.DrawCount]
+;mov eax,[DrawThreadParms + DTHP.MeasureCounter]
+;add eax,GRIDBLANKX
+;lea edx,[eax+1]
+;mov ecx,SUBWINY-GRIDBLANKY - 2
+;mov r8d,SUBWINY-GRIDBLANKY - 1
+;;- DEBUG
+;mov [rdi+RECT.left],eax
+;mov [rdi+RECT.top],ecx
+;mov [rdi+RECT.right],edx
+;mov [rdi+RECT.bottom],r8d
+;;- Draw current point Y=F(X)
+;mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
+;mov rdx,rdi                  ; Parm#2 = RDX = Pointer to RECT strucnure
+;mov r8,[HandlesBrushes+08]   ; Parm#3 = R8 = Handle to a color brush
+;call [FillRect]
+
+lea rcx,[DrawThreadParms]
+lea r14,[rcx + DTHP.MeasureArray] 
+mov ebp,[rcx + DTHP.MeasureCounter]
+mov r12d,[rcx + DTHP.VisualCounter]
+mov [rcx + DTHP.VisualCounter],ebp
+sub ebp,r12d
+jbe .EndLine
+add r12,GRIDBLANKX + 1 
+.DrawLine: 
+; Calculate EAX = F(measurement result)
+
+; DEBUG
+mov eax,ebp
+and eax,0Fh
+mov edx,eax
+mul edx
+neg eax
+; DEBUG
+
+;mov rax,[r14 + 0]  ; instructions count
+;mov edx,[r14 + 8]  ; delta TSC
+;neg eax
+
+
+; Setup coordinates for GUI
+add eax,SUBWINY-GRIDBLANKY - 1
+lea rdx,[r12+1]
+lea ecx,[eax+1]
+; Work with Y-coordinate, adjust Y-coordinates for make solid line by Y
+mov r8d,[DrawParms + DRPM.DrawPreviousY]   ; R8D = DrawPreviousY
+test r8d,r8d
+jz @f
+mov ecx,r8d
+@@:
+mov [DrawParms + DRPM.DrawPreviousY],eax   ; Set DrawPreviousY
+jnz @f
+inc ecx
+inc eax
+@@:
+cmp eax,ecx
+jbe @f
+xchg eax,ecx      ; Must be Down > Top
+@@:
+jne @f
+inc ecx           ; Make Down+1 if Top=Down
+@@:
+mov r8d,ecx
+sub r8d,eax
+cmp r8d,1
+jbe @f
+inc ecx            ; Make down extra-pixel for vertical line  
+@@:
+; Store coordinates for rectangle as part of line Y=F(X)
+mov [rdi+RECT.left],r12d
+mov [rdi+RECT.top],eax
+mov [rdi+RECT.right],edx
+mov [rdi+RECT.bottom],ecx
+; Draw current point Y=F(X)
+mov rcx,rsi                    ; Parm#1 = RCX = Handle to a Device Context
+mov rdx,rdi                    ; Parm#2 = RDX = Pointer to RECT strucnure
+mov r8,[HandlesBrushes + 08]   ; Parm#3 = R8 = Handle to a color brush
+call [FillRect]
+add r14,16
+inc r12d
+dec ebp
+jnz .DrawLine
+.EndLine:
 
 ; ...
-jmp .EndPaint
+; jmp .EndPaint
+jmp .DrawVisual
 
 
 .FirstPaint:
 mov byte [rcx],2          ; [rcx] = [Win1_Running]
-mov [DrawParms + DRPM.DrawCount],ebp
+mov [DrawParms + DRPM.TimerCount],ebp
 ; Draw
 mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
 mov rdx,[HandleFont]         ; Parm#2 = RDX = Handle to Selected Object
@@ -491,7 +609,7 @@ lea r15,[DrawValueMedian]
 call TextConstCpiMbps
 
 ; Bandwidth, MBPS (Megabytes Per Second)
-lea r12,[DrawTextMBPS]        ; This must be non-volatile register
+lea r12,[DrawTextMBPS]       ; This must be non-volatile register
 lea r15,[DrawValueMBPS]
 ; Statistics, MBPS minimum
 mov edx,SUBWINX - 132
@@ -499,22 +617,22 @@ mov r8d,24 + 23
 mov r9d,SUBWINX - 5
 mov eax,42 + 23
 mov r11,[r14 + DRPM.StatClksMinimum]
-call TextConstCpiMbps            ; MBPS (Megabytes per Second) visual
+call TextConstCpiMbps        ; MBPS (Megabytes per Second) visual
 ; Statistics, MBPS maximum
 mov r8d,24 + 23 + 18*1
 mov eax,42 + 23 + 18*1
 mov r11,[r14 + DRPM.StatClksMaximum]
-call TextConstCpiMbps            ; MBPS (Megabytes per Second) visual
+call TextConstCpiMbps        ; MBPS (Megabytes per Second) visual
 ; Statistics, MBPS average, this for statistics, MBPS average = F (clocks average)
 mov r8d,24 + 23 + 18*2
 mov eax,42 + 23 + 18*2
 mov r11,[r14 + DRPM.StatClksAverage]
-call TextConstCpiMbps            ; MBPS (Megabytes per Second) visual
+call TextConstCpiMbps        ; MBPS (Megabytes per Second) visual
 ; TODO. Statistics MBPS, median. Note. doubles can be ordered as integer because shifted order.
 mov r8d,24 + 23 + 18*3
 mov eax,42 + 23 + 18*3
 mov r11,[r14 + DRPM.StatClksMedian]
-call TextConstCpiMbps            ; MBPS (Megabytes per Second) visual
+call TextConstCpiMbps        ; MBPS (Megabytes per Second) visual
 
 ; End of prepare, visual prepared objects
 .DrawVisual:
