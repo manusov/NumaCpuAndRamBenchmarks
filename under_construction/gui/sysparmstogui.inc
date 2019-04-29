@@ -1,3 +1,18 @@
+;------------------------------------------------------------------------------;
+; Update GUI visualized parameters and benchmarks options availability         ;
+; (gray or black) by system information results                                ; 
+;                                                                              ;
+; INPUT:   None at registers                                                   ;
+;          System Parameters Block = results of system information             ; 
+;                                                                              ;
+; OUTPUT:  None at registers                                                   ;
+;          GUI control structures                                              ;  
+;                                                                              ;
+; All CPU registers can be corrupted                                           ;
+;------------------------------------------------------------------------------;
+
+; TODO.
+; Required input-output parameters detalization.
 
 SysParmsToGui:
 
@@ -101,7 +116,6 @@ cmp [rdi + SYSPARMS.LargePageFlag],1
 je @f
 or [rbx+E_LARGE_PAGES],edx
 @@:
-
 
 ; Done
 ret

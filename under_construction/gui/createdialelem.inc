@@ -53,4 +53,3 @@ jnz .BuildCycle              ; Cycle for all descriptors, exit if error when RAX
 ExitRbp:
 mov rsp,rbp
 ret
-

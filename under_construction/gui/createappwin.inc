@@ -91,9 +91,3 @@ ErrorCreateWindow:    ; This branch must not corrupt flags, ZF used
 mov rsp,rbp
 pop rax r11 r10 r9 r8 rbp rsi rax rdx rcx rbx    ; R8-R11 because API, volatile
 ret
-
-
-
-
-
-

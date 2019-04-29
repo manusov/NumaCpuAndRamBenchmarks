@@ -1,8 +1,13 @@
+;------------------------------------------------------------------------------;
+;   GUI module: variables and structures for support GUI objects by WinAPI.    ;
+;          Variables and structures without pre-defined values.                ;
+;      Formats defined by Microsoft Windows and this application design.       ;
+;------------------------------------------------------------------------------;
 
-
-; Field for custom block size edit
+;------------------------------------------------------------------------------;
+; Field for custom block size edit.                                            ;
+;------------------------------------------------------------------------------;
 BlockSizeEdit     DQ  ?    ; CUSTOM for selection: L1/L2/L3/L4/Custom
-
 
 ;------------------------------------------------------------------------------;
 ;               MSG message descriptor structure (for Win64).                  ;
@@ -25,21 +30,17 @@ BlockSizeEdit     DQ  ?    ; CUSTOM for selection: L1/L2/L3/L4/Custom
 ; x	 dd	  Cursor X-position
 ; y	 dd	  Cursor Y-position
 ;--------------------------------------------------------------
-
 ; This variables, defined as (?) located after constants with predefined
 ; valuse. This method allows reduce executable file size.
 ; Constants is a part of executable file size, because pre-defined values.
 ; Variables (for example this) not a part of executable file size, because
 ; no pre-defined values. 
-
 DialogueMsg_Win0    MSG     ; Message structure for wait event, parent window
 DialogueMsg_Win1    MSG     ; Message structure for wait event, child window 
-
 
 ;------------------------------------------------------------------------------;
 ;                        Object with space sharing.                            ;
 ;------------------------------------------------------------------------------;
-
 ; This variables, defined as (?) located after constants with predefined
 ; valuse. This method allows reduce executable file size.
 ; Constants is a part of executable file size, because pre-defined values.
@@ -52,7 +53,6 @@ DialogueMsg_Win1    MSG     ; Message structure for wait event, child window
 ; 128 qwords = 128*8 = 1024 bytes = 1KB per window
 SubHandles         DQ  128 DUP (?)   ; 1024 bytes, Window 0 = Main
                    DQ  128 DUP (?)   ; 1024 bytes, Window 1 = Drawings
-
 ; BigTexts is buffer for dynamically build text strings.
 BigTexts           DB  1024 DUP (?)  ; 1024 bytes, Big texts
 
@@ -60,14 +60,12 @@ BigTexts           DB  1024 DUP (?)  ; 1024 bytes, Big texts
 ;------------------------------------------------------------------------------;
 ;               Variables for Window 1 - benchmarks drawings.                  ;
 ;------------------------------------------------------------------------------;
-
 ; Variables for graphics context
 ; This variables, defined as (?) located after constants with predefined
 ; valuse. This method allows reduce executable file size.
 ; Constants is a part of executable file size, because pre-defined values.
 ; Variables (for example this) not a part of executable file size, because
 ; no pre-defined values. 
-
 ; Video output control            ; 64 bytes per group
 HandleMemDC        DQ  ?          ; Handle for Device Context, video controller
 BitmapPointer      DQ  ?          ; Bitmap pointer
@@ -97,7 +95,6 @@ HandleDC           DQ  ?          ; Handle Graphical Device Context
 ; right         dd ?       X-coordinate of lower-right point
 ; bottom        dd ?       Y-coordinate of lower-right point
 ;--------------------------------------------------------------
-
 PaintStruc       PAINTSTRUCT   ; Paint control
 GraphRect        RECT          ; Rectangle definition for visualized area
 
@@ -105,7 +102,6 @@ GraphRect        RECT          ; Rectangle definition for visualized area
 ;                  Window 1 (drawings) execution controls.                     ;
 ;               Window 1 = Measurement window, drawings Y=F(X).                ;
 ;------------------------------------------------------------------------------;
-
 ; This variables, defined as "?" memory reservation, located after constants
 ; with predefined valuse. This method allows reduce executable file size.
 ; Constants is a part of executable file size, because pre-defined values.
@@ -115,7 +111,6 @@ GraphRect        RECT          ; Rectangle definition for visualized area
 ; Draw parameters 
 align 8
 DrawParms  DRPM
-
 ; Parallel thread for measurements at draw window, state parameters.
 align 8
 DrawThreadParms  DTHP

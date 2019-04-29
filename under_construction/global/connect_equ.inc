@@ -1,23 +1,20 @@
+;------------------------------------------------------------------------------;
+;                 Global Library: global used data definitions.                ; 
+;------------------------------------------------------------------------------;
 
 ;------------------------------------------------------------------------------;
 ;  System support data definitions: constants, structures, macro definitions.  ;
 ;     Make this module as separate file for useable by samples under debug     ;
 ;------------------------------------------------------------------------------;
-
 ; Block size for RAM and Storage benchmarks, default values 
 ; must be corrected by platform configuration checks
 DEFAULT_DRAM_BLOCK    EQU  32*1024*1024
-
 ; Constant for memory allocation option
 MEM_LARGE_PAGES       EQU  020000000h
-
 ; Selector for all processor groups
 ALL_PROCESSOR_GROUPS  EQU  0000FFFFh 
-
-
 ; Required 48 Kilobytes miscellaneous buffer
 TEMP_BUFFER_SIZE      EQU  49152
-
 
 ; Thread control entry, or entire benchmark control if single thread
 ; Note keep 128 bytes per entry, see ThreadEntry, can be non parametrized coding
@@ -56,26 +53,20 @@ TrueBase        dq  ?   ; Base address, returned when allocated, for release, 0=
 Reserved        dq  2 DUP (?)    ; Reserved for alignment
 ends
 
-
 ; Maximum number of supported threads: total and per processor group
 MAX_THREADS            EQU  256      ; old = 64, this extension is UNDER CONSTRUCTION
 MAX_THREADS_PER_GROUP  EQU  64
-
 ; Maximum number of supported NUMA nodes
 MAX_NODES              EQU  64
-
 ; 8192 bytes, 64 entries for (multi) thread management
 THCTRL_SIZE            EQU  sizeof.THCTRL
 THREADS_LIST_SIZE      EQU  MAX_THREADS * THCTRL_SIZE
-
 ; 512 bytes, 64 handles, separate list req. for WaitForMultipleObjects function  
 EVENT_SIZE             EQU  8
 EVENTS_LIST_SIZE       EQU  MAX_THREADS * EVENT_SIZE
-
 ; 4096 bytes, 64 entries for NUMA nodes description, not a same as THREAD
 NUMACTRL_SIZE          EQU  sizeof.NUMACTRL
 NUMA_LIST_SIZE         EQU  MAX_NODES * NUMACTRL_SIZE  
-
 
 ; TODO. Check usable CustomBlockEnd, CustomBlockDelta.
 
@@ -94,7 +85,6 @@ CustomBlockStart  dq  ?    ; Override start block size, or 0=default
 CustomBlockEnd    dq  ?    ; Override end block size, or 0=default
 CustomBlockDelta  dq  ?    ; Override delta block size, or 0=default
 ends
-
 
 ; Test INPUT parameters layout declaration,
 struct IPB
@@ -129,7 +119,6 @@ DumpMethodStart   dq  ?    ; Start of fragment, visualized as dump during benchm
 DumpMethodLength  dd  ?    ; Length of fragment, visualized as dump during benchmarks, bytes
 ends
 
-
 ; Test OUTPUT parameters layout declaration
 struct OPB
 DeltaTSC          dq  ?    ; TSC measured clock, Hz, 64-bit long integer
@@ -146,45 +135,45 @@ AM_BYTE_COUNT       EQU  22     ; 22 bytes per methods primary list
 LATENCY_MODE        EQU  35     ; modes ID = 35, 36 for latency measurement
 
 ; Options limits and values
-
-ASM_LIMIT           EQU  36+1   ; 36 names for assembler methods
+; 36 names for assembler methods
+ASM_LIMIT           EQU  36+1
 
 PARALLEL_LIMIT      EQU  2
 PARALLEL_NOT_SUP    EQU  0
 PARALLEL_NOT_USED   EQU  1
 PARALLEL_USED       EQU  2
-
-TARGET_LIMIT        EQU  5      ; Target Object: Cache, DRAM, Custom 
+; Target Object: Cache, DRAM, Custom
+TARGET_LIMIT        EQU  5 
 TARGET_L1           EQU  0
 TARGET_L2           EQU  1
 TARGET_L3           EQU  2
 TARGET_L4           EQU  3
 TARGET_DRAM         EQU  4
 TARGET_CUSTOM       EQU  5
-
-HT_LIMIT            EQU  2      ; HT = Hyper Threading
+; HT = Hyper Threading
+HT_LIMIT            EQU  2
 HT_NOT_SUPPORTED    EQU  0
 HT_NOT_USED         EQU  1
 HT_USED             EQU  2
-
-PG_LIMIT            EQU  2      ; PG = Processor Group
+; PG = Processor Group
+PG_LIMIT            EQU  2
 PG_NOT_SUPPORTED    EQU  0
 PG_NO_CONTROL       EQU  1
 PG_OPTIMAL          EQU  2
-
-NUMA_LIMIT          EQU  4      ; NUMA topology
+; NUMA topology
+NUMA_LIMIT          EQU  4
 NUMA_NOT_SUPPORTED  EQU  0
 NUMA_NO_CONTROL     EQU  1
 NUMA_CURRENT_ONLY   EQU  2
 NUMA_OPTIMAL        EQU  3
 NUMA_NON_OPTIMAL    EQU  4    
-
-LP_LIMIT            EQU  2      ; LP = Large Pages
+; LP = Large Pages
+LP_LIMIT            EQU  2
 LP_NOT_SUPPORTED    EQU  0
 LP_NOT_USED         EQU  1
 LP_USED             EQU  2
-
-MEASURE_LIMIT       EQU  3      ; Measure repeats selection modes
+; Measure repeats selection modes
+MEASURE_LIMIT       EQU  3
 MEASURE_BRIEF       EQU  0
 MEASURE_CAREFUL     EQU  1    
 MEASURE_B_ADAPTIVE  EQU  2
@@ -193,7 +182,6 @@ MEASURE_C_ADAPTIVE  EQU  3
 ;------------------------------------------------------------------------------;
 ;                  System parameters, detected at start.                       ;
 ;------------------------------------------------------------------------------;
-
 ; Cache info format
 ; Qword=Size, bytes,
 ; Word=Maximum threads at this level

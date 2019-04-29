@@ -1,3 +1,6 @@
+;------------------------------------------------------------------------------;
+;            "Vector brief" benchmark scenario: data definitions.              ;
+;------------------------------------------------------------------------------;
 
 ; Vector brief, test parameters
 VECTOR_BRIEF_DATA_SIZE     EQU  4096     ; Part of L1 (bytes) used as buffer

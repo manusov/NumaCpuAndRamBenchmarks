@@ -1,5 +1,9 @@
-; Template for unit tests.
-; Unit test for math performance measurement routines. 
+;------------------------------------------------------------------------------;
+;                          Template for unit tests.                            ;
+;         Unit test for MATHEMATICS PERFORMANCE measurement routines:          ;
+;         measure and show single result (delta TSC per instruction),          ; 
+;                        for fixed-selected pattern.                           ; 
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

@@ -1,4 +1,12 @@
+;------------------------------------------------------------------------------;
+;           Library of performance patterns for mathematics benchmarks:        ;
+;                    connect include files with subroutines.                   ;
+;------------------------------------------------------------------------------;
 
+;--- Get pointer to performance pattern subroutine by ID ---;
+; INPUT:   AL  = Subroutine ID                              ;
+; OUTPUT:  RBX = Subroutine entry point                     ;
+;-----------------------------------------------------------; 
 GetMathPattern:
 movzx eax,al
 movzx eax,word [MathPatterns + rax*2]

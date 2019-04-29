@@ -1,6 +1,7 @@
-
-; Template for integration tests.
-; Integration test for GUI application Vector Brief benchmark window. 
+;------------------------------------------------------------------------------;
+;                     Template for integration tests.                          ;
+;      Integration test for GUI application Vector Brief benchmark window.     ;
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

@@ -1,5 +1,8 @@
-; Template for unit tests.
-; Unit test for Application Main Window scenario. 
+;------------------------------------------------------------------------------;
+;                        Template for unit tests.                              ;
+;             Unit test for Application Main Window scenario:                  ;
+;        this test only for compiling and run without show information.        ; 
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

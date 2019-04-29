@@ -1,17 +1,29 @@
+;--- Start measurement session ------------------------------------------------;
+; Analysing user settings and system configuration, build test scenario        ;
+;                                                                              ;
+; INPUT:   None in the registers                                               ;
+;          UPB = UserParms = user options settings                             ;
+;          SYSPARMS = SystemParameters = system configuration                  ;
+;                                                                              ;
+; OUTPUT:  None in the registers                                               ;
+;          IPB = InputParms = result of this routine, benchmark scenario       ;
+;          Threads List, NUMA nodes list                                       ;                                                  
+;                                                                              ;
+; All CPU registers can be corrupted                                           ;
+;------------------------------------------------------------------------------;
 
 ; TODO. 
 ; Regularize simple/brief/drawings calling conventions, what registers destroyed.
-
 ; TODO.
-; Better special simplified branch for single-thread, for precision reasons ? 
-
+; Better special simplified branch for single-thread, for precision reasons ?
+; TODO.
+; Add CF flag for status, include comments. 
 
 SessionStart:
 
 lea rsi,[UserParms]
-lea rdi,[InputParms]
-lea rbx,[SystemParameters]
-
+lea rdi,[InputParms]  
+lea rbx,[SystemParameters] 
 ; Setup benchmark method, 
 ; assembler routine = f (test method, test object, system configuration)
 mov eax,[rsi + UPB.OptionAsm]
@@ -33,10 +45,8 @@ jmp .L1
 xor eax,eax
 .L1:
 mov [rdi + IPB.UpdatedAsm],eax
-
 ; Setup tested object
 mov [rdi + IPB.UpdatedTarget],edx
-
 ; Setup asm. routine address, set address and memory dump region, here EAX valid
 push rbx
 cmp eax,LATENCY_MODE
@@ -60,7 +70,6 @@ mov [rdi + IPB.DumpMethodLength],edx
 shl ecx,3     ; convert bytes to bits
 mov [rdi + IPB.OperandWidth],ecx
 pop rbx
-
 ; Setup number of threads, use platform total number of threads if auto
 mov eax,1
 cmp [rsi + UPB.OptionParallel],PARALLEL_USED
@@ -89,23 +98,18 @@ je .L8
 shr eax,1  ; Threads count / 2 if Hyper-Threading supported but not used
 .L8:
 mov [rdi + IPB.UpdatedThreads],eax
-
 ; Setup Hyper-Threading mode, plus, see above dependences on HT for threads count
 mov eax,[rsi + UPB.OptionHT]
 mov [rdi + IPB.UpdatedHT],eax
-
 ; Setup Processor Group mode, plus, see above dependences on PG for threads count
 mov eax,[rsi + UPB.OptionPG]
 mov [rdi + IPB.UpdatedPG],eax
-
 ; Setup NUMA mode, plus, see above dependences on NUMA for threads count
 mov eax,[rsi + UPB.OptionNUMA]
 mov [rdi + IPB.UpdatedNUMA],eax
-
 ; Setup Large Page mode
 mov eax,[rsi + UPB.OptionLP]
 mov [rdi + IPB.UpdatedLP],eax
-
 ; Setup measurement precision ( calibration repeats ) mode
 mov eax,[rsi + UPB.OptionMeasure]
 mov [rdi + IPB.UpdatedMeasure],eax
@@ -125,7 +129,6 @@ mov ecx,10
 div ecx        ; If Latency mode, make measurement repeats / 10
 .L13:
 mov [rdi + IPB.MeasureRepeats],eax
-
 ; Setup measurement scenario as block sizes sequence,
 ; for "Run simple" mode required one block size only 
 mov eax,[rdi + IPB.UpdatedTarget]
@@ -152,15 +155,12 @@ sub rcx,512
 mov [rdi + IPB.StartBlockSize],rcx
 ; TODO. mov [rdi + IPB.EndBlockSize],rcx     ; use this fields or remove it from IPB structure
 ; TODO. mov [rdi + IPB.DeltaBlockSize],rax   ; use this fields or remove it from IPB structure
-
 ; Setup Processor Groups parameters
 mov eax,[rbx + SYSPARMS.ProcessorGroups]
 mov [rdi + IPB.GroupsCount],eax
-
 ; Setup NUMA domains parameters
 mov eax,[rbx + SYSPARMS.NumaNodes]
 mov [rdi + IPB.DomainsCount],eax
-
 ; Setup page size, select default (typical 4KB) or large (typical 2M for x64)
 mov eax,[rbx + SYSPARMS.SystemInfo + SYSTEM_INFO.dwPageSize]
 cmp [rdi + IPB.UpdatedLP],LP_USED
@@ -168,7 +168,6 @@ jb .L11
 mov rax,[rbx + SYSPARMS.LargePageSize]
 .L11:
 mov [rdi + IPB.PageSize],rax
-
 ; Setup memory allocation parameters, align allocated size by page size
 mov rax,[rdi + IPB.StartBlockSize]
 shl rax,1                 ; Memory size * 2 because source+destination for copy
@@ -181,14 +180,12 @@ mov [rdi + IPB.MemoryPerThread],rax
 mov ecx,[rdi + IPB.UpdatedThreads]
 mul rcx
 mov [rdi + IPB.MemoryTotal],rax
-
 ; Build NUMA nodes list, 
 ; first step before memory allocation
 ; TODO. Check status required after call ( CF flag )
 lea rcx,[NumaNodesList]
 mov edx,[rdi + IPB.UpdatedPG]
 call BuildNumaNodesList
-
 ; NUMA-aware memory allocation, 
 ; second step with memory allocation after nodes list build
 ; TODO. NUMA-unaware memory allocation branch add required
@@ -201,32 +198,27 @@ lea rcx,[NumaNodesList]           ; RCX = Base address of NUMA nodes list
 mov rdx,rax                       ; RDX = Memory allocation size per one node
 mov r9d,[rdi + IPB.UpdatedLP]     ; R9D = Large Pages option
 call MemAllocationNuma
-
 ; Build threads list
 ; TODO. Check status required after call ( CF flag )
 lea rcx,[ThreadsList]
 lea rdx,[InputParms]
 call BuildThreadsList 
-
 ; Update visualized block#1, block#2 bases at IPB from Threads List first entry
 lea rcx,[ThreadsList]
 mov rax,[rcx + THCTRL.Base1]
 mov [rdi + IPB.AllocatedBlock1],rax
 mov rax,[rcx + THCTRL.Base2]
 mov [rdi + IPB.AllocatedBlock2],rax
-
 ; Re-measure TSC clock before start benchmarks
 push rdi
 lea rdi,[OutputParms.DeltaTSC]
 call MeasureTsc
 pop rdi
-
 ; Start threads before per-iterations calls 
 ; TODO. Check status required after call ( CF flag )
 lea rcx,[ThreadsList]
 mov edx,[rdi + IPB.UpdatedThreads]
 call ThreadsStart
-
 ; Replace fill pattern to walk pattern for latency mode
 ; lea rcx,[ThreadsList]
 ; cmp [rdi + IPB.UpdatedAsm],LATENCY_MODE
@@ -235,7 +227,6 @@ call ThreadsStart
 ; mov r9,[rdi + IPB.WalkRoutine]
 ; call ThreadsUpdatePattern
 ; .L20:
-
 ; Initialization done, next phase is per-iterations calls
 ret
 

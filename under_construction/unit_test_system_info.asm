@@ -1,5 +1,8 @@
-; Template for unit tests.
-; Unit test for system information routines. 
+;------------------------------------------------------------------------------;
+;                         Template for unit tests.                             ;
+;                   Unit test for system information routines:                 ;
+;                    compiling only, without show information.                 ;
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

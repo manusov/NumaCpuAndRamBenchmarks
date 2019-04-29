@@ -1,6 +1,10 @@
+;------------------------------------------------------------------------------;
+;             GUI module: constants and pre-defined variables                  ;
+;                    for support GUI objects by WinAPI.                        ;
+;      Formats defined by Microsoft Windows and this application design.       ;
+;------------------------------------------------------------------------------;
+
 ; TODO. Correct HANDLE numbers and numbers in comment, it shifted.
-
-
 ;------------------------------------------------------------------------------;
 ;                         Window 0 elements list.                              ;                             
 ;------------------------------------------------------------------------------;
@@ -187,21 +191,15 @@ DIALELEMENT  ClassButton , TextCancel      , 0634 , 0533 , 0110 , 0024 , WS_VISI
 DIALSTOP
 ; End of list
 
-
 ; _D_ means dialogue window purpose
-
 ; Parallel threads, for dialogue window
 PT_D_00          DB  'Use parallel operations',0
-
 ; Hyper-threading, for dialogue window
 HT_D_00          DB  'Use hyper-threading',0
-
 ; Processor groups, for dialogue window
 PG_D_00          DB  'Use processor groups',0
-
 ; Large pages, for dialogue window
 LP_D_00          DB  'Use large pages',0
-
 ; NUMA modes, for dialogue
 ; TODO. Update by new extended set of NUMA options
 NUMA_D_00        DB  'NUMA unaware',0
@@ -212,39 +210,32 @@ NUMA_D_03        DB  'NUMA not optimal',0
 Target_D_05      DB  'Custom size (hex) =',0
 ; For dialogue, initial state of edit string
 Edit_Size        DB  '00000000',0
-
 ; Measurement iterations modes, for dialogue
 Measure_D_00     DB  'measure brief',0
 Measure_D_01     DB  'measure careful',0
 Measure_D_02     DB  'brief adaptive',0
 Measure_D_03     DB  'careful adaptive',0
-
 ; Measurement X-approximation modes, for dialogue
 Approx_D_00      DB  'No approximations',0
 Approx_D_01      DB  'Approximation X by 16',0
 Approx_D_02      DB  'Approximation X by 32',0
 
 ; Additions for drawings window
-
 ; Text strings for number of threads
 Threads_String   DB  'Threads='
 Threads_Number   DB  3+1 DUP (0)
-
 ; Text strings for paging options
 NPages_String    DB  '4K pages',0
 LPages_String    DB  'Large pages',0
-
 ; Text strings for NUMA options
 NumaOff_String   DB  ' ',0
 NumaU_String     DB  'NUMA unaware',0
 NumaS_String     DB  'NUMA single',0
 NumaL_String     DB  'NUMA local',0
 NumaR_String     DB  'NUMA remote',0
-
 ; Text strings for number of repeats
 Repeats_String   DB  'Repeats='
 Repeats_Number   DB  12+1 DUP (0) 
-
 ; System Information strings
 TextTfms         DB  'TFMS=',0
 TextTsc          DB  'TSC=',0
@@ -276,7 +267,6 @@ TextProcTotal    DB  'Processors total=',0
 TextPhysMemory   DB  'OS physical memory (MB)=',0
 TextAvlMemory    DB  'Available (MB)=',0
 TextLargePage    DB  'Minimal large page (MB)=',0
-
 ; Buttons strings
 TextRunSimple    DB  'Run simple',0
 TextRunDrawings  DB  'Run drawings',0
@@ -289,16 +279,13 @@ TextRestart      DB  'Resize',0
 ;------------------------------------------------------------------------------;
 ;        Flags means Windows 0, 1 already initialized, pre-blanked to 0.       ;
 ;------------------------------------------------------------------------------;
-
 Win0_Init     DB  0   ; Enable events handling by Window 0 = main
 Win1_Init     DB  0   ; Enable events handling by Window 1 = drawings 
 Win1_Running  DB  0   ; Flag for drawings and timer
 
-
 ;------------------------------------------------------------------------------; 
 ;            Windows Class Descriptors for user interface windows.             ;
 ;------------------------------------------------------------------------------;
-
 ; Used classes.
 ; ClassWindow0 = used at Dialogue_Win0, application main window 
 ; ClassWindow1 = used at Dialogue_Win1, drawings window Y=F(X)
@@ -323,25 +310,20 @@ Win1_Running  DB  0   ; Flag for drawings and timer
 ; lpszClassName    dq  Pointer to class name string or atom
 ; hIconSm          dq  Handle to the small icon
 ;-------------------------------------------------------------- 
-
 Dialogue_Win0	  WNDCLASSEX sizeof.WNDCLASSEX,0,WindowProc_Win0,0,0,0,0,0,COLOR_BTNFACE+1,0,ClassWindow0,0
 Dialogue_Win1	  WNDCLASSEX sizeof.WNDCLASSEX,0,WindowProc_Win1,0,0,0,0,0,COLOR_BTNFACE+1,0,ClassWindow1,0
-
+; Used classes
 ClassWindow0  DB  'FASM64WIN0',0  ; Class for Window 0 (my object)
 ClassWindow1  DB  'FASM64WIN1',0  ; Class for Window 1 (my object)
 ClassButton   DB  'BUTTON',0      ; Class BUTTON (reference to windows classes)
 ClassStatic   DB  'STATIC',0      ; Class STATIC (reference to windows classes)
 ClassEdit     DB  'EDIT',0        ; Class EDIT (reference to windows classes)
 
-
-
 ;------------------------------------------------------------------------------;
 ;                         Window 1 elements list.                              ;
 ;------------------------------------------------------------------------------;
-
 ; Window 1 = Measurement window, drawings Y=F(X).
 ; List of GUI window elements descriptors.
-
 ; If x2=BasePoint, Result=StringsNull-StringsNull=0
 START_HANDLE_WIN1 = 16
 DialogueContent_Win1:
@@ -365,17 +347,13 @@ DIALELEMENT  ClassStatic , Threads_String  , 0135 , 0530 , 0125 , 0020 , WS_VISI
 DIALELEMENT  ClassStatic , Repeats_String  , 0232 , 0530 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 21 = Number of repeats string
 DIALELEMENT  ClassStatic , NPages_String   , 0368 , 0530 , 0125 , 0020 , WS_VISIBLE+WS_CHILD                ; 22 = Large pages string
 DIALELEMENT  ClassStatic , NumaOff_String  , 0458 , 0530 , 0108 , 0020 , WS_VISIBLE+WS_CHILD                ; 23 = NUMA mode string
-;---
-
 ; Terminator
 DIALSTOP
 ; End of list
 
-
 ;------------------------------------------------------------------------------;
 ;            BITMAPINFOHEADRE descriptor structure (for Win64).                ;
 ;------------------------------------------------------------------------------;
-
 ; This structure used when initializing graphics window context, drawings Y=F(X)
 ;--------------------------------------------------------------
 ; Name		          Size    Comments
@@ -394,30 +372,23 @@ DIALSTOP
 ;                         Important colors - used for visualization.
 ;                         0 means all colors used for visualization.
 ;--------------------------------------------------------------
-
 BitmapInfo    BITMAPINFOHEADER 40,SUBWINX,SUBWINY,1,32,BI_RGB,0,0,0,0,0
-
 
 ;------------------------------------------------------------------------------;
 ;                             GUI color brushes.                               ;
 ;------------------------------------------------------------------------------;
-
 ; Used for graphics window, drawings Y=F(X)
 ; Brush color values = 00bbggrrh, bb=blue, gg=green, rr=red, 1 byte per color
-
 BrushesList:
 DD  BRUSH_GRID         ; Grid with horizontal and vertical lines 
 DD  BRUSH_LINE         ; Draw Line Speed = F (Block Size)
 DD  BRUSH_BACKGROUND   ; Draw window background
 
-
 ;------------------------------------------------------------------------------;
 ;               Strings for Window 1 - benchmarks drawings.                    ; 
 ;------------------------------------------------------------------------------;
-
 ; Window name, visualized at top of GUI window
 WindowTitle_Win1  DB  'Performance = F (Block Size)',0
-
 ; Text strings for write timings in the drawings window
 ; 12 (not 9) for blank area with variable (font char defined) Xsize
 ; CPI = Clocks Per Instruction
@@ -433,7 +404,3 @@ DrawTextMedian       DB  'Median (CPI) = '
 DrawValueMedian      DB  12 DUP (' '),0
 DrawTextMBPS         DB  'MBPS = '
 DrawValueMBPS        DB  12 DUP (' '),0  
-
-
-
-

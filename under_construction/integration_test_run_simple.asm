@@ -1,6 +1,8 @@
-
-; Template for integration tests.
-; Integration test for GUI application Simple benchmark window. 
+;------------------------------------------------------------------------------;
+;                     Template for integration tests.                          ;
+;          Integration test for GUI application Simple benchmark window,       ;
+;                       runs with constant settings.                           ; 
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

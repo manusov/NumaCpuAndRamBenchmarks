@@ -1,21 +1,29 @@
+;------------------------------------------------------------------------------;
+;    Global Library: data constants and variables with pre-defined state.      ; 
+;------------------------------------------------------------------------------;
 
-; Base point for compact offsets encoding,
-; note all used offsets must be POSITIVE relative this point
+;------------------------------------------------------------------------------;
+; Base point for compact offsets encoding,                                     ;
+; note all used offsets must be POSITIVE relative this point.                  ;
+;------------------------------------------------------------------------------;
 BasePointGui:
-
 
 ;------------------------------------------------------------------------------;
 ;        Data definitions: application name, vendor and version strings.       ;
 ;------------------------------------------------------------------------------;
 
+;------------------------------------------------------------------------------;
+; Application, version and vendor description information.                     ;
+;------------------------------------------------------------------------------;
 PRODUCT_ID     DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP      DB  'Program info',0
 ABOUT_ID       DB  'NUMA CPU&RAM Benchmarks'   , 0Dh,0Ah
-               DB  'v1.02.10 for Windows x64'  , 0Dh,0Ah
+               DB  'v1.02.11 for Windows x64'  , 0Dh,0Ah
                DB  '(C)2019 IC Book Labs'      , 0Dh,0Ah,0
 
-
-; Memory size and speed units
+;------------------------------------------------------------------------------;
+; Memory size and speed units.                                                 ;
+;------------------------------------------------------------------------------;
 U_B            DB  'Bytes',0
 U_KB           DB  'KB',0
 U_MB           DB  'MB',0
@@ -24,11 +32,11 @@ U_TB           DB  'TB',0
 U_MBPS         DB  'MBPS',0
 U_NS           DB  'nanoseconds',0
 
-
-; Options strings, used for 1)GUI, 2)result strings and 3)under drawings
-; "AM" label name prefix means "Assembler Method" means CPU Instruction Set
-; "NT" means "Non-temporal"
-
+;------------------------------------------------------------------------------;
+; Options strings, used for 1)GUI, 2)result strings and 3)under drawings       ;
+; "AM" label name prefix means "Assembler Method" means CPU Instruction Set    ;
+; "NT" means "Non-temporal".                                                   ;
+;------------------------------------------------------------------------------;
 ; Methods selector bytes
 AM_Selector:
 ; AM_COUNT bytes per line
@@ -36,7 +44,6 @@ DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 
 DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 32, 20, 33, 34, 22, 23, 15, 24, 25, 18, 19, 35, 36   ; NT mode = NT Read by VMOVNTDQA not supported
 DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 26, 20, 27, 12, 22, 23, 15, 24, 25, 18, 19, 35, 36   ; NT mode = SSE4.1 only supported
 DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 26, 20, 27, 28, 22, 29, 30, 24, 31, 18, 19, 35, 36   ; NT mode = both SSE4.1 and AVX2 supported
-
 ; Methods names
 AM_Strings_Prefix:
 AM_XX  DB  '?',0
@@ -91,24 +98,20 @@ AM_36  DB  'Measure latency (RDRAND)',0                                ; 36
 HT_00            DB  'disabled by platform',0
 HT_01            DB  'enabled by platform, not used by test',0
 HT_02            DB  'enabled by platform, used by test',0
-
 ; Large pages, for simple result window
 LP_00            DB  'not available',0
 LP_01            DB  'available, not used by test',0
 LP_02            DB  'available, used by test',0
-
 ; NUMA option strings
 NUMA_00          DB  'not supported',0
 NUMA_01          DB  'no control (under OS control)',0
 NUMA_02          DB  'force current domain only',0
 NUMA_03          DB  'force optimal (all local domains)',0
 NUMA_04          DB  'force non-optimal (remote domains)',0
-
 ; PG option strings
 PG_00            DB  'not supported',0
 PG_01            DB  'no control (current group only)',0
 PG_02            DB  'force optimal (all groups)',0  
-
 ; Unknown tested target object
 Unknown_Object   DB  'Unknown target',0
 ; Target Object option strings, must be sequentally with previous string
@@ -118,13 +121,11 @@ Target_02        DB  'L3 cache',0
 Target_03        DB  'L4 cache',0
 Target_04        DB  'DRAM',0
 Target_05        DB  'Custom block',0
-
 ; Measurement options strings
 Measure_00       DB  'brief',0
 Measure_01       DB  'careful',0
 Measure_02       DB  'brief adaptive',0
 Measure_03       DB  'careful adaptive',0
-
 ; String for block=none 
 Block_00         DB  'not used',0
 
@@ -132,7 +133,6 @@ Block_00         DB  'not used',0
 ;                             Error messages.                                  ;
 ;               See also non-fatal warnings: file warnapistr.inc.              ;
 ;------------------------------------------------------------------------------;
-
 ; Error messages, visualized if can't start application
 ; Application cannot start with this errors
 MessageNoCpuid	  DB  'CPUID instruction not supported or locked',0
@@ -143,13 +143,9 @@ MessageClkError   DB  'Error measuring TSC frequency',0
 MessageMApiError  DB  'Memory information API return error',0
 MessageTApiError  DB  'CPU topological information API return error',0
 MessageBadWindow  DB  'Error initializing dialogue window',0
-
 ; Error messages, visualized in runtime
 ; Cannot execute required test if this errors detected
 RunErrorMemoryA   DB  'Benchmarks buffer memory allocation error',0  
 RunErrorMemoryR   DB  'Benchmarks buffer memory release error',0
 RunErrorTimings   DB  'Benchmarks timings measurement error',0 
 RunErrorArithm    DB  'Benchmarks address arithmetic error',0
-
-
-

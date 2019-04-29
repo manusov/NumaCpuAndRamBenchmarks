@@ -1,3 +1,19 @@
+;------------------------------------------------------------------------------;
+; Initializing and start measurement and drawings session,                     ;
+; used for draw performance = f( block size ) function.                        ;
+; Include run  DrawSessionThread  subroutine as parallel thread                ;
+;                                                                              ;
+; INPUT:   None at registers                                                   ;
+;          IPB = Input parameters block with benchmark scenario data           ;
+;          DialogueContent with user options settings data                     ;
+;                                                                              ;
+; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;  
+;                                                                              ;
+; All CPU registers can be corrupted                                           ;
+;------------------------------------------------------------------------------;
+
+; TODO.
+; Required input-output parameters detalization and error type status definition.
 
 DrawSessionStart:
 

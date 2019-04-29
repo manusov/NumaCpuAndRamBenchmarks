@@ -1,3 +1,17 @@
+;------------------------------------------------------------------------------;
+; Extract options settings data from GUI widgets to User Parameters Block.     ;
+;                                                                              ;
+; INPUT:   None at registers                                                   ;
+;          GUI control structures                                              ; 
+;                                                                              ;
+; OUTPUT:  None at registers                                                   ;
+;          UPB = User parameters block, extracted options values               ;  
+;                                                                              ;
+; All CPU registers can be corrupted                                           ;
+;------------------------------------------------------------------------------;
+
+; TODO.
+; Required input-output parameters detalization.
 
 GuiToUserParms:
 

@@ -1,8 +1,21 @@
+;------------------------------------------------------------------------------;
+; Stop measurement and drawings session, release resources                     ;
+; used for draw performance = f( block size ) function.                        ;
+; Include terminate  DrawSessionThread  subroutine as parallel thread          ;
+;                                                                              ;
+; INPUT:   None at CPU registers                                               ;
+;                                                                              ;
+; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;  
+;                                                                              ;
+; All CPU registers can be corrupted                                           ;
+;------------------------------------------------------------------------------;
+
+; TODO.
+; Required input-output parameters detalization and error type status definition.
 
 DrawSessionStop:
 
 call SessionStop
-
 
 ; Align stack and create parameters shadow, required for use WinAPI
 mov rbp,rsp

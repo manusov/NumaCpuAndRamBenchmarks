@@ -1,3 +1,14 @@
+;------------------------------------------------------------------------------;
+; Initialize system information data, for visual at main window and use        ;
+; in the benchmarks scenarios                                                  ;
+;                                                                              ;
+; INPUT:   None at CPU registers                                               ;
+;                                                                              ;
+; OUTPUT:  CF flag = error indicator, 0(NC)=no errors, 1(C)=Error              ;
+;          R15 = Pointer for error description string, valid only if CF=1      ;
+;                                                                              ;
+; All CPU registers can be corrupted                                           ;
+;------------------------------------------------------------------------------;
 
 GetSystemParameters:
 ; Load optional system functions
@@ -143,6 +154,3 @@ mov [r12 + SYSPARMS.NonTemporalRead],ebx   ; This variable selects patterns set
 ; Done
 ErrorSysInfo:   ; if CF=1, register R15 = Pointer to error string
 ret
-
-
-; Helpers

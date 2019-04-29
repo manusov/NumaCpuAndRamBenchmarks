@@ -1,11 +1,14 @@
 ;------------------------------------------------------------------------------;
-;            Element descriptor for user interface window element.             ;
+;         GUI module: definitions for support GUI objects by WinAPI.           ;
+;      Formats defined by Microsoft Windows and this application design.       ;
 ;------------------------------------------------------------------------------;
 
+;------------------------------------------------------------------------------;
+;            Element descriptor for user interface window element.             ;
+;------------------------------------------------------------------------------;
 ; Used as dialogue descriptors entry
 ; Parms list: Class, Name, Xbase, Ybase, Xsize, Ysize, Style
 ; Short pointers with 16-bit relative offsets used for compact encoding. 
-
 MACRO DIALELEMENT  x1, x2, x4, x5, x6, x7, x3
 {
 DW  x7, x6, x5, x4       ; Ysize, Xsize, Ybase, Xbase, if Ysize=0 means stop
@@ -19,28 +22,23 @@ MACRO DIALSTOP
 DW  0                    ; Ysize=0 means stop
 }
 
-
 ; TODO.
 ; Change some constants functionality.
 ; Remove unused constants.
-
 ;------------------------------------------------------------------------------;
 ;       GUI data definitions: constants, structures, macro definitions.        ;
 ;     Make this module as separate file for useable by samples under debug     ;
 ;------------------------------------------------------------------------------;
-
 ; Geometry parameters: Window 0 (parent), system information and options
 WIN0_XBASE = 100    ; Parent window start X position, pixels, if no auto-center
 WIN0_YBASE = 100    ; Parent window start Y position, pixels, if no auto-center
 WIN0_XSIZE = 755    ; Parent window start X size, pixels
 WIN0_YSIZE = 590    ; Parent window start Y size, pixels
-
 ; Geometry parameters: Window 1 (daughter), drawings Speed = F(Block Size)
 WIN1_XBASE = 150    ; Daughter (drawings) window same parameters set 
 WIN1_YBASE = 150     
 WIN1_XSIZE = 780     
 WIN1_YSIZE = 580     
-
 ; Geometry parameters: Area with drawings Speed = F(Block Size), X parameters
 SUBWINX    = 773    ; Plot sub-window X size, pixels
 GRIDX      = 11     ; Number of vertical lines in the coordinate X-grid
@@ -53,7 +51,6 @@ GRIDY      = 10     ; Number of horizontal lines in the coordinate Y-grid
 GRIDBLANKY = 25     ; Coordinate Y blank offset for point Y=0
 GRIDSTEPY  = 48     ; Coordinate addend for Y-grid step
 SHIFTY     = 0      ; Y-shift plot sub window in the dialogue window, pixels
-
 ; Color parameters of Sub-Window with drawings Speed = F(Block Size)
 ; Brush color values = 00bbggrrh, bb=blue, gg=green, rr=red, 1 byte per color
 BRUSH_GRID        = 00C8C8C8h         ; Grid with horizontal and vertical lines 
@@ -70,7 +67,6 @@ DIB_RGB_COLORS    = 0x00  ; Means mode: color table contain RGB values
 DIB_PAL_COLORS    = 0x01  ; Means mode: color tab. is indexes in the pal. table
 DIB_PAL_INDICES   = 0x02  ; Means mode: no color table exist, use default
 CLEARTYPE_QUALITY = 5     ; Quality code for create font and draw at grap. win. 
-
 ; Benchmarks deault Y-sizing parameters
 ; This parameters set for first pass, 
 ; auto adjusted as F(Maximum Detected Speed or Latency) for next passes,
@@ -128,8 +124,8 @@ TimerCount         dd  ?      ; Timer ticks count ; OLD = Pixels counter for X-p
 DrawPreviousY      dd  ?      ; Previous coordinate for vertical lines draw if required, when ABS(X(i)-X(i+1)) > 1
 ; Benchmark drawings scale parameters
 ; Better store value for multiply (not divide) at each iteration, for minimize CPU resources utilization
+; A / B  replace to:  A * C , when C = 1/B. Store C.
 Ymultiplier        dq  ?      ; ???
-
 
 ; Benchmark block size and repeats, rejected for 1.02.xx
 ; Used indexed access from this base, include next groups, don't reorder variables!
@@ -143,6 +139,7 @@ Ymultiplier        dq  ?      ; ???
 ; MaximumMBPSorNs    dd  ?      ; Maximum detected Megabytes per Second (Speed) or nanoseconds (Latency) for auto Y-scale
 ends
 
+; Number of pixels by X, used for drawings, means number of measurements per draw
 MEASURE_POINTS_COUNT  EQU  640
 
 ; Benchmarking drawings measurement parallel thread state structure.
@@ -156,6 +153,3 @@ MeasureBreak    dd  ?   ; Flag for measurement break, 0=None,   BIDIRECTIONAL SI
 MeasureAlign    dd  ?   ; This required for QWORD alignment 
 MeasureArray    dq  MEASURE_POINTS_COUNT * 2 dup (?)  ; Array of measurements results, unsigned integer 64-bit, [instructions count] + [delta TSC]    
 ends
- 
-
-

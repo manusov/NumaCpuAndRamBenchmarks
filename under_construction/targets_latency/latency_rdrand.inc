@@ -1,12 +1,13 @@
 ;---------- Memory performance patterns ---------------------------------------;
-; INPUT:   RSI = Block #1 pointer (64-bit flat)                                ;
-;          RDI = Block #2 pointer (64-bit flat)                                ;
+; INPUT:   RSI = Block #1 pointer (64-bit flat) , here used as transit buffer  ;
+;          RDI = Block #2 pointer (64-bit flat) , used for build walk list     ;
 ;          R8  = Block #3 pointer (64-bit flat) , reserved and not used yet    ;
 ;                For Read, Write, Modify use RSI as Source or Destination      ;
 ;                For Copy use RSI = Source , RDI = Destination                 ;
 ;          RCX = Block length, units = instructions                            ;
 ;          RBP = Number of measurement repeats                                 ;
-; OUTPUT:  None                                                                ;
+; OUTPUT:  None at registers                                                   ;
+;          QWORD [Input RSI] = Pointer to walk list entry                      ;
 ;          Registers corrupted, but must save R14, R15                         ;
 ;------------------------------------------------------------------------------;
 

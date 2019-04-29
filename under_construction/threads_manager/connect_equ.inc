@@ -1,3 +1,7 @@
+;------------------------------------------------------------------------------;
+;                  Library for memory and threads management:                  ;
+;                               data definitions.                              ;
+;------------------------------------------------------------------------------;
 
 ; Benchmarks repeat parameters, precision=f(repeats), for Cache&RAM mode
 ; Calibrate iterations for objects, normal mode

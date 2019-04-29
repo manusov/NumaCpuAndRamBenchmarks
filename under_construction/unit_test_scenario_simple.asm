@@ -1,9 +1,12 @@
+;------------------------------------------------------------------------------;
+;                         Template for unit tests.                             ;
+;    Unit test for Simple benchmark scenario: build blank text report only,    ;
+;                results is NOT VALID, blank report build only.                ;
+;------------------------------------------------------------------------------;
+
 ; TODO. Bytes/KB/MB/GB units select criteria for all sizes output, 
 ; synchronize units mode for all output strings,
 ; local decision with different units can be non-ergonomic 
-
-; Template for unit tests.
-; Unit test for Simple benchmark scenario. 
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

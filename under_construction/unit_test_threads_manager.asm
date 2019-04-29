@@ -1,5 +1,8 @@
-; Template for unit tests.
-; Unit test for threads and memory manager. 
+;------------------------------------------------------------------------------;
+;                        Template for unit tests.                              ;
+;                Unit test for threads and memory manager:                     ;
+;    build with run single routine: get and show NUMA nodes list = bitmap.     ; 
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

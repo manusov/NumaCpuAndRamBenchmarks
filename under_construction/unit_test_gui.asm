@@ -1,5 +1,8 @@
-; Template for unit tests.
-; Unit test for GUI. 
+;------------------------------------------------------------------------------;
+;                       Template for unit tests.                               ;
+;               Unit test for GUI, show some GUI widgets,                      ; 
+;           without platform features detection (can be inconsistent).         ; 
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

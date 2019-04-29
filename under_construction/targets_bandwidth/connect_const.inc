@@ -1,4 +1,10 @@
+;------------------------------------------------------------------------------;
+;          Library of performance patterns for bandwidth measurement:          ;
+;               constants and variables with pre-defined values.               ;
+;------------------------------------------------------------------------------;
 
+; Entry for compact encoding performance method, 
+; use 16-bit base-relative offsets instead full 64-bit offsets
 MACRO BANDWIDTH_ENTRY  x1, x2, x3, x4   ; 6 bytes per entry, compact encoding
 {
 DW x1-BandwidthPatternsBase   ; Target routine entry point

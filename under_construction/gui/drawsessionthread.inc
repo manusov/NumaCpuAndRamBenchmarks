@@ -1,3 +1,16 @@
+;------------------------------------------------------------------------------;
+; This subroutine runs as parallel background thread, make measurements and    ;
+; store results. Used for draw performance = f( block size ) function.         ;
+;                                                                              ;
+; INPUT:   None at CPU registers                                               ;
+;                                                                              ;
+; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;  
+;                                                                              ;
+; All CPU registers can be corrupted                                           ;
+;------------------------------------------------------------------------------;
+
+; TODO.
+; Required input-output parameters detalization and error type status definition.
 
 DrawSessionThread:
 

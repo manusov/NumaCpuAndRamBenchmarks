@@ -1,6 +1,7 @@
-
-; Template for integration tests.
-; Integration test for About window. 
+;------------------------------------------------------------------------------;
+;                       Template for integration tests.                        ;
+;           Integration test for "About" window: show "About" window.          ; 
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

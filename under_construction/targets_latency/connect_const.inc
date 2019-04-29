@@ -1,3 +1,7 @@
+;------------------------------------------------------------------------------;
+;           Library of performance patterns for latency measurement:           ;
+;               constants and variables with pre-defined values.               ;
+;------------------------------------------------------------------------------;
 
 MACRO LATENCY_ENTRY  x1, x2, x3, x4   ; 6 bytes per entry, compact encoding
 {

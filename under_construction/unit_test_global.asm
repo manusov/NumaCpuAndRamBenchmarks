@@ -1,5 +1,7 @@
-; Template for unit tests.
-; Unit test for global library. 
+;------------------------------------------------------------------------------;
+;                        Template for unit tests.                              ;
+;      Unit test for global library: show some strings and numeric values.     ;
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'

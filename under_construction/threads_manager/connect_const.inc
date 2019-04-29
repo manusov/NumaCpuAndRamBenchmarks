@@ -1,3 +1,7 @@
+;------------------------------------------------------------------------------;
+;                  Library for memory and threads management:                  ;
+;               constants and variables with pre-defined values.               ;
+;------------------------------------------------------------------------------;
 
 ;------------------------------------------------------------------------------;
 ;                 Benchmarks calibration repeats select table.                 ;

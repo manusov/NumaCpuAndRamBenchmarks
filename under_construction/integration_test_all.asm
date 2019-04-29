@@ -1,6 +1,7 @@
-
-; Template for integration tests.
-; Integration test for GUI application main window. 
+;------------------------------------------------------------------------------;
+;                     Template for integration tests.                          ;
+;   Integration test for GUI application main window with child windows open.  ; 
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 

@@ -1,16 +1,24 @@
+;------------------------------------------------------------------------------;
+;                  Library for memory and threads management:                  ;
+;                    connect include files with subroutines.                   ;
+;------------------------------------------------------------------------------;
 
-include 'buildnumanodeslist.inc'
-include 'buildthreadslist.inc'
-include 'memallocationnuma.inc'
-include 'memreleasenuma.inc'
-include 'releasethreadslist.inc'
-include 'runtarget.inc'
-include 'threadroutine.inc'
-include 'threadsstart.inc'
-include 'threadsrestart.inc'
-include 'updatethreadslist.inc'
+include 'memallocation.inc'       ; Simple (NUMA-unaware) memory allocation
+include 'memrelease.inc'          ; Simple (NUMA-unaware) memory release
 
-include 'sessionstart.inc'
-include 'sessionstop.inc'
-include 'sessionprogress.inc'
+include 'memallocationnuma.inc'   ; NUMA-aware memory allocation
+include 'memreleasenuma.inc'      ; NUMA-aware memory release
+
+include 'buildnumanodeslist.inc'  ; Detect topology, build list of NUMA nodes
+include 'buildthreadslist.inc'    ; Detect topology, build threads list
+include 'releasethreadslist.inc'  ; Release threads handles
+include 'runtarget.inc'           ; Run performance target routine 
+include 'threadroutine.inc'       ; Child thread routine
+include 'threadsstart.inc'        ; Start child threads execution, first run
+include 'threadsrestart.inc'      ; Re-start child threads execution 
+include 'updatethreadslist.inc'   ; Modify threads parameters for exec. cycle
+
+include 'sessionstart.inc'        ; Initializing, start benchmark session 
+include 'sessionstop.inc'         ; Close benchmark session
+include 'sessionprogress.inc'     ; Execute benchmark session
 

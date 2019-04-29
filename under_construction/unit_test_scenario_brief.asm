@@ -1,6 +1,7 @@
-
-; Template for unit tests.
-; Unit test for Vector Brief benchmark scenario. 
+;------------------------------------------------------------------------------;
+;                        Template for unit tests.                              ;
+; Unit test for Vector Brief benchmark scenario: build blank text report only. ; 
+;------------------------------------------------------------------------------;
 
 include 'win64a.inc'
 include 'global\connect_equ.inc'
