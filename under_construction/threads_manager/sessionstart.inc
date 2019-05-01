@@ -176,6 +176,13 @@ dec rcx
 add rax,rcx
 not rcx
 and rax,rcx
+; Check drawings mode, big block required for 
+; service all sizes when draw Performance = F(Size)
+cmp [rsi + UPB.RunContext],0
+je .L14
+imul rax,rax,5 
+.L14:
+; Store memory size per one thread and total
 mov [rdi + IPB.MemoryPerThread],rax
 mov ecx,[rdi + IPB.UpdatedThreads]
 mul rcx

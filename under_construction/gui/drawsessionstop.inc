@@ -27,11 +27,14 @@ lea rsi,[DrawThreadParms]
 cld
 
 ; Wait for measurement thread done, this event at thread exit point
-mov rcx,[rsi + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done event
-mov edx,10000                    ; RDX = Parm#2 = 10 seconds
-call [WaitForSingleObject]
-test rax,rax                     ; special encoding, 0 means event detected OK 
-jnz .Error
+; mov rcx,[rsi + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done event
+; mov edx,10000                    ; RDX = Parm#2 = 10 seconds
+; call [WaitForSingleObject]
+; test rax,rax                     ; special encoding, 0 means event detected OK 
+; jnz .Error
+; WAIT EVENT MOVED TO WIN1.INC
+; OTHERWISE KILL PARENT THREAD (GUI) CAUSE KILL CHILD THREAD (MEASUREMENT),
+; AND CHILD THREAD DON'T SIGNALING DONE-EVENT.
 
 ; Close handles, halt and remove thread with DrawSessionThread  subroutine
 ; Terminate threads

@@ -48,14 +48,11 @@ jmp .WinFinish
 
 ; Handler for system event: window create
 .WinCreate:
-
 ; TODO.
 ; Initializing statistics
 ; call InitStatistics
 mov [DrawParms + DRPM.DrawPreviousY],0
 ; TODO. Make this at InitStatistics subroutine 
-
-
 ; Build buttons
 lea rsi,[DialogueContent_Win1]      ; RSI = Pointer to elements descriptors
 mov edi,START_HANDLE_WIN1           ; RDI = Start handle
@@ -118,6 +115,14 @@ xor edx,edx                            ; Parm#2 = RDX = Event ID
 mov r8d,TIMER_TICK                     ; Parm#3 = R8 = Timer ticks period, ms
 xor r9d,r9d                            ; Parm#4 = R9 = Notify function pointer, not used here
 call [SetTimer]
+; Wait thread started (1 of 2 waits)
+; Wait for measurement thread run, this event at thread entry point
+mov rcx,[DrawThreadParms + DTHP.EventStart]  ; RCX = Parm#1 = Handle for start event
+mov edx,10000                    ; RDX = Parm#2 = 10 seconds, time limit
+call [WaitForSingleObject]
+;
+; TODO. Check status after [WaitForSingleObject]
+;
 ; End of initialization, enable draw counter
 mov [Win1_Running],1
 jmp .WinStatus
@@ -129,6 +134,15 @@ push rcx rdx r8 r9
 sub rsp,32
 ; Stop measurement thread
 mov [DrawThreadParms + DTHP.MeasureBreak],1
+; Wait thread terminated (2 of 2 waits)
+; Wait for measurement thread done, this event at thread exit point
+mov rcx,[DrawThreadParms + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done event
+mov edx,10000                    ; RDX = Parm#2 = 10 seconds
+call [WaitForSingleObject]
+;
+; TODO. Use RSI-based addressing
+; TODO. Check status after [WaitForSingleObject]
+;
 ; De-Initialize graphics context
 mov rcx,[HandleMemDC]
 call [DeleteDC]
@@ -267,27 +281,117 @@ je .FirstPaint       ; Go if this is first pass, draw axes
 ;call [FillRect]
 
 lea rcx,[DrawThreadParms]
-lea r14,[rcx + DTHP.MeasureArray] 
+lea r14,[rcx + DTHP.MeasureArray]
 mov ebp,[rcx + DTHP.MeasureCounter]
 mov r12d,[rcx + DTHP.VisualCounter]
+
+mov rax,r12
+shl rax,4
+add r14,rax
+
 mov [rcx + DTHP.VisualCounter],ebp
 sub ebp,r12d
 jbe .EndLine
 add r12,GRIDBLANKX + 1 
+
+; This cycle for EBP points draw per one timer tick
 .DrawLine: 
 ; Calculate EAX = F(measurement result)
 
-; DEBUG
-mov eax,ebp
-and eax,0Fh
-mov edx,eax
-mul edx
-neg eax
-; DEBUG
+;- DEBUG -
+; mov eax,ebp
+; and eax,0Fh
+; mov edx,eax
+; mul edx
+; neg eax
+;- DEBUG -
+; mov rax,[r14 + 0]  ; bytes count ; OLD = instructions count
+; mov edx,[r14 + 8]  ; delta TSC
+; neg eax
+;- DEBUG -
 
-;mov rax,[r14 + 0]  ; instructions count
-;mov edx,[r14 + 8]  ; delta TSC
-;neg eax
+
+;- DEBUG Y-POSITION CALC -
+
+; TODO. Replace X/1000000 with X * 1/1000000, pre-defined constant,
+;       because multiply faster then divide.
+; TODO. Minimize calculations by pre-define TWO constants: 
+;       1000000 and Ymultiplier as ONE constant.
+; TODO. Make addressing with base register for OutputParms, DrawParms ?
+;
+
+;- DEBUG Y-POSITION CALC -
+;
+; finit
+; cmp [InputParms + IPB.UpdatedAsm],LATENCY_MODE
+; jae .LatencyMode 
+;
+;. BandwidthMode:
+; push 1000000                         ; Decimal megabytes divisor, TODO. Make EQU
+; fild qword [r14 + 8]                 ; ST0 = Total bytes
+; fidiv dword [rsp]                    ; ST0 = Total decimal megabytes          
+; fild qword [r14 + 0]                 ; ST0 = Delta TSC, clocks
+; fmul [OutputParms + OPB.TSCperiodS]  ; ST0 = Delta Time, seconds , ST1 = Total decimal megabytes   
+; fdivp st1,st0                        ; ST0 = Megabytes / Second = MBPS
+; fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
+; fistp qword [rsp]                    ; Store ST0 as integer
+; pop rax                              ; RAX = Integer pixel offset
+; jmp .DoneLatencyOrBandwidth
+;
+; .LatencyMode:
+; mov eax,[InputParms + IPB.OperandWidth]
+; shr eax,3
+; push rax
+; fild qword [r14 + 0]                       ; ST0 = Delta TSC
+; fmul qword [OutputParms + OPB.TSCperiodNs] ; ST0 = Delta time, nanoseconds
+; fild qword [r14 + 8]                       ; ST0 = Total bytes, ST1 = Delta time
+; fidiv dword [rsp]                          ; ST0 = Total qwords, units for latency test
+; fdivp st1,st0
+; fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
+; fistp qword [rsp]                    ; Store ST0 as integer
+; pop rax                              ; RAX = Integer pixel offset
+;
+; .DoneLatencyOrBandwidth:
+; 
+;- DEBUG Y-POSITION CALC -
+
+; TODO. Optimize this mathematics.
+
+finit
+fld1
+mov rax,[r14 + 8]     ; RAX = Executed block size, bytes, per one thread
+xor edx,edx
+mov ecx,[InputParms + IPB.OperandWidth]
+shr ecx,3
+div rcx               ; RAX = Number of instructions executed at one thread
+push rcx rcx rax
+fild qword [r14 + 0]  ; ST0 = Number of TSC clocks
+fild qword [rsp]      ; ST0 = Number of instructions executed at one thread, ST1 = TSC clocks 
+fdivp st1,st0         ; ST0 = ST1/ST0 = Clocks Per Instruction (CPI) at one thread
+; required store CPI statistics
+fmul [OutputParms + OPB.TSCperiodNs]  ; ST0 = Nanoseconds Per instruction
+fld st0
+fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
+fistp qword [rsp+16]   ; Store pixel offset for LATENCY
+fdivp st1,st0          ; ST0 = Instructions Per nanosecond
+fimul dword [rsp + 8]  ; ST0 = Bytes Per nanosecond
+mov dword [rsp],1000
+fimul dword [rsp]      ; ST0 = Decimal Megabytes Per Second (MBPS)
+; required store MBPS statistics
+fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
+fistp qword [rsp]                    ; Store ST0 as integer
+pop rax rcx rcx        ; Store pixel offset for MBPS
+; Select MBPS or Latency
+cmp [InputParms + IPB.UpdatedAsm],LATENCY_MODE
+jb @f
+xchg rax,rcx
+@@:
+
+;- DEBUG Y-POSITION CALC -
+;
+; xor eax,eax ; 0 = BaseY axis
+;
+;- DEBUG Y-POSITION CALC -
 
 
 ; Setup coordinates for GUI
@@ -328,10 +432,10 @@ mov rcx,rsi                    ; Parm#1 = RCX = Handle to a Device Context
 mov rdx,rdi                    ; Parm#2 = RDX = Pointer to RECT strucnure
 mov r8,[HandlesBrushes + 08]   ; Parm#3 = R8 = Handle to a color brush
 call [FillRect]
-add r14,16
-inc r12d
-dec ebp
-jnz .DrawLine
+add r14,16     ; R14 = Pointer to measurement results array
+inc r12d       ; R12D = X-coordinate offset by visualization position
+dec ebp        ; EBP = Number of pixels per timer tick
+jnz .DrawLine  ; This cycle for EBP points draw per one timer tick
 .EndLine:
 
 ; ...

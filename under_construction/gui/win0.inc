@@ -246,6 +246,7 @@ mov [rsi + UPB.CustomBlockEnd]   , OPTION_CUSTOM_BLOCK_END
 mov [rsi + UPB.CustomBlockDelta] , OPTION_CUSTOM_BLOCK_DELTA
 ;-----------------------------------------;
 
+mov al,0  ; Run context = simple, without memory allocation multiplication
 call GuiToUserParms
 
 ;-----------------------------------------;

@@ -3,6 +3,9 @@
 ;      Formats defined by Microsoft Windows and this application design.       ;
 ;------------------------------------------------------------------------------;
 
+; TODO.
+; Too many structures IPB, OPB, UPB, DRPM, DTHP.  Optimize usage ?
+
 ;------------------------------------------------------------------------------;
 ;            Element descriptor for user interface window element.             ;
 ;------------------------------------------------------------------------------;
@@ -82,9 +85,9 @@ CLEARTYPE_QUALITY = 5     ; Quality code for create font and draw at grap. win.
 
 Y_RANGE_MAX_BANDWIDTH = 300000
 Y_RANGE_MAX_LATENCY = 100
-Y_RANGE_DIV = 10
-DEFAULT_Y_MBPS_PER_GRID  = Y_RANGE_MAX_BANDWIDTH / Y_RANGE_DIV    ; Default units per grid Y , megabytes per second
-DEFAULT_Y_NS_PER_GRID = Y_RANGE_MAX_LATENCY / Y_RANGE_DIV         ; Default units per grid Y , nanoseconds
+Y_DIV = 10
+DEFAULT_Y_MBPS_PER_GRID = Y_RANGE_MAX_BANDWIDTH / Y_DIV    ; Default units per grid Y , megabytes per second
+DEFAULT_Y_NS_PER_GRID = Y_RANGE_MAX_LATENCY / Y_DIV         ; Default units per grid Y , nanoseconds
 
 ; TODO
 ; DEFAULT_Y_MBPS_PER_PIXEL = Y_RANGE_MAX/SUBWINY  ; Default units per pixel Y
@@ -125,6 +128,8 @@ DrawPreviousY      dd  ?      ; Previous coordinate for vertical lines draw if r
 ; Benchmark drawings scale parameters
 ; Better store value for multiply (not divide) at each iteration, for minimize CPU resources utilization
 ; A / B  replace to:  A * C , when C = 1/B. Store C.
+; Also, vertical offset must be negative, upper means smaller offset, biggest MBPS/ns value
+ 
 Ymultiplier        dq  ?      ; ???
 
 ; Benchmark block size and repeats, rejected for 1.02.xx
@@ -151,5 +156,14 @@ MeasureCounter  dd  ?   ; Number of stored results, 0 means no stores before run
 VisualCounter   dd  ?   ; Number of visualized results, required because results generation and timer ticks is asynchronous
 MeasureBreak    dd  ?   ; Flag for measurement break, 0=None,   BIDIRECTIONAL SIGNALING IS REJECTED BECAUSE RESIZE BUTTON BUG: 1=Break or Done, signaling is BIDIRECTIONAL: Break and Done
 MeasureAlign    dd  ?   ; This required for QWORD alignment 
-MeasureArray    dq  MEASURE_POINTS_COUNT * 2 dup (?)  ; Array of measurements results, unsigned integer 64-bit, [instructions count] + [delta TSC]    
+MeasureArray    dq  MEASURE_POINTS_COUNT * 2 dup (?)  ; Array of measurements results, unsigned integer 64-bit, [delta TSC] + [instructions count]     
 ends
+
+; TODO.
+; TSC is unstable under Oracle VirtualBox,
+; use OS timer 100 ns ?
+; BOTH for "Run simple" and "Run draw".
+; BOTH for Bandwidth and Latency.
+
+
+

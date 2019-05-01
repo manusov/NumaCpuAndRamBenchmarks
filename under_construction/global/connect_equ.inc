@@ -80,7 +80,8 @@ OptionPG          dd  ?    ; PG { GRAY_NOT_SUP, DISABLED, ENABLED }
 OptionNUMA        dd  ?    ; NUMA { GRAY_NOT_SUP, UNAWARE, SINGLE_DOMAIN, FORCE LOCAL, FORCE REMOTE }
 OptionLP          dd  ?    ; LP { GRAY_NOT_SUP, DISABLED, ENABLED }  
 OptionMeasure     dd  ?    ; Measurement repeats { 0=fast, 1=slow, 2=fast adaptive, 3=slow adaptive }
-OptionApprox      dd  ?    ; Approximation for X { 0=none, 1=X16, 2=X32 } 
+OptionApprox      dd  ?    ; Approximation for X { 0=none, 1=X16, 2=X32 }
+RunContext        dd  ?    ; Run context: 0 = "Run simple" , 1 = "Run drawings" 
 CustomBlockStart  dq  ?    ; Override start block size, or 0=default
 CustomBlockEnd    dq  ?    ; Override end block size, or 0=default
 CustomBlockDelta  dq  ?    ; Override delta block size, or 0=default
@@ -113,7 +114,7 @@ PageSize          dq  ?    ; Memory page size, bytes
 MemoryTotal       dq  ?    ; Memory allocated, per all threads
 MemoryPerThread   dq  ?    ; Memory allocated, per each thread 
 ; Benchmarks select and routine dump support
-PatternRoutine    dq  ?    ; Pointer to target benchmark routine, fill routine for latency
+PatternRoutine    dq  ?    ; Pointer to target benchmark routine, this is fill routine for latency mode
 WalkRoutine       dq  ?    ; Second routine, required for latency measurement
 DumpMethodStart   dq  ?    ; Start of fragment, visualized as dump during benchmarks
 DumpMethodLength  dd  ?    ; Length of fragment, visualized as dump during benchmarks, bytes

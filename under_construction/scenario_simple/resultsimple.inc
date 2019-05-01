@@ -153,7 +153,7 @@ fstp qword [rsp]
 pop rax                 ; RAX = bitfield as double value
 mov bx,0100h            ; Float part is 1 digit, Integer part without template
 call DoublePrint
-; (3) Clocks per Instruction (clocks)
+; (3) Clocks per Instruction (clocks, CPI)
 call StringWrite_CRLF_Equal
 mov rax,[r8+IPB.StartBlockSize]  ; RAX = Block size, bytes 
 xor edx,edx

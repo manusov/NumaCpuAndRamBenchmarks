@@ -1,7 +1,9 @@
 ;------------------------------------------------------------------------------;
 ; Extract options settings data from GUI widgets to User Parameters Block.     ;
 ;                                                                              ;
-; INPUT:   None at registers                                                   ;
+; INPUT:   AL = Run context: 0 = by "Run simple" button                        ;
+;                            1 = by "Run drawings" button                      ;
+;          Run context used for memory allocation, multiplicated if draw mode  ;
 ;          GUI control structures                                              ; 
 ;                                                                              ;
 ; OUTPUT:  None at registers                                                   ;
@@ -15,8 +17,14 @@
 
 GuiToUserParms:
 
-; Extract ASM-METHOD, for this option detect CHECKED only
+; Setup User Parameters Block (UPB) pointer
 lea rdi,[UserParms]
+
+; Setup run context for memory allocation multiplication mode control
+movzx eax,al
+mov [rdi+UPB.RunContext],eax  
+
+; Extract ASM-METHOD, for this option detect CHECKED only
 mov esi,HANDLE_X86_READ            ; Compare pattern = FIRST handle
 @@:
 call SendMessageGetCheck

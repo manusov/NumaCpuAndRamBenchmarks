@@ -17,6 +17,7 @@
 
 DrawSessionStart:
 
+mov al,1  ; Run context = drawings, with memory allocation multiplication
 call GuiToUserParms
 call SessionStart
 
@@ -129,6 +130,15 @@ jne .L2
 shr eax,3
 .L2:
 
+; Set Xstart, Xdelta for drawings
+push rax
+xor edx,edx
+mov ecx,GRIDSTEPX
+div rcx
+mov [rsi + IPB.StartBlockSize],rax
+mov [rsi + IPB.DeltaBlockSize],rax 
+pop rax
+
 ; Update and store X grid step values
 ; Select and store X grid units: Bytes, Kilobytes, Megabytes
 xor edx,edx                ; EDX = SelectUnits, 0=Bytes / 1=KB / 2=MB
@@ -154,6 +164,19 @@ inc edx
 @@:
 mov [rdi + DRPM.ValueGridY],eax
 mov [rdi + DRPM.SelectMode],edx
+
+; Set Ymultiplier scale constant for conversion
+; measurement results to Y-coordinate
+
+; TODO. Move this to win1.inc for re-scaling, 
+; correct RDI based reference by new context.
+
+finit
+push rax -GRIDSTEPY
+fild dword [rsp]      ; ST0 = - grid step, pixels
+fidiv dword [rsp+8]   ; ST0 = ( - grid step, pixels ) / ( Y units per grid )      
+fstp [rdi + DRPM.Ymultiplier]
+pop rax rax
 
 ; Align stack and create parameters shadow, required for use WinAPI
 mov rbp,rsp
@@ -201,11 +224,14 @@ xor eax,eax
 rep stosq
 
 ; Wait for measurement thread run, this event at thread entry point
-mov rcx,[rsi + DTHP.EventStart]  ; RCX = Parm#1 = Handle for start event
-mov edx,10000                    ; RDX = Parm#2 = 10 seconds
-call [WaitForSingleObject]
-test rax,rax                     ; special encoding, 0 means event detected OK 
-jnz .Error
+; mov rcx,[rsi + DTHP.EventStart]  ; RCX = Parm#1 = Handle for start event
+; mov edx,10000                    ; RDX = Parm#2 = 10 seconds, time limit
+; call [WaitForSingleObject]
+; test rax,rax                     ; special encoding, 0 means event detected OK 
+; jnz .Error
+; WAIT EVENT MOVED TO WIN1.INC
+; OTHERWISE KILL PARENT THREAD (GUI) CAUSE KILL CHILD THREAD (MEASUREMENT),
+; AND CHILD THREAD DON'T SIGNALING DONE-EVENT.
 
 ; Done, no errors, parallel thread with  DrawSessionThread  subroutine RUNNING
 clc
