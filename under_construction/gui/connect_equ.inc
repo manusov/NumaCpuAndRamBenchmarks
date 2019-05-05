@@ -86,8 +86,8 @@ CLEARTYPE_QUALITY = 5     ; Quality code for create font and draw at grap. win.
 Y_RANGE_MAX_BANDWIDTH = 300000
 Y_RANGE_MAX_LATENCY = 100
 Y_DIV = 10
-DEFAULT_Y_MBPS_PER_GRID = Y_RANGE_MAX_BANDWIDTH / Y_DIV    ; Default units per grid Y , megabytes per second
-DEFAULT_Y_NS_PER_GRID = Y_RANGE_MAX_LATENCY / Y_DIV         ; Default units per grid Y , nanoseconds
+DEFAULT_Y_MBPS_PER_GRID = Y_RANGE_MAX_BANDWIDTH / Y_DIV  ; Default units per grid Y , megabytes per second
+DEFAULT_Y_NS_PER_GRID = Y_RANGE_MAX_LATENCY / Y_DIV      ; Default units per grid Y , nanoseconds
 
 ; TODO
 ; DEFAULT_Y_MBPS_PER_PIXEL = Y_RANGE_MAX/SUBWINY  ; Default units per pixel Y
@@ -117,12 +117,15 @@ ValueGridY         dd  ?      ; Units per vertical grid cell
 SelectUnits        dd  ?      ; Units select: 0=Bytes, 1=Kilobytes, 2=Megabytes
 SelectMode         dd  ?      ; Measurement mode: 0=Bandwidth, 1=Latency
 ; Benchmarks statistics and drawings X-counter
+
+
 ; Used indexed access from this base, include next groups, don't reorder variables!
-StatClksMinimum    dq  ?      ; Minimum clocks per iteration
-StatClksMaximum    dq  ?      ; Maximum clocks per iteration
-StatClksAverage    dq  ?      ; Average clocks per iteration
-StatClksMedian     dq  ?      ; Median clocks per iteration
-StatClksSum        dq  ?      ; Clocks sum for averaging
+; StatClksMinimum    dq  ?      ; Minimum clocks per iteration
+; StatClksMaximum    dq  ?      ; Maximum clocks per iteration
+; StatClksAverage    dq  ?      ; Average clocks per iteration
+; StatClksMedian     dq  ?      ; Median clocks per iteration
+; StatClksSum        dq  ?      ; Clocks sum for averaging
+
 TimerCount         dd  ?      ; Timer ticks count ; OLD = Pixels counter for X-progress when drawing
 DrawPreviousY      dd  ?      ; Previous coordinate for vertical lines draw if required, when ABS(X(i)-X(i+1)) > 1
 ; Benchmark drawings scale parameters
@@ -149,14 +152,28 @@ MEASURE_POINTS_COUNT  EQU  640
 
 ; Benchmarking drawings measurement parallel thread state structure.
 struct DTHP
-EventStart      dq  ?   ; Event handle for signaling this thread starts
-EventDone       dq  ?   ; Event handle for signaling this thread terminates 
-ThreadHandle    dq  ?   ; Event handle for this thread 
-MeasureCounter  dd  ?   ; Number of stored results, 0 means no stores before run, maximum MEASURE_POINTS_COUNT (640)
-VisualCounter   dd  ?   ; Number of visualized results, required because results generation and timer ticks is asynchronous
-MeasureBreak    dd  ?   ; Flag for measurement break, 0=None,   BIDIRECTIONAL SIGNALING IS REJECTED BECAUSE RESIZE BUTTON BUG: 1=Break or Done, signaling is BIDIRECTIONAL: Break and Done
-MeasureAlign    dd  ?   ; This required for QWORD alignment 
-MeasureArray    dq  MEASURE_POINTS_COUNT * 2 dup (?)  ; Array of measurements results, unsigned integer 64-bit, [delta TSC] + [instructions count]     
+EventStart       dq  ?   ; Event handle for signaling this thread starts
+EventDone        dq  ?   ; Event handle for signaling this thread terminates 
+ThreadHandle     dq  ?   ; Event handle for this thread 
+MeasureCounter   dd  ?   ; Number of stored results, 0 means no stores before run, maximum MEASURE_POINTS_COUNT (640)
+VisualCounter    dd  ?   ; Number of visualized results, required because results generation and timer ticks is asynchronous
+MeasureBreak     dd  ?   ; Flag for measurement break, 0=None,   BIDIRECTIONAL SIGNALING IS REJECTED BECAUSE RESIZE BUTTON BUG: 1=Break or Done, signaling is BIDIRECTIONAL: Break and Done
+MeasureAlign     dd  ?   ; This required for QWORD alignment
+
+StatCpiMin       dq  ?
+StatCpiMax       dq  ?
+StatCpiAverage   dq  ?
+StatCpiMedian    dq  ?
+StatCpiSum       dq  ?
+
+StatMbpsMin      dq  ?
+StatMbpsMax      dq  ?
+StatMbpsAverage  dq  ?
+StatMbpsMedian   dq  ?
+StatMbpsSum      dq  ?
+
+MeasureArray     dq  MEASURE_POINTS_COUNT * 2 dup (?)  ; Array of measurements results, unsigned integer 64-bit, [delta TSC] + [instructions count]
+                                                       ; under measurement updated by elements [double CPI] + [double MBPS] and ordered for median     
 ends
 
 ; TODO.

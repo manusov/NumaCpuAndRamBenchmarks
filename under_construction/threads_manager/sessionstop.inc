@@ -22,6 +22,8 @@
 
 SessionStop:
 
+lea rdi,[InputParms]
+
 ; Threads stop, release handles for Threads and Events
 ; TODO. Check status required after call ( CF flag )
 lea rcx,[ThreadsList]

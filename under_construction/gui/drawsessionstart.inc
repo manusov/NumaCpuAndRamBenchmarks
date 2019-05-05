@@ -219,7 +219,7 @@ test rax,rax                ; Status=0 means error
 jz .Error                   ; Go if error creating thread
 stosq                       ; Store handle in the thread parameters, ThreadHandle 
 ; Clear measurement counter and array of measurement results
-mov ecx,MEASURE_POINTS_COUNT * 2 + 2  ; + 4 dwords: 2 counters + break flag + align
+mov ecx,MEASURE_POINTS_COUNT * 2 + 15  ; OLD: + 4 dwords: 2 counters + break flag + align
 xor eax,eax
 rep stosq
 
