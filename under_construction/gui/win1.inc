@@ -282,6 +282,12 @@ fistp dword [rsp+8]
 call DrawSessionStart
 
 pop rax rax
+
+test eax,eax
+jnz @f
+inc eax
+@@:
+
 mov [DrawParms + DRPM.ValueGridY],eax
 
 ; TODO. Remove duplication this at drawsessionstart.inc
@@ -374,6 +380,7 @@ je .FirstPaint       ; Go if this is first pass, draw axes
 lea rcx,[DrawThreadParms]
 lea r14,[rcx + DTHP.MeasureArray]
 mov ebp,[rcx + DTHP.MeasureCounter]
+
 mov r12d,[rcx + DTHP.VisualCounter]
 lea r13,[r12+1]
 
@@ -576,6 +583,7 @@ cmp r8d,1
 jbe @f
 inc ecx            ; Make down extra-pixel for vertical line  
 @@:
+
 ; Store coordinates for rectangle as part of line Y=F(X)
 mov [rdi+RECT.left],r12d
 mov [rdi+RECT.top],eax

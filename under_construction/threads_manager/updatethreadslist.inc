@@ -53,3 +53,18 @@ dec r8d
 jnz @b 
 ret
  
+; Same operation for adaptive mode repeats count.
+
+ThreadsUpdateAdaptive:
+mov r11,rdx
+mov rax,[r11 + IPB.AdaptiveProduct]
+mov r10,[r11 + IPB.StartBlockSize]
+xor edx,edx
+div r10
+mov [r11 + IPB.MeasureRepeats],eax
+@@:
+mov [rcx + THCTRL.Repeats],rax
+add rcx,THCTRL_SIZE
+dec r8d
+jnz @b 
+ret

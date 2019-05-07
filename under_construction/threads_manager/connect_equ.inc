@@ -23,3 +23,7 @@ CUSTOM_REPEATS_SLOW     EQU  1000000
 REPEAT_OBJECTS          EQU  6
 REPEAT_ENTRY_BYTES      EQU  4
 REPEAT_SERIES_BYTES     EQU  REPEAT_OBJECTS * 4    
+
+; Constants for adaptive measurement mode, target measurement time, seconds
+ADAPTIVE_FAST           EQU  0.01
+ADAPTIVE_SLOW           EQU  0.05

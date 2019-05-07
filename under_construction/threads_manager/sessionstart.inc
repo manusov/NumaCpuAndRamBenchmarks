@@ -125,8 +125,8 @@ mov eax,[rcx + rax * REPEAT_ENTRY_BYTES]
 cmp [rdi + IPB.UpdatedAsm],LATENCY_MODE
 jb .L13
 xor edx,edx
-mov ecx,10
-div ecx        ; If Latency mode, make measurement repeats / 10
+mov ecx,50
+div ecx        ; If Latency mode, make measurement repeats / 50
 .L13:
 mov [rdi + IPB.MeasureRepeats],eax
 ; Setup measurement scenario as block sizes sequence,

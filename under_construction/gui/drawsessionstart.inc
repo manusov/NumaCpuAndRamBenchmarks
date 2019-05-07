@@ -21,6 +21,7 @@ mov al,1  ; Run context = drawings, with memory allocation multiplication
 call GuiToUserParms
 call SessionStart
 
+; Initializing pointers
 cld
 lea rbx,[InputParms]
 lea r14,[DialogueContent_Win1]
@@ -58,7 +59,7 @@ loop .L13
 sub rsi,r15
 mov [r14 + HANDLE_TEXT_OBJECT1*16 - 256 + 12],si
 
-; Down comments strings, threads number
+; Down comments strings, number of threads
 lea rdi,[Threads_Number]
 mov word [rdi],0000h + '?'
 mov eax,[rbx + IPB.UpdatedThreads]
@@ -107,6 +108,81 @@ loop .L17
 .L16:
 sub rsi,r15
 mov [r14 + HANDLE_NUMA_MODE1*16 - 256 + 12],si
+
+; Support option, actual for drawings only: adaptive measurement modes
+lea rsi,[AdaptiveRepeats]
+mov eax,[rbx + IPB.UpdatedMeasure]
+sub eax,MEASURE_B_ADAPTIVE
+jc .L20
+cmp eax,1
+ja .L20
+mov rax,[rsi + rax*8]
+mov [rbx + IPB.AdaptiveSeconds],rax
+; mov rax,[rbx + IPB.StartBlockSize]
+; mov edx,[rbx + IPB.MeasureRepeats]
+; mul rdx
+; mov [rbx + IPB.AdaptiveProduct],rax 
+; Run with recommended repeats count, TODO. Check CF flag, detect errors
+
+; TODO. Repeats count must be 64-bit, see also threads list initialization and
+;       performance patterns.
+; TODO. Buggy no-interpreting adaptive options cases for "Run simple".
+; TODO. Visual settings when adaptive modes.
+; TODO. Overflow problems when latency measurement.
+
+
+; Select Bandwidth or Latency measurement mode
+cmp [rbx + IPB.UpdatedAsm],LATENCY_MODE
+jae .L22
+
+; Bandwidth mode
+lea rcx,[ThreadsList]
+mov edx,[rbx + IPB.UpdatedThreads]
+call ThreadsReStart
+jmp .L21
+
+; Latency mode
+; Setup pattern for prepare walk list
+.L22:
+lea rcx,[ThreadsList]
+mov r8d,[rbx + IPB.UpdatedThreads]
+mov r9,[rbx + IPB.PatternRoutine]
+call ThreadsUpdatePattern
+; Run service pattern, prepare walk list, delta TSC ignored here
+lea rcx,[ThreadsList]
+mov edx,[rbx + IPB.UpdatedThreads]
+call ThreadsReStart
+; Setup pattern for walk
+lea rcx,[ThreadsList]
+mov r8d,[rbx + IPB.UpdatedThreads]
+mov r9,[rbx + IPB.WalkRoutine]
+call ThreadsUpdatePattern
+; Run measurement pattern, walk by prepared walk list, get delta TSC in the RAX
+lea rcx,[ThreadsList]
+mov edx,[rbx + IPB.UpdatedThreads]
+call ThreadsReStart
+.L21:
+
+; Calculate seconds and ratio
+push rax
+finit
+fld [rbx + IPB.AdaptiveSeconds]     ; ST0 = Target seconds
+fild qword [rsp]                    ; ST0 = Measured delta TSC , ST1 = Target seconds
+fmul [OutputParms.TSCperiodS]       ; ST0 = Measured seconds
+fdivp st1,st0                       ; ST0 = Target / Measured 
+fild [rbx + IPB.MeasureRepeats]     ; ST0 = Product repeats
+fmulp st1,st0                       ; ST0 = Corrected product
+fild [rbx + IPB.StartBlockSize]
+fmulp st1,st0                       ; ST0 = Corrected product for divide per bytes count 
+fistp [rbx + IPB.AdaptiveProduct]
+pop rax
+; Skip point for non-adaptive modes
+.L20:
+
+; Support option, actual for drawings only: X-approximation modes
+
+; UNDER CONSTRUCTION
+
 
 ; TODO. Optimize RSI/RBX usage.
 
@@ -219,8 +295,8 @@ test rax,rax                ; Status=0 means error
 jz .Error                   ; Go if error creating thread
 stosq                       ; Store handle in the thread parameters, ThreadHandle 
 ; Clear measurement counter and array of measurement results
-mov ecx,MEASURE_POINTS_COUNT * 2 + 15  ; OLD: + 4 dwords: 2 counters + break flag + align
-xor eax,eax
+mov ecx,MEASURE_POINTS_COUNT * 2 + 15 - 3  ; OLD: + 4 dwords: 2 counters + break flag + align
+xor eax,eax                                ; -3 because 3 qwords already stored
 rep stosq
 
 ; Wait for measurement thread run, this event at thread entry point

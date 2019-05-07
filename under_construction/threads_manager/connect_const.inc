@@ -24,3 +24,10 @@ DD  DRAM_REPEATS_FAST , CUSTOM_REPEATS_FAST
 ; Group must be 24 bytes size for indexed access, 6 dwords
 DD  L1_REPEATS_SLOW , L2_REPEATS_SLOW , L3_REPEATS_SLOW , L4_REPEATS_SLOW
 DD  DRAM_REPEATS_SLOW , CUSTOM_REPEATS_SLOW
+
+; Constants for adaptive measurement mode, target measurement time, seconds
+; double floating point constants
+
+AdaptiveRepeats:
+DQ  ADAPTIVE_FAST
+DQ  ADAPTIVE_SLOW

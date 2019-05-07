@@ -118,6 +118,9 @@ PatternRoutine    dq  ?    ; Pointer to target benchmark routine, this is fill r
 WalkRoutine       dq  ?    ; Second routine, required for latency measurement
 DumpMethodStart   dq  ?    ; Start of fragment, visualized as dump during benchmarks
 DumpMethodLength  dd  ?    ; Length of fragment, visualized as dump during benchmarks, bytes
+; Adaptive measurement timings support
+AdaptiveSeconds   dq  ?    ; Target measurement time for stabilization, seconds, floation point
+AdaptiveProduct   dq  ?    ; Size * Repeats = Product , practic calc: Repeats = Product / Size 
 ends
 
 ; Test OUTPUT parameters layout declaration

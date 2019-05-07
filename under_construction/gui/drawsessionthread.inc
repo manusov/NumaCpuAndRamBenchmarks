@@ -29,11 +29,13 @@ mov rcx,[r15 + DTHP.EventStart]   ; RCX = Parm#1 = Handle for thread start event
 call [SetEvent]                   ; Call WinAPI function
 
 ; Measurement initialization, pre-heat
-
 lea rsi,[InputParms]
 lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
 call ThreadsReStart
+
+; Measurement initialization, conditional calibration for adaptive mode
+; UNDER CONSTRUCTION
 
 ; Measurement cycle
 .BackgroundProcess:
@@ -63,6 +65,14 @@ mov rdx,rsi
 mov r8d,[rsi + IPB.UpdatedThreads]
 mov r9,[rsi + IPB.StartBlockSize]
 call ThreadsUpdateBlockSize
+
+cmp [rsi + IPB.UpdatedMeasure],MEASURE_B_ADAPTIVE
+jb .NoAdaptive
+lea rcx,[ThreadsList]
+mov rdx,rsi
+mov r8d,[rsi + IPB.UpdatedThreads]
+call ThreadsUpdateAdaptive
+.NoAdaptive:
 
 ; Get start time point
 ; lea rcx,[rsp+32]
