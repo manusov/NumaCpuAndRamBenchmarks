@@ -32,7 +32,7 @@ Base2           dq  ?   ; Destination for copy
 SizeBytes       dq  ?   ; Block size, units = bytes, for benchmarking, not for memory allocation (REDUNDANT FIELD RESERVED) 
 SizeInst        dq  ?   ; Block size, units = instructions, for benchmarking (MUST BE UPDATED PER DRAW ITERATION)
 LargePages      dq  ?   ; 0=not supported, 1=supported but not used, 2=used (REDUNDANT FIELD RESERVED)
-Repeats         dq  ?   ; Number of measurement repeats for calibrate
+Repeats         dq  ?   ; Number of measurement repeats for precision requirements
 AffinityMode    dq  ?   ; Affinity mode: 0=None, 1=Without groups, 2=With groups 
 OrigBase        dq  ?   ; True (before alignment) memory block base for release (REDUNDANT FIELD RESERVED)
 OrigAffinity    dq  ?   ; Store original affinity mask, also storage for return (STORED BY THREAD, NOT BY INITIALIZER) 
@@ -97,7 +97,8 @@ UpdatedHT         dd  ?    ; 0=Not sup. by platform, 1=sup. but not used, 2=used
 UpdatedPG         dd  ?    ; 0=Not sup. by platform, 1=sup. but not used, 2=used 
 UpdatedNUMA       dd  ?    ; 0=None, 1=No control, 2-Single domain, 3=Optimal, 4=Non optim. 
 UpdatedLP         dd  ?    ; 0=Not sup. by platform, 1=sup. but not used, 2=used
-UpdatedMeasure    dd  ?    ; 0=fast, 1=slow, 2=fast adaptive, 3=slow adaptive 
+UpdatedMeasure    dd  ?    ; 0=fast, 1=slow, 2=fast adaptive, 3=slow adaptive
+UpdatedApprox     dd  ?    ; Approximation for X { 0=none, 1=X16, 2=X32 }  
 ; Two work blocks used by benchmark scenario
 AllocatedBlock1   dq  ?
 AllocatedBlock2   dq  ?
@@ -105,8 +106,8 @@ AllocatedBlock2   dq  ?
 StartBlockSize    dq  ?    ; Start block size, or 0=default
 EndBlockSize      dq  ?    ; End block size, or 0=default
 DeltaBlockSize    dq  ?    ; Delta block size, or 0=default
+MeasureRepeats    dq  ?    ; Number of measurement repeats
 OperandWidth      dd  ?    ; Used instructions operand width, bits 
-MeasureRepeats    dd  ?    ; Number of measurement repeats
 GroupsCount       dd  ?    ; Number of Processor Groups
 DomainsCount      dd  ?    ; Number of NUMA domains
 PageSize          dq  ?    ; Memory page size, bytes
@@ -182,6 +183,11 @@ MEASURE_BRIEF       EQU  0
 MEASURE_CAREFUL     EQU  1    
 MEASURE_B_ADAPTIVE  EQU  2
 MEASURE_C_ADAPTIVE  EQU  3
+; Approximation by X modes
+APPROX_LIMIT        EQU  2
+APPROX_NONE         EQU  0
+APPROX_X16          EQU  1
+APPROX_X32          EQU  2
 
 ;------------------------------------------------------------------------------;
 ;                  System parameters, detected at start.                       ;

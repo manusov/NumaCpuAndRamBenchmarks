@@ -345,10 +345,10 @@ lea rdi,[GraphRect]
 xor ebp,ebp                ; RBP = 0, used for compact encoding
 lea rcx,[Win1_Running]
 mov al,[rcx]
-cmp al,0             ; 0 = Halted
+cmp al,0                   ; 0 = Halted
 je .EndPaint
-cmp al,1             ; 1 = First drawings (grid)
-je .FirstPaint       ; Go if this is first pass, draw axes
+cmp al,1                   ; 1 = First drawings (grid)
+je .FirstPaint             ; Go if this is first pass, draw axes
 ; ...
 ; ... draw y=f(x), not a first pass
 
@@ -585,10 +585,34 @@ inc ecx            ; Make down extra-pixel for vertical line
 @@:
 
 ; Store coordinates for rectangle as part of line Y=F(X)
+; Add support approximation modes
+; TODO. Optimize ergonomics by separate point instead extend current point.
+
+push r12
+
+mov r8d,[InputParms.UpdatedApprox]
+test r8d,r8d
+jz .NoApproxMode
+mov r9d,00001111b
+cmp r8d,APPROX_X16
+je .CheckApproxMode
+mov r9d,00011111b
+.CheckApproxMode:
+test r13d,r9d
+jnz .NoApproxMode
+dec r12d
+dec eax
+add edx,2  
+add ecx,2
+.NoApproxMode:
 mov [rdi+RECT.left],r12d
 mov [rdi+RECT.top],eax
 mov [rdi+RECT.right],edx
 mov [rdi+RECT.bottom],ecx
+
+pop r12
+
+
 ; Draw current point Y=F(X)
 mov rcx,rsi                    ; Parm#1 = RCX = Handle to a Device Context
 mov rdx,rdi                    ; Parm#2 = RDX = Pointer to RECT strucnure

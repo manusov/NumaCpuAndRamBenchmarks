@@ -130,7 +130,7 @@ mov eax,[r12 + IPB.UpdatedLP]
 mov [rsi + THCTRL.LargePages],rax
 
 ; Setup number of repeat measurement iterations
-mov eax,[r12 + IPB.MeasureRepeats]
+mov rax,[r12 + IPB.MeasureRepeats]
 mov [rsi + THCTRL.Repeats],rax 
 
 ; Select next NUMA node if THREADS per NODES counter done

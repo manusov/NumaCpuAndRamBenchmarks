@@ -127,7 +127,7 @@ mov rax,[rsi + IPB.StartBlockSize]   ; Block size, units = bytes
 ; mov edx,[rsi + IPB.OperandWidth]
 ; shr edx,3
 ; mul rdx                            ; Multiply by bytes per instruction
-mov edx,[rsi + IPB.MeasureRepeats]
+mov rdx,[rsi + IPB.MeasureRepeats]
 mul rdx                              ; Multiply by measurement repeats
 ; mov edx,[rsi + IPB.UpdatedThreads]
 ; mul rdx                              ; Multiply by number of threads
@@ -137,8 +137,30 @@ stosq  ; Store full length, bytes
 mov rax,[rsi + IPB.DeltaBlockSize]
 add [rsi + IPB.StartBlockSize],rax
 
-; Cycle for measurement draw
+; Cycle for measurement draw, increment counter by 1 drawing pixel
 inc [r15 + DTHP.MeasureCounter]
+
+; Support approximation mode, x16 and x32. One pixel already saved, required
+; it copy  16-1=15  or  32-1=31  times.
+mov eax,[rsi + IPB.UpdatedApprox]
+test eax,eax
+jz .NoApproxMode
+mov ecx,15
+cmp eax,APPROX_X16
+je .YesApproxMode
+mov cl,31
+.YesApproxMode:
+mov rax,[rdi-16]
+stosq
+mov rax,[rdi-16]
+stosq
+mov r8,[rsi + IPB.DeltaBlockSize]
+add [rsi + IPB.StartBlockSize],r8
+inc [r15 + DTHP.MeasureCounter]
+loop .YesApproxMode
+.NoApproxMode:
+
+; Cycle with support termination by break
 .BackgroundSkip:
 cmp [r15 + DTHP.MeasureBreak],0
 je .BackgroundProcess

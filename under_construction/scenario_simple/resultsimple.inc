@@ -95,7 +95,7 @@ call StringWriteSelected
 pop rsi
 ; (11) Measurement repeats, num. of same operation repeats for precision
 call StringWrite_CRLF_Equal
-mov eax,[r8+IPB.MeasureRepeats]
+mov rax,[r8+IPB.MeasureRepeats]  ; TODO. Required support overflows, RAX>4GB, actual for adaptive modes
 mov bl,0             ; BL = Template (chars) for decimal print, 0 = no template
 call DecimalPrint32
 
@@ -160,7 +160,7 @@ xor edx,edx
 mov ecx,[r8+IPB.OperandWidth]    ; Must be not zero, otherwise divide overflow
 shr ecx,3                        ; RCX = Bytes per instr., convert bits to bytes
 div rcx                          ; RCX = Instructions per block
-mov ecx,[r8+IPB.MeasureRepeats]
+mov rcx,[r8+IPB.MeasureRepeats]
 mul rcx                          ; RAX = Total instructions
 push rax
 fild qword [rsp]                   ; st0 = total instructions
@@ -180,7 +180,7 @@ jae .L9
 ; (1)  Speed(MBPS)
 call StringWrite_CRLF_Equal
 mov rax,[r8+IPB.StartBlockSize]
-mov ecx,[r8+IPB.MeasureRepeats]
+mov rcx,[r8+IPB.MeasureRepeats]
 mul rcx                            ; RAX = BlockSize * Repeats
 mov ecx,[r8+IPB.UpdatedThreads]    ; Required all threads same size
 mul rcx                            ; RAX = BlockSize * Repeats * Threads

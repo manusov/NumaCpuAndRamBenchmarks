@@ -61,7 +61,7 @@ mov rax,[r11 + IPB.AdaptiveProduct]
 mov r10,[r11 + IPB.StartBlockSize]
 xor edx,edx
 div r10
-mov [r11 + IPB.MeasureRepeats],eax
+mov [r11 + IPB.MeasureRepeats],rax
 @@:
 mov [rcx + THCTRL.Repeats],rax
 add rcx,THCTRL_SIZE

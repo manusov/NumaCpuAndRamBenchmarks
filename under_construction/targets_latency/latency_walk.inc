@@ -21,6 +21,6 @@ mov rax,[rax]
 test rax,rax
 jnz .WalkLinked          ; This cycle for memory walk: measure latency
 DumpStop_Latency_Walk:
-dec ebp
+dec rbp
 jnz WalkRepeat           ; This cycle for measurement iterations
 ret

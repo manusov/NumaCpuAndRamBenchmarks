@@ -121,14 +121,14 @@ je .L10
 add rcx,REPEAT_SERIES_BYTES
 .L10:
 mov eax,[rdi + IPB.UpdatedTarget]
-mov eax,[rcx + rax * REPEAT_ENTRY_BYTES]
+mov eax,[rcx + rax * REPEAT_ENTRY_BYTES]  ; note after this, bits RAX.63-32 = 0
 cmp [rdi + IPB.UpdatedAsm],LATENCY_MODE
 jb .L13
 xor edx,edx
 mov ecx,50
-div ecx        ; If Latency mode, make measurement repeats / 50
-.L13:
-mov [rdi + IPB.MeasureRepeats],eax
+div ecx        ; If Latency mode, make measurement repeats / 50 ,
+.L13:          ; note after this, bits RAX.63-32 = 0
+mov [rdi + IPB.MeasureRepeats],rax
 ; Setup measurement scenario as block sizes sequence,
 ; for "Run simple" mode required one block size only 
 mov eax,[rdi + IPB.UpdatedTarget]
@@ -155,6 +155,11 @@ sub rcx,512
 mov [rdi + IPB.StartBlockSize],rcx
 ; TODO. mov [rdi + IPB.EndBlockSize],rcx     ; use this fields or remove it from IPB structure
 ; TODO. mov [rdi + IPB.DeltaBlockSize],rax   ; use this fields or remove it from IPB structure
+
+; Setup approximation option, yet value copy only
+mov eax,[rsi + UPB.OptionApprox]
+mov [rdi + IPB.UpdatedApprox],eax
+
 ; Setup Processor Groups parameters
 mov eax,[rbx + SYSPARMS.ProcessorGroups]
 mov [rdi + IPB.GroupsCount],eax

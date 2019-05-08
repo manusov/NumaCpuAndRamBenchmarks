@@ -78,7 +78,7 @@ mov ecx,12
 mov al,' '
 rep stosb
 pop rdi 
-mov eax,[rbx + IPB.MeasureRepeats]
+mov rax,[rbx + IPB.MeasureRepeats]   ; TODO. Required support overflows RAX=4GB, actual for adaptive modes
 push rbx    ; TODO> RBX can be non-optimal because this PUSH/POP requirement
 mov bl,0
 call DecimalPrint32
