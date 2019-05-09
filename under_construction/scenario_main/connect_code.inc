@@ -4,3 +4,4 @@
 ;------------------------------------------------------------------------------;
 
 include 'getsystemparameters.inc'  ; Get and store system information
+include 'warningapi.inc'           ; Warning writer for dynamical import

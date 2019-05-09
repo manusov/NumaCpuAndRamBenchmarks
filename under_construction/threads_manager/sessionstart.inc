@@ -1,16 +1,25 @@
-;--- Start measurement session ------------------------------------------------;
-; Analysing user settings and system configuration, build test scenario        ;
-;                                                                              ;
-; INPUT:   None in the registers                                               ;
-;          UPB = UserParms = user options settings                             ;
-;          SYSPARMS = SystemParameters = system configuration                  ;
-;                                                                              ;
-; OUTPUT:  None in the registers                                               ;
-;          IPB = InputParms = result of this routine, benchmark scenario       ;
-;          Threads List, NUMA nodes list                                       ;                                                  
-;                                                                              ;
-; All CPU registers can be corrupted                                           ;
-;------------------------------------------------------------------------------;
+;--- Start measurement session ----------------------------------------------;
+; Analysing user settings and system configuration, build test scenario      ;
+;                                                                            ;
+; INPUT:   None in the registers                                             ;
+;          UPB = UserParms = user options settings                           ;
+;          SYSPARMS = SystemParameters = system configuration                ;
+;                                                                            ;
+; OUTPUT:  CF = Error flag, 0(NC) = No errors, 1(C) = Error detected.        ;
+;          AL = Error code, valid if CF=1(C)                                 ;
+;               00 = Memory allocation error                                 ;
+;               01 = Memory release error                                    ;
+;               02 = Time measurement error                                  ;
+;               04 = Address arithmetics error                               ;
+;               04-0FFh = Reserved                                           ;
+;          OPB = Benchmark results data                                      ;
+;          Threads List, NUMA nodes list                                     ;
+;                                                                            ;
+;          IPB = InputParms = result of this routine, benchmark scenario     ;
+;          Threads List, NUMA nodes list                                     ;                                                  
+;                                                                            ;
+; All CPU registers can be corrupted                                         ;
+;----------------------------------------------------------------------------;
 
 ; TODO. 
 ; Regularize simple/brief/drawings calling conventions, what registers destroyed.
@@ -185,7 +194,7 @@ and rax,rcx
 ; service all sizes when draw Performance = F(Size)
 cmp [rsi + UPB.RunContext],0
 je .L14
-imul rax,rax,5 
+imul rax,rax,5   ; Xmax = Xtarget * 5
 .L14:
 ; Store memory size per one thread and total
 mov [rdi + IPB.MemoryPerThread],rax
@@ -210,11 +219,19 @@ lea rcx,[NumaNodesList]           ; RCX = Base address of NUMA nodes list
 mov rdx,rax                       ; RDX = Memory allocation size per one node
 mov r9d,[rdi + IPB.UpdatedLP]     ; R9D = Large Pages option
 call MemAllocationNuma
+mov al,0  ; AL = error status
+jc .Exit  ; Go if error
+
 ; Build threads list
 ; TODO. Check status required after call ( CF flag )
 lea rcx,[ThreadsList]
 lea rdx,[InputParms]
 call BuildThreadsList 
+mov al,0  ; AL = error status
+jc .Exit  ; Go if error
+
+; TODO. Add "Threads allocation error" yet supported as "Memory allocation error"
+
 ; Update visualized block#1, block#2 bases at IPB from Threads List first entry
 lea rcx,[ThreadsList]
 mov rax,[rcx + THCTRL.Base1]
@@ -226,11 +243,18 @@ push rdi
 lea rdi,[OutputParms.DeltaTSC]
 call MeasureTsc
 pop rdi
+mov al,2  ; AL = error status
+jc .Exit  ; Go if error
+
 ; Start threads before per-iterations calls 
 ; TODO. Check status required after call ( CF flag )
 lea rcx,[ThreadsList]
 mov edx,[rdi + IPB.UpdatedThreads]
 call ThreadsStart
+mov al,2  ; AL = error status, valid if CF=1 only
+
+; TODO. Add "Threads run error", yet supported as "Timings measurement error"
+
 ; Replace fill pattern to walk pattern for latency mode
 ; lea rcx,[ThreadsList]
 ; cmp [rdi + IPB.UpdatedAsm],LATENCY_MODE
@@ -240,5 +264,6 @@ call ThreadsStart
 ; call ThreadsUpdatePattern
 ; .L20:
 ; Initialization done, next phase is per-iterations calls
+.Exit:
 ret
 

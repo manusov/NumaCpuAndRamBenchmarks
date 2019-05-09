@@ -17,7 +17,7 @@ GetSystemParameters:
 ; TODO. Need show warnings after SystemFunctionsLoad,
 ; separate this operations
 
-call SystemFunctionsLoad    ; This subroutine output CF=1 if error
+; call SystemFunctionsLoad    ; This subroutine output CF=1 if error
 
 ; TODO.
 ; Need check load status, check validity of required API functions
@@ -151,6 +151,13 @@ xor ebx,ebx                    ; BL = 0 means NT Read by VMOVNTDQA not supported
 
 mov [r12 + SYSPARMS.NonTemporalRead],ebx   ; This variable selects patterns set
 
-; Done
-ErrorSysInfo:   ; if CF=1, register R15 = Pointer to error string
+; Done without errors
+clc
 ret
+
+; Exit point for error signaling
+ErrorSysInfo:   ; if CF=1, register R15 = Pointer to error string
+stc
+ret
+
+

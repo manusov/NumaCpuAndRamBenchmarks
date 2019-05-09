@@ -17,3 +17,5 @@ include 'drawsessionstart.inc'      ; Initializing measurement+draw session
 include 'drawsessionstop.inc'       ; Close measurement+draw session
 include 'drawsessionthread.inc'     ; Child thread for measurements,
                                     ; runned by drawsessionstart.inc
+
+include 'runtimeerror.inc'          ; Error message box for benchmarks errors

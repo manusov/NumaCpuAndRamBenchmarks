@@ -163,6 +163,10 @@ call [SendMessage]
 ; TODO. Reorder handles comparings by GUI buttons location.
 ; TODO. Reorder handlers also.
 
+
+;-------------------------- Buttons handlers ----------------------------------;
+
+
 ; Detect "About", "Run Simple", "Run Drawings", "Defaults" and "Cancel" buttons
 cmp r14,HANDLE_BUTTON_RUN_SIMPLE
 je .ButtonHandlerRunSimple            ; Go if "Run Simple" button pressed
@@ -208,7 +212,6 @@ call [SendMessage]
 jmp .WinFinish
 
 
-; Buttons handlers
 ; Button handler: Run Simple
 .ButtonHandlerRunSimple:
 ; Disable parent window when daughter window work
@@ -222,28 +225,28 @@ push rbx               ; save handle for restore parent window activity
 ; TODO. Correct block size for copy
 ;-----------------------------------------;
 ; OPTION_ASM_METHOD        EQU  12                   ; { asm methods (routines) list }
-OPTION_TARGET_OBJECT       EQU  TARGET_L1            ; { L1, L2, L3, L4, DRAM, CUSTOM }
-OPTION_PARALLEL            EQU  PARALLEL_NOT_USED    ; PARALLEL_USED  ; { NOT_SUP, NOT_USED, USED }  
-OPTION_HYPER_THREADING     EQU  HT_NOT_SUPPORTED     ; { GRAY_NOT_SUP, DISABLED, ENABLED }
-OPTION_PROCESSOR_GROUPS    EQU  PG_NO_CONTROL        ; { GRAY_NOT_SUP, DISABLED, ENABLED }
-OPTION_NUMA                EQU  NUMA_NOT_SUPPORTED   ; { GRAY_NOT_SUP, UNAWARE, FORCE_ONE, FORCE LOCAL, FORCE REMOTE }
-OPTION_LARGE_PAGES         EQU  LP_NOT_SUPPORTED     ; { GRAY_NOT_SUP, DISABLED, ENABLED }
-OPTION_MEASUREMENT         EQU  MEASURE_CAREFUL      ; { FAST, SLOW, FAST_ADAPTIVE, SLOW_ADAPTIVE }
-OPTION_CUSTOM_BLOCK_START  EQU  0                    ; Override start block size or 0=default
-OPTION_CUSTOM_BLOCK_END    EQU  0                    ; Override end block size or 0=default
-OPTION_CUSTOM_BLOCK_DELTA  EQU  0                    ; Override delta block size or 0=default
-lea rsi,[UserParms]
-; mov [rsi + UPB.OptionAsm]      , OPTION_ASM_METHOD
-mov [rsi + UPB.OptionParallel]   , OPTION_PARALLEL
-mov [rsi + UPB.OptionHT]         , OPTION_HYPER_THREADING
-mov [rsi + UPB.OptionPG]         , OPTION_PROCESSOR_GROUPS 
-mov [rsi + UPB.OptionNUMA]       , OPTION_NUMA
-mov [rsi + UPB.OptionLP]         , OPTION_LARGE_PAGES  
-mov [rsi + UPB.OptionTarget]     , OPTION_TARGET_OBJECT
-mov [rsi + UPB.OptionMeasure]    , OPTION_MEASUREMENT 
-mov [rsi + UPB.CustomBlockStart] , OPTION_CUSTOM_BLOCK_START
-mov [rsi + UPB.CustomBlockEnd]   , OPTION_CUSTOM_BLOCK_END
-mov [rsi + UPB.CustomBlockDelta] , OPTION_CUSTOM_BLOCK_DELTA
+;OPTION_TARGET_OBJECT       EQU  TARGET_L1            ; { L1, L2, L3, L4, DRAM, CUSTOM }
+;OPTION_PARALLEL            EQU  PARALLEL_NOT_USED    ; PARALLEL_USED  ; { NOT_SUP, NOT_USED, USED }  
+;OPTION_HYPER_THREADING     EQU  HT_NOT_SUPPORTED     ; { GRAY_NOT_SUP, DISABLED, ENABLED }
+;OPTION_PROCESSOR_GROUPS    EQU  PG_NO_CONTROL        ; { GRAY_NOT_SUP, DISABLED, ENABLED }
+;OPTION_NUMA                EQU  NUMA_NOT_SUPPORTED   ; { GRAY_NOT_SUP, UNAWARE, FORCE_ONE, FORCE LOCAL, FORCE REMOTE }
+;OPTION_LARGE_PAGES         EQU  LP_NOT_SUPPORTED     ; { GRAY_NOT_SUP, DISABLED, ENABLED }
+;OPTION_MEASUREMENT         EQU  MEASURE_CAREFUL      ; { FAST, SLOW, FAST_ADAPTIVE, SLOW_ADAPTIVE }
+;OPTION_CUSTOM_BLOCK_START  EQU  0                    ; Override start block size or 0=default
+;OPTION_CUSTOM_BLOCK_END    EQU  0                    ; Override end block size or 0=default
+;OPTION_CUSTOM_BLOCK_DELTA  EQU  0                    ; Override delta block size or 0=default
+;lea rsi,[UserParms]
+;; mov [rsi + UPB.OptionAsm]      , OPTION_ASM_METHOD
+;mov [rsi + UPB.OptionParallel]   , OPTION_PARALLEL
+;mov [rsi + UPB.OptionHT]         , OPTION_HYPER_THREADING
+;mov [rsi + UPB.OptionPG]         , OPTION_PROCESSOR_GROUPS 
+;mov [rsi + UPB.OptionNUMA]       , OPTION_NUMA
+;mov [rsi + UPB.OptionLP]         , OPTION_LARGE_PAGES  
+;mov [rsi + UPB.OptionTarget]     , OPTION_TARGET_OBJECT
+;mov [rsi + UPB.OptionMeasure]    , OPTION_MEASUREMENT 
+;mov [rsi + UPB.CustomBlockStart] , OPTION_CUSTOM_BLOCK_START
+;mov [rsi + UPB.CustomBlockEnd]   , OPTION_CUSTOM_BLOCK_END
+;mov [rsi + UPB.CustomBlockDelta] , OPTION_CUSTOM_BLOCK_DELTA
 ;-----------------------------------------;
 
 mov al,0  ; Run context = simple, without memory allocation multiplication
@@ -255,11 +258,18 @@ call GuiToUserParms
 ; Check errors after this subroutines "JC ERROR" and visual error strings from pool.
 
 ; TODO.
+; Resources (memory) must be relesed even if error detected
+
+; TODO.
 ; Regularize naming. Session to SimpleSession... / DrawSession... ? 
 
 call SessionStart
+jc .RunSimpleError
 call SessionProgress
+jc .RunSimpleError
 call SessionStop
+jc .RunSimpleError
+
 ; call routines from "Run simple" scenario
 call ResultSimple 
 ; input parameters for build message box
@@ -267,9 +277,15 @@ xor ecx,ecx             ; RCX = Parm#1 = Parent window handle or 0
 lea rdx,[TEMP_BUFFER]   ; RDX = Dialogue window Parm#2 = Pointer to string
 lea r8,[PRODUCT_ID]     ; R8  = Parm#3 = Pointer to caption
 xor r9d,r9d             ; R9  = Parm#4 = Message box icon type
-sub rsp,32+8          ; stack re-frame + alignment
+sub rsp,32+8            ; stack re-frame + alignment
 call [MessageBoxA]
 add rsp,32+8
+jmp .RunSimpleDone
+; Error handling with messages
+.RunSimpleError: 
+call RuntimeError
+; Done
+.RunSimpleDone:
 pop rbx
 jmp .ReturnParentWindow
 
@@ -300,6 +316,7 @@ push rbx               ; save handle for restore parent window activity
 
 ; At this point, parallel thread with DrawSessionThread subroutine STARTED.
 call DrawSessionStart 
+jc .RunDrawingsError
 
 ; Create (Open) daughter window = Window 1
 ; Build child window for drawings Speed=F(Size)
@@ -320,11 +337,15 @@ call WaitEvent                ; Window 1 work as callbacks inside this
 
 ; At this point, parallel thread with DrawSessionThread subroutine HALTED and REMOVED.
 call DrawSessionStop
-
+jnc .RunDrawingsDone 
 
 ;--- DEBUG: bound of added ---
 
-
+; Error handling with messages
+.RunDrawingsError: 
+call RuntimeError
+; Done
+.RunDrawingsDone:
 pop rbx
 jmp .ReturnParentWindow
 
@@ -337,7 +358,7 @@ xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
 call [EnableWindow]
 push rbx               ; save handle for restore parent window activity
 call RunVectorBrief
-jc .RunError
+jc .VectorBriefError
 call ResultVectorBrief
 xor ecx,ecx           ; RCX = Parm#1 = Parent window handle or 0
 lea rdx,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_TRANSIT]  ; RDX = Parm#2 = Pointer st.
@@ -346,8 +367,12 @@ xor r9d,r9d           ; R9  = Parm#4 = Message box icon type
 sub rsp,32+8          ; stack re-frame + alignment
 call [MessageBoxA]
 add rsp,32+8
-.RunError:
-; TODO. Required errors handling with messages. Can be used also by "Run simple" 
+jmp .VectorBriefDone
+; Error handling with messages
+.VectorBriefError:
+call RuntimeError
+; Done 
+.VectorBriefDone:
 pop rbx
 jmp .ReturnParentWindow
 
@@ -361,7 +386,3 @@ jmp .WinFinish
 ; Button handler: Cancel
 .ButtonHandlerCancel:
 jmp .WinDestroy
-
-
-
-

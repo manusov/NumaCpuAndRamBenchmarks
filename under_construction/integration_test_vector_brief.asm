@@ -19,6 +19,14 @@ start:
 
 sub rsp,8*5
 
+;-
+; Dynamical import for test purpose
+lea rcx,[NameAdvapi32]
+call [LoadLibrary]
+mov [HandleAdvapi32],rax
+call SystemFunctionsLoad    ; This subroutine output CF=1 if error
+;-
+
 call RunVectorBrief
 jc RunError
 

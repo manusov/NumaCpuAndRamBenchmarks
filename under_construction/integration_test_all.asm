@@ -3,6 +3,19 @@
 ;   Integration test for GUI application main window with child windows open.  ; 
 ;------------------------------------------------------------------------------;
 
+
+; UNDER CONSTRUCTION.
+
+; + AT_BUILD_PRODUCTION.  Unload dynamical import, advapi 32.
+; + AT_BUILD_PRODUCTION.  Message if build main window error.
+; + AT_BUILD_PRODUCTION.  Warning message if some functions not loaded.
+; TODO. Error decode and GUI box with message by benchmarks results,
+;       check CF flag after subroutines.
+
+; Template for debug method 1 of 3 = Template debug.
+; ( Use also 2 = Application debug, 3 = Window debug )
+
+
 include 'win64a.inc'
 
 include 'global\connect_equ.inc'
@@ -31,9 +44,16 @@ sub rsp,8*5
 ; mov r9d,0040h             ; R9  = Parm#4 = Message box icon type = Info
 ; call [MessageBoxA]
 
+;-
+; Dynamical import for test purpose
+lea rcx,[NameAdvapi32]
+call [LoadLibrary]
+mov [HandleAdvapi32],rax
+call SystemFunctionsLoad    ; This subroutine output CF=1 if error
+;-
 
 ; Get system information into fixed buffer
-; TODO. Interpreting and visual error status code
+; + AT_BUILD_PRODUCTION. TODO. Interpreting and visual error status code
 call GetSystemParameters
 jc ErrorProgram
 call SysParmsToBuffer

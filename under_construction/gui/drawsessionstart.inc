@@ -20,6 +20,7 @@ DrawSessionStart:
 mov al,1  ; Run context = drawings, with memory allocation multiplication
 call GuiToUserParms
 call SessionStart
+jc .Exit            ; Go if error returned, AL = Error code
 
 ; Initializing pointers
 cld
@@ -313,6 +314,7 @@ rep stosq
 clc
 .L90:
 mov rsp,rbp
+.Exit:
 ret
 
 ; Exit point for errors detected

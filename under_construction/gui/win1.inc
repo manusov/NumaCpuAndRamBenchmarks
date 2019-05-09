@@ -463,12 +463,14 @@ add r12,GRIDBLANKX + 1
 ; Use median ordering for min-max also.
 ; Remove finit from body of cycle ? 
 
+; TODO. Use min/max logic by integer ordering, it already exist because median calculated.
+
 finit
 fld1
 lea r8,[DrawThreadParms]
 mov rax,[r14 + 8]     ; RAX = Executed block size, bytes, per one thread
 xor edx,edx
-mov ecx,[InputParms + IPB.OperandWidth]
+mov ecx,[InputParms + IPB.OperandWidth]  ; TODO. Use register-pointer for IPB access
 shr ecx,3
 div rcx               ; RAX = Number of instructions executed at one thread
 push rcx rcx rax
@@ -509,6 +511,8 @@ fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative
 fistp qword [rsp+16]   ; Store pixel offset for LATENCY
 fdivp st1,st0          ; ST0 = Instructions Per nanosecond
 fimul dword [rsp + 8]  ; ST0 = Bytes Per nanosecond
+; TODO. Use register-pointer for IPB access
+fimul [InputParms + IPB.UpdatedThreads]  ; ST0 = [ one thread performance ] * [ number of threads ]
 mov dword [rsp],1000
 fimul dword [rsp]      ; ST0 = Decimal Megabytes Per Second (MBPS)
 
@@ -587,6 +591,8 @@ inc ecx            ; Make down extra-pixel for vertical line
 ; Store coordinates for rectangle as part of line Y=F(X)
 ; Add support approximation modes
 ; TODO. Optimize ergonomics by separate point instead extend current point.
+; TODO. Make diagonals between key points instead rectangle steps,
+;       otherwise no reaction at key (X = cache size) points.
 
 push r12
 

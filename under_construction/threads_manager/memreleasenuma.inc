@@ -7,6 +7,11 @@
 ; Can destroy registers, volatile by Microsoft x64 calling convention.         ; 
 ;------------------------------------------------------------------------------;
 
+; TODO. Single memory release branch used 
+; for NUMA / No NUMA,
+; for Normal Pages / Large Pages. 
+; Required verify this acceptable.
+
 MemReleaseNuma:
 cld
 push rbx rsi rdi rbp r12

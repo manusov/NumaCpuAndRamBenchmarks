@@ -3,7 +3,7 @@
 ;------------------------------------------------------------------------------;
 
 include 'checkcpuid.inc'      ; Check CPUID instruction and functions available
-include 'fncload.inc'         ; Load optional WinAPI by dynamical import
+include 'sysfncload.inc'      ; Load optional WinAPI by dynamical import
 include 'getacpi.inc'         ; Get and parse ACPI tables, use WinAPI
 include 'getcpucache.inc'     ; Get CPU cache by CPUID instruction
 include 'getcpufeatures.inc'  ; Get CPU features by CPUID/XGETBV instructions 

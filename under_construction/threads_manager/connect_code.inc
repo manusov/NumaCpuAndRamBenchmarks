@@ -3,8 +3,12 @@
 ;                    connect include files with subroutines.                   ;
 ;------------------------------------------------------------------------------;
 
-include 'memallocation.inc'       ; Simple (NUMA-unaware) memory allocation
-include 'memrelease.inc'          ; Simple (NUMA-unaware) memory release
+;-
+; include 'memallocation.inc'       ; Simple (NUMA-unaware) memory allocation
+; include 'memrelease.inc'          ; Simple (NUMA-unaware) memory release
+; This logic integrated to NUMA-aware subroutines (next two),
+; to minimize code duplication.
+;-
 
 include 'memallocationnuma.inc'   ; NUMA-aware memory allocation
 include 'memreleasenuma.inc'      ; NUMA-aware memory release

@@ -88,6 +88,10 @@ SessionStart:
 SessionProgress:
 SessionStop:
 ResultSimple:
+ThreadsReStart:
+ThreadsUpdatePattern:
+ThreadsUpdateBlockSize:
+ThreadsUpdateAdaptive:
 ret
 
 include 'global\connect_code.inc'
@@ -106,6 +110,12 @@ include 'gui\connect_const.inc'
 ;CpuVendorString  DB  'UNIT TEST',0
 ;CpuNameString    DB  'UNIT TEST',0
 ;CacheL1Data      DB  12*3 DUP (1)  
+
+; Test purpose
+AdaptiveRepeats:
+DQ  10 ; ADAPTIVE_FAST
+DQ  20 ; ADAPTIVE_SLOW
+ThreadsList DQ 0
 
 ; variables area start here
 include 'global\connect_var.inc'

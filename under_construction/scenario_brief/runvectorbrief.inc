@@ -97,13 +97,13 @@ mov al,[rsi+3]   ; AL = CPUID validator
 mov ah,al
 shr ah,6
 jz .L14          ; Go execute if checks not required
-mov rdx,[rbx+VECTORBRIEF.StdFeatures]
+mov rdx,[rbx + VECTORBRIEF.StdFeatures]
 dec ah
 jz .L13
-mov rdx,[rbx+VECTORBRIEF.ExtFeatures]
+mov rdx,[rbx + VECTORBRIEF.ExtFeatures]
 dec ah
 jz .L13
-mov rdx,[rbx+VECTORBRIEF.AddFeatures]
+mov rdx,[rbx + VECTORBRIEF.AddFeatures]
 .L13:
 and eax,03Fh
 bt rdx,rax
@@ -113,7 +113,7 @@ jnc .L12         ; Go skip if routine not supported by CPU
 mov al,[rsi+4]   ; AL = OS context validator
 test al,0C0h
 jz .L15          ; Go execute if checks not required
-mov rdx,[rbx+VECTORBRIEF.OsContext]
+mov rdx,[rbx + VECTORBRIEF.OsContext]
 and eax,03Fh
 bt rdx,rax
 jnc .L12         ; Go skip if routine not supported by OS context
@@ -133,18 +133,18 @@ and al,07Fh
 call GetMathPattern
 .L18:
 
-mov [rdi+THCTRL.EntryPoint],rbx      ; RAX = Subroutine address
+mov [rdi + THCTRL.EntryPoint],rbx    ; RAX = Subroutine address
 mov cl,[rsi+1]                       ; CL = Power of 2
 mov eax,1
 shl rax,cl
-mov [rdi+THCTRL.SizeInst],rax        ; RAX = Instructions count per 4K
+mov [rdi + THCTRL.SizeInst],rax      ; RAX = Instructions count per 4K
 movzx eax,byte [rsi+2]               ; RAX = Repeats count
 imul rax,rax,REPEATS_SCALE
-mov [rdi+THCTRL.Repeats],rax         ; RAX = Measurement repeats count
+mov [rdi + THCTRL.Repeats],rax       ; RAX = Measurement repeats count
 lea rax,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_DATA]
-mov [rdi+THCTRL.Base1],rax
+mov [rdi + THCTRL.Base1],rax
 add rax,VECTOR_BRIEF_DATA_SIZE / 2
-mov [rdi+THCTRL.Base2],rax
+mov [rdi + THCTRL.Base2],rax
 lea r8,[MathData]                    ; FIX THIS, USE Base3
 mov rbx,rdi                          ; TODO. Can remove this if Get...Pattern return in RAX 
 call RunTarget                       ; Return RAX = dTSC per pattern

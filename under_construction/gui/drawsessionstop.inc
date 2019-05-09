@@ -16,6 +16,7 @@
 DrawSessionStop:
 
 call SessionStop
+jc .Exit            ; Go if error returned, AL = Error code
 
 ; Align stack and create parameters shadow, required for use WinAPI
 mov rbp,rsp
@@ -74,6 +75,7 @@ jz .Error                           ; Go exit if error
 clc
 .L90:
 mov rsp,rbp
+.Exit:
 ret
 
 ; Exit point for errors detected

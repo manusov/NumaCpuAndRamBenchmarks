@@ -11,6 +11,8 @@
 
 ; TODO.
 ; Required input-output parameters detalization and error type status definition.
+; TODO.
+; Error handling required, but note this is SEPARATE thread.
 
 DrawSessionThread:
 
@@ -19,7 +21,7 @@ push rbx rsi rdi rbp r12 r13 r14 r15
 mov rbp,rsp
 and rsp,0FFFFFFFFFFFFFFF0h
 push rbp
-sub rsp,32
+sub rsp,32+8
 
 ; Load pointer to thread control structure
 lea r15,[DrawThreadParms]
@@ -172,7 +174,7 @@ mov rcx,[r15 + DTHP.EventDone]    ; RCX = Parm#1 = Handle for thread done event
 call [SetEvent]                   ; Call WinAPI function
 
 ; Exit point
-add rsp,32
+add rsp,32+8
 pop rbp
 mov rsp,rbp
 pop r15 r14 r13 r12 rbp rdi rsi rbx

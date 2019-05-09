@@ -23,13 +23,13 @@ cld
 ; step, because availability of library and functions detected at next step.
 ; Note pre-load KERNEL32.DLL not required because static import used.
 ; Load this library, because it not loaded by statical import
-mov rbp,rsp
-and rsp,0FFFFFFFFFFFFFFF0h
-sub rsp,32
-lea rcx,[NameAdvapi32]
-call [LoadLibrary]
-mov [HandleAdvapi32],rax
-mov rsp,rbp
+; mov rbp,rsp
+; and rsp,0FFFFFFFFFFFFFFF0h
+; sub rsp,32
+; lea rcx,[NameAdvapi32]
+; call [LoadLibrary]
+; mov [HandleAdvapi32],rax
+; mov rsp,rbp
 
 ; Load functions of KERNEL32.DLL
 lea rcx,[NameKernel32]            ; RCX = Parm#1 = Pointer to module name string
