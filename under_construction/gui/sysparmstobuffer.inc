@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------------;
-; Extract data for visualization (text strings) from detected system info.     ;
+;--- Extract data for visualization (text strings) from detected system info --;
 ;                                                                              ;
 ; INPUT:   None at registers                                                   ;
 ;          System Parameters Block = results of system information             ;

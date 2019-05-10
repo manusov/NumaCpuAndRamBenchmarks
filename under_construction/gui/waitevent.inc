@@ -1,6 +1,5 @@
-;-------------------------------------------------------------------;
-; Wait user event after open window.                                ;
-; OS make callbacks WindowProc during this wait.                    ;
+;--- Wait user event after open window -----------------------------;
+;    OS make callbacks WindowProc during this wait.                 ;
 ; INPUT:  RDI = Pointer to DialMsg structure                        ;
 ; OUTPUT: None                                                      ;
 ;-------------------------------------------------------------------;

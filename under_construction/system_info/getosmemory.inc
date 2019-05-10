@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------;
-; Get Processors and Memory information by Windows API                   ;
+;--- Get Processors and Memory information by Windows API ---------------;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save system info                ;
 ;                                                                        ;
@@ -33,6 +32,7 @@
 ;                                                                        ;
 ; Can destroy registers, volatile by Microsoft x64 calling convention.   ; 
 ;------------------------------------------------------------------------;
+
 GetOsMemoryInfo:
 push rbx rsi rbp
 mov rbp,rsp                  ; RBP used for restore RSP and addressing variables

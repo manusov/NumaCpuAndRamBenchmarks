@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------;
-; Get CPU signature and verify features, execute CPUID functions:        ;
+;--- Get CPU signature and verify features, execute CPUID functions: ----;
 ; 00000001h, 80000001h. Call this subroutine only if CPUID supported.    ;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save CPU Signature and          ;

@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------;
-; Get number of processor groups,                                        ;
+;--- Get number of processor groups, ------------------------------------;
 ; actual for support systems with > 64 logical processors                ;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save Processor Groups info      ;
@@ -9,6 +8,7 @@
 ;                                                                        ;
 ; Can destroy registers, volatile by Microsoft x64 calling convention.   ; 
 ;------------------------------------------------------------------------;
+
 GetProcessorGroups:
 push rbp
 mov rbp,rsp

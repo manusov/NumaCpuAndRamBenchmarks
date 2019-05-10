@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------------;
-; Callback handler for main-parent window                                      ;
+;--- Callback handler for main-parent window ----------------------------------;
 ; This subroutine called by OS,                                                ; 
 ; when application call DispatchMessage subroutine                             ;
 ; WM = Window Message                                                          ; 

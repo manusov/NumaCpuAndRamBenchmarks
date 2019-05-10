@@ -18,7 +18,7 @@ BasePointGui:
 PRODUCT_ID     DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP      DB  'Program info',0
 ABOUT_ID       DB  'NUMA CPU&RAM Benchmarks'   , 0Dh,0Ah
-               DB  'v1.02.16 for Windows x64'  , 0Dh,0Ah
+               DB  'v1.02.17 for Windows x64'  , 0Dh,0Ah
                DB  '(C)2019 IC Book Labs'      , 0Dh,0Ah,0
 
 ;------------------------------------------------------------------------------;
@@ -131,7 +131,7 @@ Block_00         DB  'not used',0
 
 ;------------------------------------------------------------------------------;
 ;                             Error messages.                                  ;
-;               See also non-fatal warnings: file warnapistr.inc.              ;
+;      See also non-fatal warnings: file scenario_main\connect_const.inc       ;
 ;------------------------------------------------------------------------------;
 ; Error messages, visualized if can't start application
 ; Application cannot start with this errors
@@ -149,3 +149,4 @@ RunErrorMemoryA   DB  'Benchmarks buffer memory allocation error',0
 RunErrorMemoryR   DB  'Benchmarks buffer memory release error',0
 RunErrorTimings   DB  'Benchmarks timings measurement error',0 
 RunErrorArithm    DB  'Benchmarks address arithmetic error',0
+

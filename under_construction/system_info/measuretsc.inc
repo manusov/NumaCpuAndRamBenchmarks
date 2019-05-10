@@ -1,6 +1,5 @@
-;------------------------------------------------------------------------;
-; Measure CPU TSC (Time Stamp Counter) clock frequency, store results    ;
-; F=Frequency=[Hz].                                                      ;
+;--- Measure CPU TSC (Time Stamp Counter) clock frequency, --------------; 
+; store results F=Frequency=[Hz].                                        ;
 ; Call this subroutine only if CPUID and RDTSC both supported.           ;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save TSC frequency and period	 ;
@@ -82,5 +81,4 @@ ret
 .Error:
 stc             ; CF=1 (CY) means CPU clock measured ERROR
 jmp .Exit
-
 

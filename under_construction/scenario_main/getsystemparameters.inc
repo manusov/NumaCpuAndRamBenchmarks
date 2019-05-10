@@ -1,6 +1,5 @@
-;------------------------------------------------------------------------------;
-; Initialize system information data, for visual at main window and use        ;
-; in the benchmarks scenarios                                                  ;
+;--- Initialize system information data, for visual at main window and use ----;
+;    in the benchmarks scenarios                                               ;
 ;                                                                              ;
 ; INPUT:   None at CPU registers                                               ;
 ;                                                                              ;

@@ -76,21 +76,11 @@ CLEARTYPE_QUALITY = 5     ; Quality code for create font and draw at grap. win.
 ; if don't close Window 1 and press Run (Resize) button 
 ; Settings for Cache&RAM mode
 ; Speed units = MBPS (Megabytes per Second), Latency units = ns (nanoseconds)
-
-; TODO
-; Y_RANGE_MAX              = 300000               ; Default Y maximum 
-
-; TODO
-; DEFAULT_Y_MBPS_PER_GRID  = Y_RANGE_MAX/10       ; Default units per greed Y 
-
 Y_RANGE_MAX_BANDWIDTH = 300000
 Y_RANGE_MAX_LATENCY = 100
 Y_DIV = 10
 DEFAULT_Y_MBPS_PER_GRID = Y_RANGE_MAX_BANDWIDTH / Y_DIV  ; Default units per grid Y , megabytes per second
 DEFAULT_Y_NS_PER_GRID = Y_RANGE_MAX_LATENCY / Y_DIV      ; Default units per grid Y , nanoseconds
-
-; TODO
-; DEFAULT_Y_MBPS_PER_PIXEL = Y_RANGE_MAX/SUBWINY  ; Default units per pixel Y
 
 ; TODO. Update timers constant logic.
 
@@ -116,35 +106,14 @@ ValueGridX         dd  ?      ; Units per horizontal grid cell
 ValueGridY         dd  ?      ; Units per vertical grid cell
 SelectUnits        dd  ?      ; Units select: 0=Bytes, 1=Kilobytes, 2=Megabytes
 SelectMode         dd  ?      ; Measurement mode: 0=Bandwidth, 1=Latency
-; Benchmarks statistics and drawings X-counter
-
-
-; Used indexed access from this base, include next groups, don't reorder variables!
-; StatClksMinimum    dq  ?      ; Minimum clocks per iteration
-; StatClksMaximum    dq  ?      ; Maximum clocks per iteration
-; StatClksAverage    dq  ?      ; Average clocks per iteration
-; StatClksMedian     dq  ?      ; Median clocks per iteration
-; StatClksSum        dq  ?      ; Clocks sum for averaging
-
+; Drawings X-counter and X-drawings support
 TimerCount         dd  ?      ; Timer ticks count ; OLD = Pixels counter for X-progress when drawing
 DrawPreviousY      dd  ?      ; Previous coordinate for vertical lines draw if required, when ABS(X(i)-X(i+1)) > 1
 ; Benchmark drawings scale parameters
 ; Better store value for multiply (not divide) at each iteration, for minimize CPU resources utilization
 ; A / B  replace to:  A * C , when C = 1/B. Store C.
 ; Also, vertical offset must be negative, upper means smaller offset, biggest MBPS/ns value
- 
 Ymultiplier        dq  ?      ; ???
-
-; Benchmark block size and repeats, rejected for 1.02.xx
-; Used indexed access from this base, include next groups, don't reorder variables!
-; BenchRepeats       dq  ?      ; Number of repeats for measurement, pre-calibration
-; BenchInstructions  dq  ?      ; Number of target instructions at all block (not cycle only), example=VMOVAPD
-; BenchBPI           dq  ?      ; Number of bytes per target instruction
-; Benchmark parameters ---
-; Xmultiplier        dd  ?      ; XTimerTick * Xmultiplier = RCX for performance pattern
-; YdivisorFloat      dd  ?      ; ( ( Frequency * Decimal Megabytes transferred ) / clocks ) / Ydivisor = DrawYCoordinateOffset
-; Auto Y-scale (by Restart/ReSize button at Window 1)
-; MaximumMBPSorNs    dd  ?      ; Maximum detected Megabytes per Second (Speed) or nanoseconds (Latency) for auto Y-scale
 ends
 
 ; Number of pixels by X, used for drawings, means number of measurements per draw
@@ -152,6 +121,7 @@ MEASURE_POINTS_COUNT  EQU  640
 
 ; Benchmarking drawings measurement parallel thread state structure.
 struct DTHP
+
 EventStart       dq  ?   ; Event handle for signaling this thread starts
 EventDone        dq  ?   ; Event handle for signaling this thread terminates 
 ThreadHandle     dq  ?   ; Event handle for this thread 
@@ -181,6 +151,8 @@ ends
 ; use OS timer 100 ns ?
 ; BOTH for "Run simple" and "Run draw".
 ; BOTH for Bandwidth and Latency.
-
+; TODO.
+; Use nsPI, CPI, MBPS instead CPI + MBPS only,
+; BUG: calibrate by CPI maximum, required by MBPS maximum. 
 
 

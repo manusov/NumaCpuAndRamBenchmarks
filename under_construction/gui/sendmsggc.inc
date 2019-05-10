@@ -1,5 +1,4 @@
-;-------------------------------------------------------------------;
-; Send message BM_GETCHECK, "BM" = Button Message.                  ;
+;--- Send message BM_GETCHECK, "BM" = Button Message ---------------;
 ; Use fact: BST_UNCHECKED=0, BST_CHECKED=1, BST_INDETERMINATE=2     ;
 ; INPUT:   RSI = Index of element handle                            ;
 ; OUTPUT:  RAX = Message status, f(message type)                    ;
@@ -10,7 +9,7 @@
 ;-------------------------------------------------------------------;
 
 SendMessageGetCheck:
-mov rbp,rsp                  ; RBP used for restore RSP and addressing variables
+mov rbp,rsp                 ; RBP used for restore RSP and addressing variables
 and rsp,0FFFFFFFFFFFFFFF0h
 sub rsp,32                      ; Make parameters shadow
 ; Operation                 

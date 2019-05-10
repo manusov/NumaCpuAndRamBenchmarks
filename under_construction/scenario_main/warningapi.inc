@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------------;
-; Output warning messages box if some optional OS API functions not found      ;
+;--- Output warning messages box if some optional OS API functions not found --;
 ;                                                                              ;
 ; INPUT:  CF flag = status: 0(NC) = all functions found, skip subroutine       ;
 ;                           1(C)  = one or some functions not found,           ;

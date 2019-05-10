@@ -1,7 +1,6 @@
-;------------------------------------------------------------------------------;
-; Stop measurement and drawings session, release resources                     ;
-; used for draw performance = f( block size ) function.                        ;
-; Include terminate  DrawSessionThread  subroutine as parallel thread          ;
+;--- Stop measurement and drawings session, release resources -----------------;
+;    used for draw performance = f( block size ) function.                     ;
+;    Include terminate  DrawSessionThread  subroutine as parallel thread       ;
 ;                                                                              ;
 ; INPUT:   None at CPU registers                                               ;
 ;                                                                              ;
@@ -15,7 +14,7 @@
 
 DrawSessionStop:
 
-call SessionStop
+call SessionStop    ; De-initializing, release events, threads, memory
 jc .Exit            ; Go if error returned, AL = Error code
 
 ; Align stack and create parameters shadow, required for use WinAPI
@@ -26,16 +25,6 @@ sub rsp,32
 ; Initializing pointer
 lea rsi,[DrawThreadParms]
 cld
-
-; Wait for measurement thread done, this event at thread exit point
-; mov rcx,[rsi + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done event
-; mov edx,10000                    ; RDX = Parm#2 = 10 seconds
-; call [WaitForSingleObject]
-; test rax,rax                     ; special encoding, 0 means event detected OK 
-; jnz .Error
-; WAIT EVENT MOVED TO WIN1.INC
-; OTHERWISE KILL PARENT THREAD (GUI) CAUSE KILL CHILD THREAD (MEASUREMENT),
-; AND CHILD THREAD DON'T SIGNALING DONE-EVENT.
 
 ; Close handles, halt and remove thread with DrawSessionThread  subroutine
 ; Terminate threads

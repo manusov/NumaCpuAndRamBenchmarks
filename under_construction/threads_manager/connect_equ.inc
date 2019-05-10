@@ -27,3 +27,8 @@ REPEAT_SERIES_BYTES     EQU  REPEAT_OBJECTS * 4
 ; Constants for adaptive measurement mode, target measurement time, seconds
 ADAPTIVE_FAST           EQU  0.01
 ADAPTIVE_SLOW           EQU  0.05
+
+; Constants for custom block size restrictions
+CUSTOM_BLOCK_MIN        EQU  16 * 1024
+CUSTOM_BLOCK_MAX        EQU  64 * 1024 * 1024
+CUSTOM_BLOCK_ALIGN      EQU  16 * 1024

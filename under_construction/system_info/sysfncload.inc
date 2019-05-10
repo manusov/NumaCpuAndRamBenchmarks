@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------------;
-; Load some functions from KERNEL32.DLL system library.                        ;  
+;--- Load some functions from KERNEL32.DLL system library. --------------------;  
 ; This functions not declared in the import section and required manually load ;
 ; for Windows XP x64 compatibility reasons. Otherwise abort when interpreting  ;
 ; import section under Windows XP x64.                                         ;
@@ -86,4 +85,3 @@ jne .L0                      ; This cycle for sequence of functions names
 mov rsp,rbp
 ret
 
-  

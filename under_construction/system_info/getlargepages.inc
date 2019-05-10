@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------;
-; Get Large Pages information by Windows API                             ;
+;--- Get Large Pages information by Windows API -------------------------;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save destination info           ;
 ;                                                                        ;

@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------;
-; Detect CPUID support and execute CPUID function #0.                    ;
+;--- Detect CPUID support and execute CPUID function #0. ----------------;
 ; Note CPUID can be supported by CPU but locked by Virtual Monitor.      ;
 ; Note check bit EFLAGS.21 toggleable, it is CPUID support indicator.    ;
 ; Note probably wrong result if debug trace this subroutine code.        ;

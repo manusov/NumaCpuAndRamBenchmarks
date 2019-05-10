@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------;
-; Get multiprocessing topology and cache information by Windows API      ;
+;--- Get multiprocessing topology and cache information by Windows API --;
 ; This function allows get topological information                       ;
 ; without Vendor-Specific CPUID methods.                                 ;
 ;                                                                        ;
@@ -59,6 +58,7 @@
 ;                                                                        ;
 ; Can destroy registers, volatile by Microsoft x64 calling convention.   ; 
 ;------------------------------------------------------------------------;
+
 GetOsTopologyInfo:
 cld
 push rbx rsi rbp rax         ; Note push rax for make local variable

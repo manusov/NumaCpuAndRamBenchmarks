@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------;
-; Read and analysing ACPI MADT table                                     ;
+;--- Read and analysing ACPI MADT table ---------------------------------;
 ; MADT = Multiple APIC Description Table (multiprocessing info)          ;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save ACPI MADT info             ;

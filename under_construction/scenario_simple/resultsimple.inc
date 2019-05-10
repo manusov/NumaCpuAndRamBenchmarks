@@ -1,7 +1,6 @@
-;------------------------------------------------------------------------------;
-; Measurement result message box, simple variant without drawings.             ;
-; Can be used for debug, also for improve final product useability on          ;
-; platforms with limited functionality                                         ;
+;--- Measurement result message box, simple variant without drawings ----------;
+;    Can be used for debug, also for improve final product useability on       ;
+;    platforms with limited functionality                                      ;
 ;                                                                              ;
 ; INPUT:  None at registers                                                    ;
 ;         Statical text strings used                                           ;

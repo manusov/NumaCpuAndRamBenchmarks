@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------;
-; Detection CPU Caches                                                   ;
+;--- Detection CPU Caches -----------------------------------------------;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save cache info                 ;
 ;                                                                        ;

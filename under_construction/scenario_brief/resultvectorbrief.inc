@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------------;
-; Build text data for measurement result message box,                          ; 
+;--- Build text data for measurement result message box, ----------------------; 
 ; brief variant without drawings.                                              ;
 ; Can be used for debug, also for improve final product useability on          ;
 ; platforms with limited functionality                                         ;

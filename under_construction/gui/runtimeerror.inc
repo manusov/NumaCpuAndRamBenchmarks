@@ -1,6 +1,5 @@
-;-------------------------------------------------------------------;
-; Output error reporting GUI window, used for                       ; 
-; "Vector brief", "Run simple", "Run drawings".                     ;
+;--- Output error reporting GUI window, used for -------------------; 
+;    "Vector brief", "Run simple", "Run drawings".                  ;
 ;                                                                   ;
 ; INPUT:   AL = Error code                                          ;
 ; OUTPUT:  None                                                     ;

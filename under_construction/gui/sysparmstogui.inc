@@ -1,6 +1,5 @@
-;------------------------------------------------------------------------------;
-; Update GUI visualized parameters and benchmarks options availability         ;
-; (gray or black) by system information results                                ; 
+;--- Update GUI visualized parameters and benchmarks options availability -----;
+;    (gray or black) by system information results                             ; 
 ;                                                                              ;
 ; INPUT:   None at registers                                                   ;
 ;          System Parameters Block = results of system information             ; 

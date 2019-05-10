@@ -1,5 +1,4 @@
-;-------------------------------------------------------------------;
-; Vector brief features detection and benchmarks mode run.          ;
+;--- Vector brief features detection and benchmarks mode run -------;
 ;                                                                   ;
 ; INPUT:   Threads management entries list.                         ;
 ; OUTPUT:  CF = Error flag: 0(NC)=OK, 1(C)=Execution error          ;

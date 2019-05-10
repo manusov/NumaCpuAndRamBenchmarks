@@ -45,17 +45,28 @@ jmp @b
 @@:
 ret
 
+;--- Customized formats support ---
 
-; previous local helpers
-; TODO. Comment it.
-
+;--- Print CR, LF and source string -------------------------------------;
+; INPUT:   RSI = Source address                                          ;
+;          RDI = Destination address                                     ;
+; OUTPUT:  RSI = Modified by copy                                        ;
+;          RDI = Modified by copy                                        ;
+;          Memory at [Input RDI] modified                                ; 
+;------------------------------------------------------------------------;
 StringWrite_CRLF:
 mov ax,0A0Dh
 stosw
 call StringWrite
 ret
 
-
+;--- Print " = " and source string, for " parameter = value " -----------;
+; INPUT:   RSI = Source address                                          ;
+;          RDI = Destination address                                     ;
+; OUTPUT:  RSI = Modified by copy                                        ;
+;          RDI = Modified by copy                                        ;
+;          Memory at [Input RDI] modified                                ; 
+;------------------------------------------------------------------------;
 StringWrite_CRLF_Equal:
 call StringWrite_CRLF
 mov ax,' ='
@@ -63,6 +74,13 @@ stosw
 stosb
 ret
 
+;--- Print CR, LF, " : " and source string, for " parameter = value " ---;
+; INPUT:   RSI = Source address                                          ;
+;          RDI = Destination address                                     ;
+; OUTPUT:  RSI = Modified by copy                                        ;
+;          RDI = Modified by copy                                        ;
+;          Memory at [Input RDI] modified                                ; 
+;------------------------------------------------------------------------;
 StringWrite_CRLF_Colon:
 call StringWrite_CRLF
 mov ax,' :'

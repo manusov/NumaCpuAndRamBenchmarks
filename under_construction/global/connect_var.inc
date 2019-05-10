@@ -41,15 +41,16 @@ HandleAdvapi32                   DQ  ?
 ;------------------------------------------------------------------------------;
 ; Test input and output operands located by alignment-optimal ordering
 ; and 64-byte cache line allocation
-; Test USER parameters
+; Test USER parameters, loaded from GUI widgets settings
 align 8
 UserParms  UPB
-; Test INPUT parameters
+; Test INPUT parameters, build IPB = F ( UPB, SYSPARMS )
 align 8
 InputParms  IPB
-; Test OUTPUT parameters
+; Test OUTPUT parameters, store OPB = F ( Benchmarks and TSC meas. results )
 align 8
 OutputParms  OPB
+; System information paramters, store = F ( Platform detection results )
 ; This fields use sequental store (STOS), must be sequentally,
 ; without internal language-defined hidden alignments
 align 8

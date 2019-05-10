@@ -1,7 +1,6 @@
-;------------------------------------------------------------------------------;
-; Initializing and start measurement and drawings session,                     ;
-; used for draw performance = f( block size ) function.                        ;
-; Include run  DrawSessionThread  subroutine as parallel thread                ;
+;--- Initializing and start measurement and drawings session, -----------------;
+;    used for draw performance = f( block size ) function.                     ;
+;    Include run  DrawSessionThread  subroutine as parallel thread             ;
 ;                                                                              ;
 ; INPUT:   None at registers                                                   ;
 ;          IPB = Input parameters block with benchmark scenario data           ;
@@ -19,8 +18,8 @@ DrawSessionStart:
 
 mov al,1  ; Run context = drawings, with memory allocation multiplication
 call GuiToUserParms
-call SessionStart
-jc .Exit            ; Go if error returned, AL = Error code
+call SessionStart     ; Initializing, allocate events, threads, memory
+jc .Exit              ; Go if error returned, AL = Error code
 
 ; Initializing pointers
 cld
@@ -99,7 +98,6 @@ lea rsi,[NumaOff_String]
 mov ecx,[rbx + IPB.UpdatedNUMA]
 cmp ecx,NUMA_LIMIT
 jae .L16 
-; lea rsi,[NumaU_String]
 jrcxz .L16
 .L17:
 lodsb
@@ -119,12 +117,9 @@ cmp eax,1
 ja .L20
 mov rax,[rsi + rax*8]
 mov [rbx + IPB.AdaptiveSeconds],rax
-; mov rax,[rbx + IPB.StartBlockSize]
-; mov edx,[rbx + IPB.MeasureRepeats]
-; mul rdx
-; mov [rbx + IPB.AdaptiveProduct],rax 
-; Run with recommended repeats count, TODO. Check CF flag, detect errors
 
+
+; Run with recommended repeats count, TODO. Check CF flag, detect errors
 ; TODO. Repeats count must be 64-bit, see also threads list initialization and
 ;       performance patterns.
 ; TODO. Buggy no-interpreting adaptive options cases for "Run simple".
@@ -164,8 +159,8 @@ mov edx,[rbx + IPB.UpdatedThreads]
 call ThreadsReStart
 .L21:
 
-; Calculate seconds and ratio
-push rax
+; Calculate seconds and ratio after calibration measurement
+push rax                            ; RAX = Delta TSC after ThreadsReStart
 finit
 fld [rbx + IPB.AdaptiveSeconds]     ; ST0 = Target seconds
 fild qword [rsp]                    ; ST0 = Measured delta TSC , ST1 = Target seconds
@@ -299,16 +294,6 @@ stosq                       ; Store handle in the thread parameters, ThreadHandl
 mov ecx,MEASURE_POINTS_COUNT * 2 + 15 - 3  ; OLD: + 4 dwords: 2 counters + break flag + align
 xor eax,eax                                ; -3 because 3 qwords already stored
 rep stosq
-
-; Wait for measurement thread run, this event at thread entry point
-; mov rcx,[rsi + DTHP.EventStart]  ; RCX = Parm#1 = Handle for start event
-; mov edx,10000                    ; RDX = Parm#2 = 10 seconds, time limit
-; call [WaitForSingleObject]
-; test rax,rax                     ; special encoding, 0 means event detected OK 
-; jnz .Error
-; WAIT EVENT MOVED TO WIN1.INC
-; OTHERWISE KILL PARENT THREAD (GUI) CAUSE KILL CHILD THREAD (MEASUREMENT),
-; AND CHILD THREAD DON'T SIGNALING DONE-EVENT.
 
 ; Done, no errors, parallel thread with  DrawSessionThread  subroutine RUNNING
 clc

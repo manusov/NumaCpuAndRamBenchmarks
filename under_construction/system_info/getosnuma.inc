@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------;
-; Get NUMA information by Windows API                                    ;
+;--- Get NUMA information by Windows API --------------------------------;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save ACPI SRAT info             ;
 ;                                                                        ;

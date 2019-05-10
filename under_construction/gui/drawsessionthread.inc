@@ -1,6 +1,5 @@
-;------------------------------------------------------------------------------;
-; This subroutine runs as parallel background thread, make measurements and    ;
-; store results. Used for draw performance = f( block size ) function.         ;
+;--- This subroutine runs as parallel background thread, make measurements ----; 
+;    and store results. Used for draw performance = f( block size ) function.  ;
 ;                                                                              ;
 ; INPUT:   None at CPU registers                                               ;
 ;                                                                              ;

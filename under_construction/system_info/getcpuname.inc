@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------;
-; Get CPU name string, execute CPUID functions 80000002h-80000004h.      ;
+;--- Get CPU name string, execute CPUID functions 80000002h-80000004h. --;
 ; Call this subroutine only if CPUID supported.                          ;
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save CPU Vendor String          ;

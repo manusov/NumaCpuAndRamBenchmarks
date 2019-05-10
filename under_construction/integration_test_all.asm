@@ -6,10 +6,10 @@
 
 ; UNDER CONSTRUCTION.
 
-; + AT_BUILD_PRODUCTION.  Unload dynamical import, advapi 32.
-; + AT_BUILD_PRODUCTION.  Message if build main window error.
-; + AT_BUILD_PRODUCTION.  Warning message if some functions not loaded.
-; TODO. Error decode and GUI box with message by benchmarks results,
+; + AT_BUILD_PRODUCTION.  TODO. Unload dynamical import, advapi 32.
+; + AT_BUILD_PRODUCTION.  TODO. Message if build main window error.
+; + AT_BUILD_PRODUCTION.  TODO. Warning message if some functions not loaded.
+; + AT_BUILD_PRODUCTION.  TODO. Error decode and GUI box with message by benchmarks results,
 ;       check CF flag after subroutines.
 
 ; Template for debug method 1 of 3 = Template debug.
@@ -112,7 +112,7 @@ include 'threads_manager\connect_code.inc'
 section '.data' data readable writeable
 
 ; This for unit test build.
-; TODO. Remove this requirements cause.
+; + TODO. Remove this requirements cause.
 ; CacheL1Data:
 ; CpuVendorString:
 ; CpuNameString:

@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------------;
-; Callback handler for drawings-child window                                   ;
+;--- Callback handler for drawings-child window -------------------------------;
 ; This subroutine called by OS,                                                ; 
 ; when application call DispatchMessage subroutine                             ;
 ; WM = Window Message                                                          ; 

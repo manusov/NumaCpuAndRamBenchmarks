@@ -1,5 +1,4 @@
-;-------------------------------------------------------------------;
-; Cycle for create all dialogue elements                            ;
+;--- Cycle for create all dialogue elements ------------------------;
 ; INPUT:   RSI = Pointer to elements descriptors list               ;
 ;          RDI = Start (numeric) handle for sequence                ;
 ;          R14 = Parent (true) module handle = [wc.hInstance]       ;
@@ -53,3 +52,4 @@ jnz .BuildCycle              ; Cycle for all descriptors, exit if error when RAX
 ExitRbp:
 mov rsp,rbp
 ret
+

@@ -1,5 +1,4 @@
-;------------------------------------------------------------------------------;
-; Extract options settings data from GUI widgets to User Parameters Block.     ;
+;--- Extract options settings data from GUI widgets to User Parameters Block --;
 ;                                                                              ;
 ; INPUT:   AL = Run context: 0 = by "Run simple" button                        ;
 ;                            1 = by "Run drawings" button                      ;
@@ -22,7 +21,7 @@ lea rdi,[UserParms]
 
 ; Setup run context for memory allocation multiplication mode control
 movzx eax,al
-mov [rdi+UPB.RunContext],eax  
+mov [rdi + UPB.RunContext],eax  
 
 ; Extract ASM-METHOD, for this option detect CHECKED only
 mov esi,HANDLE_X86_READ            ; Compare pattern = FIRST handle
@@ -34,7 +33,7 @@ cmp esi,HANDLE_LAST_METHOD         ; Compare with LAST handle
 jbe @b                             ; Cycle for radio buttons group
 @@:
 sub esi,HANDLE_X86_READ            ; 0 = First method toggler
-mov [rdi+UPB.OptionAsm],esi        ; Write method number = ESI 
+mov [rdi + UPB.OptionAsm],esi      ; Write method number = ESI 
 
 ; TODO. Optimize, WS_DISABLED and PARALLEL_NUMA_PG_BASE constants use in the registers
 
@@ -48,7 +47,7 @@ mov eax,PARALLEL_NOT_USED
 jnz @f
 inc eax                            ; PARALLEL_USED 
 @@:
-mov [rdi+UPB.OptionParallel],eax   ; Write option state = EAX
+mov [rdi + UPB.OptionParallel],eax  ; Write option state = EAX
 
 ; Extract USE HYPER THREADING, for this option detect both GRAY and CHECKED 
 xor eax,eax                        ; HT_NOT_SUPPORTED
@@ -60,7 +59,7 @@ mov eax,HT_NOT_USED
 jnz @f
 inc eax                            ; HT_USED 
 @@:
-mov [rdi+UPB.OptionHT],eax         ; Write option state = EAX
+mov [rdi + UPB.OptionHT],eax       ; Write option state = EAX
 
 ; Extract USE PROCESSOR GROUPS, for this option detect both GRAY and CHECKED 
 xor eax,eax                        ; PG_NOT_SUPPORTED
@@ -72,7 +71,7 @@ mov eax,PG_NO_CONTROL
 jnz @f
 inc eax                            ; PG_USED 
 @@:
-mov [rdi+UPB.OptionPG],eax         ; Write option state = EAX
+mov [rdi + UPB.OptionPG],eax       ; Write option state = EAX
 
 ; Extract NUMA CONTROL, for this option detect both GRAY and CHECKED
 ; TODO. Check subtracted constant "HANDLE_NUMA_UNAWARE - 1" see next option, but there 0=L1, here 0=UNAWARE really checked but gray ? REGULARIZE !
@@ -89,7 +88,7 @@ jbe @b                             ; Cycle for radio buttons group
 @@:
 sub esi,HANDLE_NUMA_UNAWARE - 1    ; 0 = First toggle button
 .NumaOff:
-mov [rdi+UPB.OptionNUMA],esi       ; Note SIL means bits SI.[7-0]
+mov [rdi + UPB.OptionNUMA],esi     ; Note SIL means bits SI.[7-0]
 
 ; Extract TARGET OBJECT (CACHE/DRAM), for this option detect CHECKED only
 mov esi,HANDLE_L1_CACHE
@@ -100,8 +99,8 @@ inc esi
 cmp esi,HANDLE_CUSTOM_BLOCK        ; Compare with LAST handle
 jbe @b                             ; Cycle for radio buttons group
 @@:
-sub esi,HANDLE_L1_CACHE           ; 0 = First toggle button
-mov [rdi+UPB.OptionTarget],esi     ; Note SIL means bits SI.[7-0]
+sub esi,HANDLE_L1_CACHE            ; 0 = First toggle button
+mov [rdi + UPB.OptionTarget],esi   ; Note SIL means bits SI.[7-0]
 
 ; Extract USE LARGE PAGES, for this option detect both GRAY and CHECKED 
 xor eax,eax                        ; LP_NOT_SUPPORTED
@@ -113,7 +112,7 @@ mov eax,LP_NOT_USED
 jnz @f
 inc eax                            ; LP_USED 
 @@:
-mov [rdi+UPB.OptionLP],eax         ; Write option state = EAX
+mov [rdi + UPB.OptionLP],eax       ; Write option state = EAX
 
 ; Extract MEASUREMENT MODE (FAST/SLOW/ADAPTIVE), for this option detect CHECKED only
 mov esi,HANDLE_BRIEF_MEASUREMENT
@@ -125,7 +124,7 @@ cmp esi,HANDLE_CAREFUL_ADAPTIVE_MEASUREMENT   ; Compare with LAST handle
 jbe @b                                        ; Cycle for radio buttons group
 @@:
 sub esi,HANDLE_BRIEF_MEASUREMENT              ; 0 = First toggle button
-mov [rdi+UPB.OptionMeasure],esi               ; Write option state = ESI
+mov [rdi + UPB.OptionMeasure],esi             ; Write option state = ESI
 
 ; Extract MEASUREMENT APPROXIMATION MODE, for this option detect CHECKED only
 mov esi,HANDLE_APPROXIMATION_NONE
@@ -137,7 +136,12 @@ cmp esi,HANDLE_APPROXIMATION_X32              ; Compare with LAST handle
 jbe @b                                        ; Cycle for radio buttons group
 @@:
 sub esi,HANDLE_APPROXIMATION_NONE             ; 0 = First toggle button
-mov [rdi+UPB.OptionApprox],esi                ; Write option state = ESI
+mov [rdi + UPB.OptionApprox],esi              ; Write option state = ESI
+
+; Extract CUSTOM BLOCK SIZE, from user-editable field to UPB qword
+mov rax,[BlockSizeEdit]
+mov [rdi + UPB.CustomBlockStart],rax
 
 ; Done
 ret
+
