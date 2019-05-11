@@ -185,7 +185,8 @@ pop rax
 lea rsi,[InputParms]
 lea rdi,[DrawParms]
 
-; Calculate X grid step values, must be integer power of 2 for next step correct 
+; Calculate X grid step values, must be integer power of 2 for next step correct
+; Note this operation increase memory size requirements, because increase RAX 
 mov rax,[rsi + IPB.StartBlockSize]
 bsr rcx,rax
 mov eax,1
@@ -207,8 +208,8 @@ push rax
 xor edx,edx
 mov ecx,GRIDSTEPX
 div rcx
-mov [rsi + IPB.StartBlockSize],rax
-mov [rsi + IPB.DeltaBlockSize],rax 
+mov [rsi + IPB.StartBlockSize],rax  ; X start value
+mov [rsi + IPB.DeltaBlockSize],rax  ; X addend per draw iteration 
 pop rax
 
 ; Update and store X grid step values

@@ -215,6 +215,12 @@ stosw
 stosw
 call StringWrite
 mov eax,[r8 + SYSPARMS.ProcessorsTotal]
+; Support platforms without processor groups
+test eax,eax
+jnz @f
+mov eax,[r8 + SYSPARMS.SystemInfo.dwNumberOfProcessors]
+@@: 
+; Write processors total
 call DecimalPrint32
 mov al,0
 stosb

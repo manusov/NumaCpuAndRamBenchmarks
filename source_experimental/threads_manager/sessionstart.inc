@@ -52,9 +52,9 @@ jmp .L1
 .L0:
 xor eax,eax
 .L1:
-mov [rdi + IPB.UpdatedAsm],eax
+mov [rdi + IPB.UpdatedAsm],eax       ; Select assembler method ID
 ; Setup tested object
-mov [rdi + IPB.UpdatedTarget],edx
+mov [rdi + IPB.UpdatedTarget],edx    ; Select target object (Cache/DRAM/Custom)
 
 ; Setup asm. routine address, set address and memory dump region, here EAX valid
 push rbx
@@ -73,11 +73,11 @@ mov [rdi + IPB.WalkRoutine],rax
 pop rax
 call GetLatencyDump
 .L4:
-mov [rdi + IPB.PatternRoutine],rbx
-mov [rdi + IPB.DumpMethodStart],rax
-mov [rdi + IPB.DumpMethodLength],edx
-shl ecx,3     ; convert bytes to bits
-mov [rdi + IPB.OperandWidth],ecx
+mov [rdi + IPB.PatternRoutine],rbx     ; Pointer to performance pattern 
+mov [rdi + IPB.DumpMethodStart],rax    ; Pointer to hex-dumped part of pattern
+mov [rdi + IPB.DumpMethodLength],edx   ; Hex-dumped part length
+shl ecx,3                              ; convert bytes to bits
+mov [rdi + IPB.OperandWidth],ecx       ; Select instruction operand width
 pop rbx
 
 ; Setup number of threads, use platform total number of threads if auto
@@ -107,23 +107,23 @@ cmp eax,1
 je .L8
 shr eax,1  ; Threads count / 2 if Hyper-Threading supported but not used
 .L8:
-mov [rdi + IPB.UpdatedThreads],eax
+mov [rdi + IPB.UpdatedThreads],eax  ; Setup number of threads
 
 ; Setup Hyper-Threading mode, plus, see above dependences on HT for threads count
 mov eax,[rsi + UPB.OptionHT]
-mov [rdi + IPB.UpdatedHT],eax
+mov [rdi + IPB.UpdatedHT],eax       ; Copy Hyper-Threading option (UPB to IPB)
 
 ; Setup Processor Group mode, plus, see above dependences on PG for threads count
 mov eax,[rsi + UPB.OptionPG]
-mov [rdi + IPB.UpdatedPG],eax
+mov [rdi + IPB.UpdatedPG],eax       ; Copy Processor Groups option 
 
 ; Setup NUMA mode, plus, see above dependences on NUMA for threads count
 mov eax,[rsi + UPB.OptionNUMA]
-mov [rdi + IPB.UpdatedNUMA],eax
+mov [rdi + IPB.UpdatedNUMA],eax     ; Copy NUMA option
 
 ; Setup Large Page mode
 mov eax,[rsi + UPB.OptionLP]
-mov [rdi + IPB.UpdatedLP],eax
+mov [rdi + IPB.UpdatedLP],eax       ; Copy Large Pages option
 
 ; Setup measurement precision ( calibration repeats ) mode
 mov eax,[rsi + UPB.OptionMeasure]
@@ -143,7 +143,7 @@ xor edx,edx
 mov ecx,50
 div ecx        ; If Latency mode, make measurement repeats / 50 ,
 .L13:          ; note after this, bits RAX.63-32 = 0
-mov [rdi + IPB.MeasureRepeats],rax
+mov [rdi + IPB.MeasureRepeats],rax  ; Setup number of measurement repeats
 
 ; Setup measurement scenario as block sizes sequence,
 ; for "Run simple" mode required one block size only 
@@ -181,22 +181,22 @@ mov rax,CUSTOM_BLOCK_MAX
 xchg rcx,rax
 jmp .L9
 .L12:
-shr rcx,1          ; TODO. ( Size/2 - 512 ) for "Run simple", other logic required for "Run drawings" 
+shr rcx,1          ; ( Size/2 - 512 ) for "Run simple", other logic required for "Run drawings" 
 sub rcx,512
 .L9:
-mov [rdi + IPB.StartBlockSize],rcx
+mov [rdi + IPB.StartBlockSize],rcx  ; Setup Block Size
 
 ; Setup approximation option, yet value copy only
 mov eax,[rsi + UPB.OptionApprox]
-mov [rdi + IPB.UpdatedApprox],eax
+mov [rdi + IPB.UpdatedApprox],eax   ; Copy X-approximation option (UPB to IPB)
 
 ; Setup Processor Groups parameters
 mov eax,[rbx + SYSPARMS.ProcessorGroups]
-mov [rdi + IPB.GroupsCount],eax
+mov [rdi + IPB.GroupsCount],eax     ; Setup number of Processor Groups
 
 ; Setup NUMA domains parameters
 mov eax,[rbx + SYSPARMS.NumaNodes]
-mov [rdi + IPB.DomainsCount],eax
+mov [rdi + IPB.DomainsCount],eax    ; Setup number of NUMA domains
 
 ; Setup page size, select default (typical 4KB) or large (typical 2M for x64)
 mov eax,[rbx + SYSPARMS.SystemInfo + SYSTEM_INFO.dwPageSize]
@@ -204,7 +204,7 @@ cmp [rdi + IPB.UpdatedLP],LP_USED
 jb .L11
 mov rax,[rbx + SYSPARMS.LargePageSize]
 .L11:
-mov [rdi + IPB.PageSize],rax
+mov [rdi + IPB.PageSize],rax        ; Setup Large Page size, bytes
 
 ; Setup memory allocation parameters, align allocated size by page size
 mov rax,[rdi + IPB.StartBlockSize]
@@ -219,25 +219,78 @@ and rax,rcx
 ; service all sizes when draw Performance = F(Size)
 cmp [rsi + UPB.RunContext],0
 je .L14
+; This required for memory reservation per drawings session
+bsr rcx,rax
+mov edx,1
+shl rdx,cl
+cmp rax,rdx
+jbe .L15
+lea rax,[rdx*2]  ; Make integer power of 2
+.L15:
+; X*5 for memory reservation per X axis values
 imul rax,rax,5   ; Xmax = Xtarget * 5
 .L14:
 
 ; Store memory size per one thread and total
-mov [rdi + IPB.MemoryPerThread],rax
+mov [rdi + IPB.MemoryPerThread],rax   ; Setup memory size per one thread
 mov ecx,[rdi + IPB.UpdatedThreads]
-mul rcx
-mov [rdi + IPB.MemoryTotal],rax
+mul rcx                               ; multiply by number of threads
+mov [rdi + IPB.MemoryTotal],rax       ; Setup memory size per all threads
 
 ; Build NUMA nodes list, 
 ; first step before memory allocation
-; TODO. Check status required after call ( CF flag )
+; NUMA unaware mode by option and by system limitations,
+; supported by transfer R8D to subroutine BuildNumaNodesList 
 lea rcx,[NumaNodesList]
 mov edx,[rdi + IPB.UpdatedPG]
-call BuildNumaNodesList  ; CF returned
+mov r8d,[rdi + IPB.UpdatedNUMA]
+call BuildNumaNodesList  ; CF returned, build list of NUMA nodes
 mov al,0                 ; AL = error status
 jc .Exit                 ; Go if error
 
-; Both NUMA-aware / unawaer memory allocation 
+; TODO (verify required).
+; Support NUMA options by update IPB and NUMA nodes list
+
+; Option = NUMA_NOT_SUPPORTED, NUMA_NO_CONTROL
+;   NUMA unaware = not change prepared list 
+; Option = NUMA_CURRENT_ONLY
+;   NUMA single domain = reduce node count to 1, reduce CPU count = per node 0
+; Option = NUMA_OPTIMAL 
+;   NUMA optimal = not change prepared list
+; Option = NUMA_NON_OPTIMAL 
+;   NUMA not optimal = shift affinity masks by ring, example 1-2-3-4 to 4-1-2-3
+
+; Reduce domains count for NUMA single domain scenario
+cmp [rdi + IPB.UpdatedNUMA],NUMA_CURRENT_ONLY
+jne .L30
+mov [rdi + IPB.DomainsCount],1
+cmp [rdi + IPB.UpdatedThreads],1
+jbe .L30
+mov eax,[SystemParameters.SystemInfo.dwNumberOfProcessors]  ; TODO. Get this from system or from one domain ?
+mov [rdi + IPB.UpdatedThreads],eax  ; Update number of threads = f ( NUMA mode )
+.L30:
+
+; Swap affinity masks for NUMA Non Optimal scenario
+cmp [rdi + IPB.UpdatedNUMA],NUMA_NON_OPTIMAL
+jne .L31
+lea rdx,[NumaNodesList + NUMACTRL.NodeAffinity]
+mov r8,rdx
+mov ecx,[rdi + IPB.DomainsCount]
+jrcxz .L31    ; skip if domains count = 0
+dec ecx
+jrcxz .L31    ; skip if domains count = 1
+mov rax,[rdx]
+.L32:
+add rdx,NUMACTRL_SIZE
+xchg rax,[rdx]  ; Rotate masks at domains entries, example 1-2-3-4 to 4-1-2-3
+loop .L32
+mov [r8],rax
+.L31:
+
+; TODO.
+; Possible bug if assymetric domains (processors per domain).
+
+; Both NUMA-aware / unaware memory allocation 
 ; inside subroutine MemAllocationNuma, 
 ; second step with memory allocation after nodes list build
 mov rax,[rdi + IPB.MemoryTotal]
@@ -247,16 +300,16 @@ div r8
 lea rcx,[NumaNodesList]           ; RCX = Base address of NUMA nodes list
 mov rdx,rax                       ; RDX = Memory allocation size per one node
 mov r9d,[rdi + IPB.UpdatedLP]     ; R9D = Large Pages option
-call MemAllocationNuma  ; CF returned
-mov al,0                ; AL = error status
-jc .Exit                ; Go if error
+call MemAllocationNuma   ; CF returned
+mov al,0                 ; AL = error status
+jc .Exit                 ; Go if error
 
 ; Build threads list
 lea rcx,[ThreadsList]
 lea rdx,[InputParms]
-call BuildThreadsList  ; CF returned 
-mov al,0               ; AL = error status
-jc .Exit               ; Go if error
+call BuildThreadsList    ; CF returned 
+mov al,0                 ; AL = error status
+jc .Exit                 ; Go if error
 
 ; TODO. Add "Threads allocation error" yet supported as "Memory allocation error"
 

@@ -35,27 +35,11 @@ lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
 call ThreadsReStart
 
-; Measurement initialization, conditional calibration for adaptive mode
-; UNDER CONSTRUCTION
-
 ; Measurement cycle
 .BackgroundProcess:
 
 cmp [r15 + DTHP.MeasureCounter],MEASURE_POINTS_COUNT  ; TODO. Replace this to wait with minimum utilization.
 jae .BackgroundSkip
-
-;- DEBUG DELAY -
-; mov ecx,90000h
-; loop $
-;- DEBUG STORE RESULTS -
-; mov eax,[r15 + DTHP.MeasureCounter]
-; imul eax,eax,16
-; lea rdi,[r15 + DTHP.MeasureArray + rax]
-; mov eax,32 * 5000000 * 2 ; 2
-; stosq
-; mov eax,1 * 5000000
-; stosq
-;- DEBUG -
 
 lea rsi,[InputParms]
 lea rdi,[OutputParms]
@@ -125,13 +109,8 @@ shl edx,4
 lea rdi,[r15 + DTHP.MeasureArray + rdx]
 stosq  ; Store delta TSC, clocks
 mov rax,[rsi + IPB.StartBlockSize]   ; Block size, units = bytes
-; mov edx,[rsi + IPB.OperandWidth]
-; shr edx,3
-; mul rdx                            ; Multiply by bytes per instruction
 mov rdx,[rsi + IPB.MeasureRepeats]
 mul rdx                              ; Multiply by measurement repeats
-; mov edx,[rsi + IPB.UpdatedThreads]
-; mul rdx                              ; Multiply by number of threads
 stosq  ; Store full length, bytes
 
 ; Update block size for performance = f(size)

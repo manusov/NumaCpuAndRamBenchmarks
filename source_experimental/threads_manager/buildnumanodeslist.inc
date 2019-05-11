@@ -1,6 +1,7 @@
 ;---------- NUMA nodes scan and build list of nodes ---------------------------;
 ; INPUT:   RCX = Pointer to nodes list, destination for this subroutine        ;
 ;          EDX = Processor Groups option, used if value = PG_OPTIMAL (2)       ;
+;          R8D = NUMA option, used for get nodes list scenario select          ;
 ;                                                                              ;
 ; OUTPUT:  CF = Error flag: 0(NC)=no errors, 1(C)=error                        ;
 ;          EAX = Number of allocated nodes, valid if CF=0(NC)                  ;
@@ -18,6 +19,10 @@ mov r14d,edx                         ; R14D = Number of processor groups
 mov rbp,rsp
 and rsp,0FFFFFFFFFFFFFFF0h           ; Stack alignment because WinAPI calls
 sub rsp,32                           ; Make parameters shadow because WinAPI calls 
+
+; Select scenario = f( NUMA option )
+cmp r8d,NUMA_NO_CONTROL
+jbe .WithoutNuma
 
 ; Get maximum node number
 mov rcx,rbp                          ; RCX = Parm #1 = Pointer to variable
@@ -67,14 +72,15 @@ jb .NumaNodesScan     ; Go cycle if entries available yet
 
 ; End of cycle for build list of nodes
 .NodesDone:
-sub rbx,r12           ; RBX = Number of bytes stored
-xchg rax,rbx          ; RAX = Number of bytes stored 
+sub rbx,r12            ; RBX = Number of bytes stored
+xchg rax,rbx           ; RAX = Number of bytes stored 
 xor edx,edx
-mov ebx,NUMACTRL_SIZE
-div ebx               ; RAX = Number of entries stored,
-
-; Exit points         ; note must count ACTIVE NODES if affinity mask non zero
-clc                   ; CF=0 means no errors
+mov ebx,NUMACTRL_SIZE  ; RBX = One entry size
+div ebx                ; RAX = Total size / Entry size = entries stored,
+                       ; note must count ACTIVE NODES if affinity mask non zero 
+; Exit points 
+.DoneNumaBuild:
+clc                    ; CF=0 means no errors
 .ExitNumaBuild:
 mov rsp,rbp           ; Restore RSP at subroutine entry, because stack alignment
 pop rcx r14 r13 r12 rbp rdi rsi rbx    ; first, pop rcx because local variable
@@ -82,4 +88,19 @@ ret
 .ErrorNumaBuild:
 stc                   ; CF=1 means error detected
 jmp .ExitNumaBuild
+
+; Branch without NUMA support, for platform without NUMA or
+; rejected by NUMA option settings
+
+; TODO.
+; Bug if NUMA rejected, but Processor Groups supported
+
+.WithoutNuma:
+mov rdi,rbx
+mov ecx,NUMACTRL_SIZE / 4
+xor eax,eax
+rep stosd
+mov rax,[SystemParameters.SystemInfo.dwActiveProcessorMask] 
+mov [rbx + NUMACTRL.NodeAffinity],rax
+jmp .DoneNumaBuild
 
