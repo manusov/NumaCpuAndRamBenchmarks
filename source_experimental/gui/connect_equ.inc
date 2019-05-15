@@ -59,8 +59,9 @@ SHIFTY     = 0      ; Y-shift plot sub window in the dialogue window, pixels
 BRUSH_GRID        = 00C8C8C8h         ; Grid with horizontal and vertical lines 
 BRUSH_LINE        = 000101F0h         ; Draw Line Speed = F (Block Size)
 BRUSH_BACKGROUND  = 00F9F9F9h         ; Draw window background
+BRUSH_STATISTICS  = 00E82121h         ; Statistics table lines 
 COLOR_TEXT_VALUES = 00414141h         ; Text front color, grid numeric values print
-COLOR_TEXT_UNITS  = 00E82121h         ; Text front color, units print
+COLOR_TEXT_UNITS  = BRUSH_STATISTICS  ; Text front color, units print
 COLOR_TEXT_BACK   = BRUSH_BACKGROUND  ; Text back color
 COLOR_TEXT_INFO   = COLOR_TEXT_UNITS  ; Text front color, system info print
 COLOR_TEXT_DUMP   = 0001B001h         ; Text front color, instruction dump print
@@ -117,7 +118,7 @@ Ymultiplier        dq  ?      ; ???
 ends
 
 ; Number of pixels by X, used for drawings, means number of measurements per draw
-MEASURE_POINTS_COUNT  EQU  640
+DRAW_POINTS_COUNT  EQU  640
 
 ; Benchmarking drawings measurement parallel thread state structure.
 struct DTHP
@@ -136,14 +137,20 @@ StatCpiAverage   dq  ?
 StatCpiMedian    dq  ?
 StatCpiSum       dq  ?
 
+StatNspiMin      dq  ?
+StatNspiMax      dq  ?
+StatNspiAverage  dq  ?
+StatNspiMedian   dq  ?
+StatNspiSum      dq  ?
+
 StatMbpsMin      dq  ?
 StatMbpsMax      dq  ?
 StatMbpsAverage  dq  ?
 StatMbpsMedian   dq  ?
 StatMbpsSum      dq  ?
 
-MeasureArray     dq  MEASURE_POINTS_COUNT * 2 dup (?)  ; Array of measurements results, unsigned integer 64-bit, [delta TSC] + [instructions count]
-                                                       ; under measurement updated by elements [double CPI] + [double MBPS] and ordered for median     
+MeasureArray     dq  DRAW_POINTS_COUNT dup (?)  ; Array of measurements results, unsigned integer 64-bit, [delta TSC] + [instructions count]
+                                                ; under measurement updated by elements [double CPI] + [double MBPS] and ordered for median     
 ends
 
 ; TODO.

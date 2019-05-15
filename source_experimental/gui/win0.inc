@@ -41,7 +41,8 @@ mov eax,1
 jmp .WinFinish
 
 
-; Handler for create window (open), build user interface objects 
+;------ Handler for create window (open), build user interface objects --------;
+ 
 .WinCreate:
 lea rsi,[DialogueContent_Win0]     ; RSI = Pointer to elements descriptors
 mov edi,START_HANDLE_WIN0          ; RDI = Start handle
@@ -51,7 +52,8 @@ call SetDialogueDefaults           ; Set defaults
 jmp .WinFinish
 
 
-; Handler for destroy window (close)
+;------------------- Handler for destroy window (close) -----------------------;
+
 .WinDestroy:
 xor ecx,ecx                        ; Parm#1 = RCX = Exit code
 call [PostQuitMessage]
@@ -59,7 +61,8 @@ xor eax,eax
 jmp .WinFinish
 
 
-; Handler for user commands
+;----------------------- Handler for user commands ----------------------------;
+
 ; Buttons: Run Simple, Run Drawings, Defaults, Close buttons
 ; Also used for make active/inactive block size edit string.
 ; Also used for extract and store variables = F(options state)
@@ -101,7 +104,6 @@ xor edi,0001b             ; Invert bit D0
 mov r8d,edi               ; R8 = Parm#3 = Select: 0=Clear READ ONLY, 1=Set READ ONLY
 xor r9d,r9d               ; R9 = Parm#4 = Not used = 0
 call [SendMessage]
-
 ; Check event source
 cmp r14,START_HANDLE_WIN0
 jb .WinDefaultProc     ; Skip if other handles, otherwise WM_SETTEXT cause error
@@ -159,33 +161,27 @@ mov edx,WM_SETTEXT        ; RDX = Parm#2 = Command, "WM" means Window Message
 xor r8d,r8d               ; R8  = Parm#3 = Don't used
 call [SendMessage]
 
-; TODO. Reorder handles comparings by GUI buttons location.
-; TODO. Reorder handlers also.
-
 
 ;-------------------------- Buttons handlers ----------------------------------;
 
-
-; Detect "About", "Run Simple", "Run Drawings", "Defaults" and "Cancel" buttons
+; Detect buttons press
+cmp r14,HANDLE_BUTTON_ABOUT
+je .ButtonHandlerAbout                ; Go if "About" button pressed
+cmp r14,HANDLE_BUTTON_BRIEF
+je .ButtonHandlerVectorBrief          ; Go if "Vector Brief" button pressed
 cmp r14,HANDLE_BUTTON_RUN_SIMPLE
 je .ButtonHandlerRunSimple            ; Go if "Run Simple" button pressed
 cmp r14,HANDLE_BUTTON_RUN_DRAWINGS
 je .ButtonHandlerRunDrawings          ; Go if "Run Drawings" button pressed
-cmp r14,HANDLE_BUTTON_BRIEF
-je .ButtonHandlerVectorBrief          ; Go if "Vector Brief" button pressed
 cmp r14,HANDLE_BUTTON_DEFAULTS
 je .ButtonHandlerDefaults             ; Go if "Defaults" button pressed
 cmp r14,HANDLE_BUTTON_CANCEL
 je .ButtonHandlerCancel               ; Go if "Cancel" button pressed
-cmp r14,HANDLE_BUTTON_ABOUT
-je .ButtonHandlerAbout                ; Go if "About" button pressed
 jmp .WinDefaultProc                   ; Otherwise default OS handler
 
 
-; TODO. Reorder handlers by GUI buttons location.
+;------------------------ Button handler: About -------------------------------;
 
-
-; Button handler: About
 .ButtonHandlerAbout:
 ; Disable parent window when daughter window work
 mov rcx,rbx                   ; RCX = Parm#1 = Handle
@@ -211,145 +207,8 @@ call [SendMessage]
 jmp .WinFinish
 
 
-; Button handler: Run Simple
-.ButtonHandlerRunSimple:
-; Disable parent window when daughter window work
-mov rcx,rbx            ; RCX = Parm#1 = Handle
-xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
-call [EnableWindow]
-push rbx               ; save handle for restore parent window activity
+;-------------------- Button handler: Vector Brief ----------------------------;
 
-
-; TODO. Replace to GuiToUpb (GuiToUserParms)
-; TODO. Correct block size for copy
-;-----------------------------------------;
-; OPTION_ASM_METHOD        EQU  12                   ; { asm methods (routines) list }
-;OPTION_TARGET_OBJECT       EQU  TARGET_L1            ; { L1, L2, L3, L4, DRAM, CUSTOM }
-;OPTION_PARALLEL            EQU  PARALLEL_NOT_USED    ; PARALLEL_USED  ; { NOT_SUP, NOT_USED, USED }  
-;OPTION_HYPER_THREADING     EQU  HT_NOT_SUPPORTED     ; { GRAY_NOT_SUP, DISABLED, ENABLED }
-;OPTION_PROCESSOR_GROUPS    EQU  PG_NO_CONTROL        ; { GRAY_NOT_SUP, DISABLED, ENABLED }
-;OPTION_NUMA                EQU  NUMA_NOT_SUPPORTED   ; { GRAY_NOT_SUP, UNAWARE, FORCE_ONE, FORCE LOCAL, FORCE REMOTE }
-;OPTION_LARGE_PAGES         EQU  LP_NOT_SUPPORTED     ; { GRAY_NOT_SUP, DISABLED, ENABLED }
-;OPTION_MEASUREMENT         EQU  MEASURE_CAREFUL      ; { FAST, SLOW, FAST_ADAPTIVE, SLOW_ADAPTIVE }
-;OPTION_CUSTOM_BLOCK_START  EQU  0                    ; Override start block size or 0=default
-;OPTION_CUSTOM_BLOCK_END    EQU  0                    ; Override end block size or 0=default
-;OPTION_CUSTOM_BLOCK_DELTA  EQU  0                    ; Override delta block size or 0=default
-;lea rsi,[UserParms]
-;; mov [rsi + UPB.OptionAsm]      , OPTION_ASM_METHOD
-;mov [rsi + UPB.OptionParallel]   , OPTION_PARALLEL
-;mov [rsi + UPB.OptionHT]         , OPTION_HYPER_THREADING
-;mov [rsi + UPB.OptionPG]         , OPTION_PROCESSOR_GROUPS 
-;mov [rsi + UPB.OptionNUMA]       , OPTION_NUMA
-;mov [rsi + UPB.OptionLP]         , OPTION_LARGE_PAGES  
-;mov [rsi + UPB.OptionTarget]     , OPTION_TARGET_OBJECT
-;mov [rsi + UPB.OptionMeasure]    , OPTION_MEASUREMENT 
-;mov [rsi + UPB.CustomBlockStart] , OPTION_CUSTOM_BLOCK_START
-;mov [rsi + UPB.CustomBlockEnd]   , OPTION_CUSTOM_BLOCK_END
-;mov [rsi + UPB.CustomBlockDelta] , OPTION_CUSTOM_BLOCK_DELTA
-;-----------------------------------------;
-
-mov al,0  ; Run context = simple, without memory allocation multiplication
-call GuiToUserParms
-
-;-----------------------------------------;
-
-; TODO.
-; Check errors after this subroutines "JC ERROR" and visual error strings from pool.
-
-; TODO.
-; Resources (memory) must be relesed even if error detected
-
-; TODO.
-; Regularize naming. Session to SimpleSession... / DrawSession... ? 
-
-call SessionStart
-jc .RunSimpleError
-call SessionProgress
-jc .RunSimpleError
-call SessionStop
-jc .RunSimpleError
-
-; call routines from "Run simple" scenario
-call ResultSimple 
-; input parameters for build message box
-xor ecx,ecx             ; RCX = Parm#1 = Parent window handle or 0
-lea rdx,[TEMP_BUFFER]   ; RDX = Dialogue window Parm#2 = Pointer to string
-lea r8,[PRODUCT_ID]     ; R8  = Parm#3 = Pointer to caption
-xor r9d,r9d             ; R9  = Parm#4 = Message box icon type
-sub rsp,32+8            ; stack re-frame + alignment
-call [MessageBoxA]
-add rsp,32+8
-jmp .RunSimpleDone
-; Error handling with messages
-.RunSimpleError: 
-call RuntimeError
-; Done
-.RunSimpleDone:
-pop rbx
-jmp .ReturnParentWindow
-
-
-; Button handler: Run Drawings
-.ButtonHandlerRunDrawings:
-; Disable parent window when daughter window work
-mov rcx,rbx            ; RCX = Parm#1 = Handle
-xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
-call [EnableWindow]
-push rbx               ; save handle for restore parent window activity
-; TODO. call ExecuteDraw
-; TODO. GuiToUserParms
-
-; TODO. Move this to drawings window event handler ?
-; call DrawSessionStart
-; call DrawSessionProgress
-; call DrawSessionStop
-
-; or:
-; call DrawSessionStart = at this routine, before build win1
-; call DrawSessionProgress = at win1 callback
-; call DrawSessionStop = at this routine, after build win1 
-
-
-;--- DEBUG: bound of added ---
-
-
-; At this point, parallel thread with DrawSessionThread subroutine STARTED.
-call DrawSessionStart 
-jc .RunDrawingsError
-
-; Create (Open) daughter window = Window 1
-; Build child window for drawings Speed=F(Size)
-; Terminology notes: WS = Window Style
-lea rsi,[WindowTitle_Win1]    ; RSI = Window name string pointer
-lea rdi,[Dialogue_Win1]       ; RSI = Dialogue descriptor pointer
-mov r10d,WS_VISIBLE+WS_DLGFRAME+WS_SYSMENU ; R10 = Window Style
-mov r11d,WIN1_XBASE           ; R11 = Window X-base
-mov r12d,WIN1_YBASE           ; R12 = Window Y-base
-mov r13d,WIN1_XSIZE           ; R13 = Window X-size
-mov r14d,WIN1_YSIZE           ; R14 = Window Y-size
-mov ax,0101h                  ; AH  = 1 , Means parent=RBX
-xchg al,[Win1_Init]           ; AL  = 1 , if window 1 already initialized
-call CreateApplicationWindow  ; RBX = Parent Handle
-; Wait events for Window 1
-lea rdi,[DialogueMsg_Win1]	  ; RDI = MSG structure
-call WaitEvent                ; Window 1 work as callbacks inside this
-
-; At this point, parallel thread with DrawSessionThread subroutine HALTED and REMOVED.
-call DrawSessionStop
-jnc .RunDrawingsDone 
-
-;--- DEBUG: bound of added ---
-
-; Error handling with messages
-.RunDrawingsError: 
-call RuntimeError
-; Done
-.RunDrawingsDone:
-pop rbx
-jmp .ReturnParentWindow
-
-
-; Button handler: Vector Brief
 .ButtonHandlerVectorBrief:
 ; Disable parent window when daughter window work
 mov rcx,rbx            ; RCX = Parm#1 = Handle
@@ -376,12 +235,94 @@ pop rbx
 jmp .ReturnParentWindow
 
 
-; Button handler: Defaults
+;----------------------- Button handler: Run Simple ---------------------------;
+
+.ButtonHandlerRunSimple:
+; Disable parent window when daughter window work
+mov rcx,rbx            ; RCX = Parm#1 = Handle
+xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
+call [EnableWindow]
+push rbx               ; save handle for restore parent window activity
+; Extract settings from GUI widgets
+mov al,0  ; Run context = simple, without memory allocation multiplication
+call GuiToUserParms
+; TODO.
+; Resources (memory) must be relesed even if error detected
+call SessionStart
+jc .RunSimpleError
+call SessionProgress
+jc .RunSimpleError
+call SessionStop
+jc .RunSimpleError
+; call routines from "Run simple" scenario
+call ResultSimple 
+; input parameters for build message box
+xor ecx,ecx             ; RCX = Parm#1 = Parent window handle or 0
+lea rdx,[TEMP_BUFFER]   ; RDX = Dialogue window Parm#2 = Pointer to string
+lea r8,[PRODUCT_ID]     ; R8  = Parm#3 = Pointer to caption
+xor r9d,r9d             ; R9  = Parm#4 = Message box icon type
+sub rsp,32+8            ; stack re-frame + alignment
+call [MessageBoxA]
+add rsp,32+8
+jmp .RunSimpleDone
+; Error handling with messages
+.RunSimpleError: 
+call RuntimeError
+; Done
+.RunSimpleDone:
+pop rbx
+jmp .ReturnParentWindow
+
+
+;----------------------- Button handler: Run Drawings -------------------------;
+
+.ButtonHandlerRunDrawings:
+; Disable parent window when daughter window work
+mov rcx,rbx            ; RCX = Parm#1 = Handle
+xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
+call [EnableWindow]
+push rbx               ; save handle for restore parent window activity
+; At this point, parallel thread with DrawSessionThread subroutine STARTED.
+call DrawSessionStart 
+jc .RunDrawingsError
+; Create (Open) daughter window = Window 1
+; Build child window for drawings Speed=F(Size)
+; Terminology notes: WS = Window Style
+lea rsi,[WindowTitle_Win1]    ; RSI = Window name string pointer
+lea rdi,[Dialogue_Win1]       ; RSI = Dialogue descriptor pointer
+mov r10d,WS_VISIBLE+WS_DLGFRAME+WS_SYSMENU ; R10 = Window Style
+mov r11d,WIN1_XBASE           ; R11 = Window X-base
+mov r12d,WIN1_YBASE           ; R12 = Window Y-base
+mov r13d,WIN1_XSIZE           ; R13 = Window X-size
+mov r14d,WIN1_YSIZE           ; R14 = Window Y-size
+mov ax,0101h                  ; AH  = 1 , Means parent=RBX
+xchg al,[Win1_Init]           ; AL  = 1 , if window 1 already initialized
+call CreateApplicationWindow  ; RBX = Parent Handle
+; Wait events for Window 1
+lea rdi,[DialogueMsg_Win1]	  ; RDI = MSG structure
+call WaitEvent                ; Window 1 work as callbacks inside this
+; At this point, 
+; parallel thread with DrawSessionThread subroutine HALTED and REMOVED.
+call DrawSessionStop
+jnc .RunDrawingsDone 
+; Error handling with messages
+.RunDrawingsError: 
+call RuntimeError
+; Done
+.RunDrawingsDone:
+pop rbx
+jmp .ReturnParentWindow
+
+
+;-------------------------- Button handler: Defaults --------------------------;
+
 .ButtonHandlerDefaults:
 call SetDialogueDefaults
 jmp .WinFinish
 
 
-; Button handler: Cancel
+;--------------------------- Button handler: Cancel ---------------------------;
+
 .ButtonHandlerCancel:
 jmp .WinDestroy
+

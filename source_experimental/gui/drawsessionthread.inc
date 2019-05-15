@@ -38,7 +38,7 @@ call ThreadsReStart
 ; Measurement cycle
 .BackgroundProcess:
 
-cmp [r15 + DTHP.MeasureCounter],MEASURE_POINTS_COUNT  ; TODO. Replace this to wait with minimum utilization.
+cmp [r15 + DTHP.MeasureCounter],DRAW_POINTS_COUNT  ; TODO. Replace this to wait with minimum utilization.
 jae .BackgroundSkip
 
 lea rsi,[InputParms]
@@ -104,14 +104,38 @@ call ThreadsReStart
 ; sub rax,[rsp+32]
 ; mov [rdi + OPB.OStimerDelta],rax    ; Store delta-OS timer, units = 100 ns 
 
+;
+;mov edx,[r15 + DTHP.MeasureCounter]
+;shl edx,4
+;lea rdi,[r15 + DTHP.MeasureArray + rdx]
+;stosq  ; Store delta TSC, clocks
+;mov rax,[rsi + IPB.StartBlockSize]   ; Block size, units = bytes
+;mov rdx,[rsi + IPB.MeasureRepeats]
+;mul rdx                              ; Multiply by measurement repeats
+;stosq  ; Store full length, bytes
+;
+
+; Calculte and store CPI = Clocks per Instruction,
+; CPI = f ( Delta TSC, Instructions count )
 mov edx,[r15 + DTHP.MeasureCounter]
-shl edx,4
+shl edx,3      ; 2^3 = 8 bytes per store (QWORD)
 lea rdi,[r15 + DTHP.MeasureArray + rdx]
-stosq  ; Store delta TSC, clocks
+push rax       ; RAX = Delta TSC per target operation, integer 64-bit
+finit
+fild qword [rsp]
 mov rax,[rsi + IPB.StartBlockSize]   ; Block size, units = bytes
-mov rdx,[rsi + IPB.MeasureRepeats]
-mul rdx                              ; Multiply by measurement repeats
-stosq  ; Store full length, bytes
+mov rcx,[rsi + IPB.MeasureRepeats]   ; Total bytes per measurement cycle
+mul rcx                              ; TODO. Compact MUL by memory
+mov ecx,[rsi + IPB.OperandWidth]     ; RCX = bits per instruction
+shr ecx,3                            ; RCX = bytes per instruction
+xor edx,edx
+div rcx                              ; TODO. Use x87 to prevent exception 0
+mov [rsp],rax
+fild qword [rsp]  ; ST0 = Instruction cound, ST1 = Delta TSC
+fdivp st1,st0     ; ST0 = CPI
+fstp qword [rsp]
+pop rax        ; RAX = Clocks per Instruction (CPI), floating point, double
+stosq
 
 ; Update block size for performance = f(size)
 mov rax,[rsi + IPB.DeltaBlockSize]
@@ -124,20 +148,18 @@ inc [r15 + DTHP.MeasureCounter]
 ; it copy  16-1=15  or  32-1=31  times.
 mov eax,[rsi + IPB.UpdatedApprox]
 test eax,eax
-jz .NoApproxMode
-mov ecx,15
+jz .NoApproxMode       ; go if no approximation mode
+mov ecx,15             ; 1 already + 15 duplicated = 16 total stores
 cmp eax,APPROX_X16
 je .YesApproxMode
-mov cl,31
-.YesApproxMode:
-mov rax,[rdi-16]
-stosq
-mov rax,[rdi-16]
-stosq
+mov cl,31              ; 1 already + 31 duplicated = 32 total stores
+.YesApproxMode:        ; approximation duplication cycle
+mov rax,[rdi-8]
+stosq                  ; one duplication per loop
 mov r8,[rsi + IPB.DeltaBlockSize]
 add [rsi + IPB.StartBlockSize],r8
 inc [r15 + DTHP.MeasureCounter]
-loop .YesApproxMode
+loop .YesApproxMode    ; approximation duplication cycle
 .NoApproxMode:
 
 ; Cycle with support termination by break

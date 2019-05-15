@@ -70,7 +70,7 @@ BigTexts           DB  1024 DUP (?)  ; 1024 bytes, Big texts
 HandleMemDC        DQ  ?          ; Handle for Device Context, video controller
 BitmapPointer      DQ  ?          ; Bitmap pointer
 HandleBitmap       DQ  ?          ; Handle of bitmap for graphics draw
-HandlesBrushes     DQ  3 DUP (?)  ; Handle for color brushes
+HandlesBrushes     DQ  4 DUP (?)  ; Handle for color brushes
 HandleFont         DQ  ?          ; Handle for font in the drawings window
 HandleDC           DQ  ?          ; Handle Graphical Device Context
 
@@ -116,4 +116,3 @@ DrawParms  DRPM
 ; Parallel thread for measurements at draw window, state parameters.
 align 8
 DrawThreadParms  DTHP
-

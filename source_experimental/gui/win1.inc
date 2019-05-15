@@ -45,7 +45,8 @@ mov eax,1
 jmp .WinFinish
 
 
-; Handler for system event: window create
+;------------------ Handler for system event: window create -------------------;
+
 .WinCreate:
 ; TODO.
 ; Initializing statistics
@@ -80,7 +81,7 @@ call [SelectObject]
 cld
 lea rsi,[BrushesList]                  ; RSI = Pointer to color data
 lea rdi,[HandlesBrushes]               ; RDI = Pointer for store brushes handles
-mov ebp,3                              ; EBP = Number of brushes
+mov ebp,4                              ; EBP = Number of brushes
 @@:
 lodsd                                  ; EAX = Color, RSI+4, select next color 
 xchg ecx,eax                           ; Parm#1 = RCX = Color
@@ -119,15 +120,15 @@ call [SetTimer]
 mov rcx,[DrawThreadParms + DTHP.EventStart]  ; RCX = Parm#1 = Handle for start event
 mov edx,10000                    ; RDX = Parm#2 = 10 seconds, time limit
 call [WaitForSingleObject]
-;
 ; TODO. Check status after [WaitForSingleObject]
-;
 ; End of initialization, enable draw counter
 mov [Win1_Running],1
 jmp .WinStatus
 
 
-; Handler for system event: window destroy
+;------------------ Handler for system event: window destroy ------------------;
+; include "Cancel" button handler
+
 .WinDestroy:
 push rcx rdx r8 r9
 sub rsp,32
@@ -138,10 +139,8 @@ mov [DrawThreadParms + DTHP.MeasureBreak],1
 mov rcx,[DrawThreadParms + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done event
 mov edx,10000                    ; RDX = Parm#2 = 10 seconds
 call [WaitForSingleObject]
-;
 ; TODO. Use RSI-based addressing
 ; TODO. Check status after [WaitForSingleObject]
-;
 ; De-Initialize graphics context
 mov rcx,[HandleMemDC]
 call [DeleteDC]
@@ -150,7 +149,7 @@ call [DeleteObject]
 ; Delete brushes
 cld
 lea rsi,[HandlesBrushes]               ; RSI = Pointer for store brushes handles
-mov ebp,3                              ; EBP = Number of brushes
+mov ebp,4                              ; EBP = Number of brushes
 @@:
 lodsq                                  ; RAX = Brush handle
 xchg rcx,rax                           ; Parm#1 = RCX = Handle
@@ -185,7 +184,8 @@ xor eax,eax
 jmp .WinFinish
 
 
-; Handler for user event: buttons input
+;----------------- Handler for user event: buttons input ----------------------;
+
 .WinCommand:
 ; Check phase of execution
 cmp [Win1_Init],1
@@ -196,56 +196,12 @@ je .WinDestroy                        ; Go if "Cancel" button
 cmp r8,HANDLE_BUTTON_RUN1
 jne .WinDefaultProc                   ; Go if not "Resize" button
 
+;------------------------ "Resize" button handler -----------------------------; 
 
-;--- OLD / DEBUG. REDUNDANT WITH INITSTATISTICS ---
 ; TODO. Use base pointers.
 ; TODO. Required synchronization because non-atomic memory structures
-; update operations. This variables used by parallel thread.
-; mov [Win1_Running],1
-; mov [DrawThreadParms + DTHP.MeasureCounter],0   ; TODO. Use RAX for )
-; mov [DrawThreadParms + DTHP.VisualCounter],0
-; mov [DrawParms + DRPM.DrawPreviousY],0
-; mov [DrawParms + DRPM.TimerCount],0
-; TODO. This must be restartable if start not equal step, make copy, use UPB ?
-; mov rax,[InputParms + IPB.DeltaBlockSize]
-; mov [InputParms + IPB.StartBlockSize],rax
-; Initializing pointer to array of measurement results
-; lea rdi,[DrawThreadParms]
-; Rescaling by Y axis
-; TODO. Optimize this mathematics
-; TODO. This rescaling is BAD. Y grid values must be floating point (double),
-; bacause 1 ns grid step for latency can be too big. 
-; INT3
-;-
-; finit
-; cmp [InputParms + IPB.UpdatedAsm],LATENCY_MODE
-; jae .L40
-; fld [rdi + DTHP.StatMbpsMax]
-; jmp .L41
-; .L40:
-; fld [rdi + DTHP.StatCpiMax]
-; .L41:
-; push 90 10
-; fidiv dword [rsp+8]
-;  TODO. Rounding for /10 ?
-; fimul dword [rsp]
-; fistp dword [rsp+8]
-; pop rax rax
-; mov [DrawParms + DRPM.ValueGridY],eax
-;-
-; TODO. Remove duplication this at drawsessionstart.inc
-; push rax -GRIDSTEPY
-; fild dword [rsp]      ; ST0 = - grid step, pixels
-; fidiv dword [rsp+8]   ; ST0 = ( - grid step, pixels ) / ( Y units per grid )      
-; fstp [DrawParms + DRPM.Ymultiplier]
-; pop rax rax
-; Clear measurement counter and array of measurement results
-; mov ecx,MEASURE_POINTS_COUNT * 2 + 15  ; OLD: + 4 dwords: 2 counters + break flag + align
-; xor eax,eax
-; rep stosq
-;--- OLD / DEBUG. REDUNDANT WITH INITSTATISTICS ---
-
-; TODO. Check errors (CF flag) after thread control routines
+;       update operations. This variables used by parallel thread.
+; TODO. Check errors (CF flag) after thread control routines, see below all
 
 ; Set thread break flag
 mov [DrawThreadParms + DTHP.MeasureBreak],1
@@ -258,70 +214,63 @@ call DrawSessionStop
 ; Clear drawings variables 
 mov [DrawParms + DRPM.DrawPreviousY],0
 mov [DrawParms + DRPM.TimerCount],0
-
 ; Rescaling
 lea rdi,[DrawThreadParms]
 finit
 cmp [InputParms + IPB.UpdatedAsm],LATENCY_MODE
 jae .L40
+
 fld [rdi + DTHP.StatMbpsMax]
-jmp .L41
-.L40:
-fld [rdi + DTHP.StatCpiMax]
-.L41:
 push 90 10
+jmp .L41
+
+.L40:
+; fld [rdi + DTHP.StatCpiMax]
+fld [rdi + DTHP.StatNspiMax]
+push 9 2
+
+.L41:
+; push 90 10
 fidiv dword [rsp+8]
-; TODO. Rounding for /10 ?
 fimul dword [rsp]
 fistp dword [rsp+8]
-; pop rax rax
-; mov [DrawParms + DRPM.ValueGridY],eax
-
 ; Restart
 call DrawSessionStart
-
 pop rax rax
-
 test eax,eax
 jnz @f
 inc eax
 @@:
-
 mov [DrawParms + DRPM.ValueGridY],eax
-
 ; TODO. Remove duplication this at drawsessionstart.inc
 push rax -GRIDSTEPY
 fild dword [rsp]      ; ST0 = - grid step, pixels
 fidiv dword [rsp+8]   ; ST0 = ( - grid step, pixels ) / ( Y units per grid )      
 fstp [DrawParms + DRPM.Ymultiplier]
 pop rax rax
-
 ; Wait for measurement thread run, this event at thread entry point
 mov rcx,[DrawThreadParms + DTHP.EventStart]  ; RCX = Parm#1 = Handle for start event
 mov edx,10000                    ; RDX = Parm#2 = 10 seconds, time limit
 call [WaitForSingleObject]
-
 mov [Win1_Running],1
-
 jmp .WinStatus
 
 
-; Handler for timer event: tick
+;--------------- Handler for timer event: timer tick callback -----------------;
+
 .WinTimer:
 lea rcx,[Win1_Running]
 lea rdx,[DrawParms + DRPM.TimerCount]     ; For two variables: COUNT, PREVIOUS Y
 xor eax,eax                ; This clear entire RAX
+; Check session running
 cmp [rcx],al               ; 0=Stop, 1=First, 2=Progress
 je .SkipTimer              ; Skip if halted
 inc dword [rdx]            ; Counter +1
-
-; cmp dword [rdx],SUBWINX - 134 ; TODO. Make EQU.
-; jbe .YetNotHalt            ; Skip if limit not reached yet
-; mov qword [rdx],rax        ; Count=0 means READY TO NEXT START, clear BOTH DWORDS: COUNT and PREVIOUS Y 
-
+; Check session abort
 cmp [DrawThreadParms + DTHP.MeasureBreak],0
 je .YetNotHalt 
 mov [rcx],al               ; Running=0 means HALTED
+; Set revisualization request
 .YetNotHalt:
 mov rcx,rbx                ; Parm#1 = RCX = Window handle 
 xor edx,edx                ; Parm#2 = RDX = Pointer to invalidated region, 0=All window
@@ -331,7 +280,8 @@ call [InvalidateRect]      ; This cause callback WM_PAINT operation
 jmp .WinStatus
 
 
-; Handler for system event: window paint callback
+;-------------- Handler for system event: window paint callback ---------------;
+
 .WinPaint:
 ; Make paint context
 mov rcx,rbx                ; Parm#1 = RCX = Parent window handle
@@ -348,45 +298,20 @@ cmp al,0                   ; 0 = Halted
 je .EndPaint
 cmp al,1                   ; 1 = First drawings (grid)
 je .FirstPaint             ; Go if this is first pass, draw axes
-; ...
-; ... draw y=f(x), not a first pass
+; continue draw y=f(x), not a first pass
 
 ; TODO. Replace to DrawSessionThread
 ; call DrawSessionProgress
 
-
-
 ; Setup drawings
-
-;;- DEBUG
-;;- mov eax,[DrawParms + DRPM.DrawCount]
-;mov eax,[DrawThreadParms + DTHP.MeasureCounter]
-;add eax,GRIDBLANKX
-;lea edx,[eax+1]
-;mov ecx,SUBWINY-GRIDBLANKY - 2
-;mov r8d,SUBWINY-GRIDBLANKY - 1
-;;- DEBUG
-;mov [rdi+RECT.left],eax
-;mov [rdi+RECT.top],ecx
-;mov [rdi+RECT.right],edx
-;mov [rdi+RECT.bottom],r8d
-;;- Draw current point Y=F(X)
-;mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
-;mov rdx,rdi                  ; Parm#2 = RDX = Pointer to RECT strucnure
-;mov r8,[HandlesBrushes+08]   ; Parm#3 = R8 = Handle to a color brush
-;call [FillRect]
-
 lea rcx,[DrawThreadParms]
 lea r14,[rcx + DTHP.MeasureArray]
 mov ebp,[rcx + DTHP.MeasureCounter]
-
 mov r12d,[rcx + DTHP.VisualCounter]
 lea r13,[r12+1]
-
 mov rax,r12
-shl rax,4
+shl rax,3       ; 2^3 = 8 bytes per entry (QWORD)
 add r14,rax
-
 mov [rcx + DTHP.VisualCounter],ebp
 sub ebp,r12d
 jbe .EndLine
@@ -396,63 +321,12 @@ add r12,GRIDBLANKX + 1
 .DrawLine: 
 ; Calculate EAX = F(measurement result)
 
-;- DEBUG -
-; mov eax,ebp
-; and eax,0Fh
-; mov edx,eax
-; mul edx
-; neg eax
-;- DEBUG -
-; mov rax,[r14 + 0]  ; bytes count ; OLD = instructions count
-; mov edx,[r14 + 8]  ; delta TSC
-; neg eax
-;- DEBUG -
-
-
-;- DEBUG Y-POSITION CALC -
-
 ; TODO. Replace X/1000000 with X * 1/1000000, pre-defined constant,
 ;       because multiply faster then divide.
 ; TODO. Minimize calculations by pre-define TWO constants: 
 ;       1000000 and Ymultiplier as ONE constant.
 ; TODO. Make addressing with base register for OutputParms, DrawParms ?
 ;
-
-;- DEBUG Y-POSITION CALC -
-;
-; finit
-; cmp [InputParms + IPB.UpdatedAsm],LATENCY_MODE
-; jae .LatencyMode 
-;
-;. BandwidthMode:
-; push 1000000                         ; Decimal megabytes divisor, TODO. Make EQU
-; fild qword [r14 + 8]                 ; ST0 = Total bytes
-; fidiv dword [rsp]                    ; ST0 = Total decimal megabytes          
-; fild qword [r14 + 0]                 ; ST0 = Delta TSC, clocks
-; fmul [OutputParms + OPB.TSCperiodS]  ; ST0 = Delta Time, seconds , ST1 = Total decimal megabytes   
-; fdivp st1,st0                        ; ST0 = Megabytes / Second = MBPS
-; fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
-; fistp qword [rsp]                    ; Store ST0 as integer
-; pop rax                              ; RAX = Integer pixel offset
-; jmp .DoneLatencyOrBandwidth
-;
-; .LatencyMode:
-; mov eax,[InputParms + IPB.OperandWidth]
-; shr eax,3
-; push rax
-; fild qword [r14 + 0]                       ; ST0 = Delta TSC
-; fmul qword [OutputParms + OPB.TSCperiodNs] ; ST0 = Delta time, nanoseconds
-; fild qword [r14 + 8]                       ; ST0 = Total bytes, ST1 = Delta time
-; fidiv dword [rsp]                          ; ST0 = Total qwords, units for latency test
-; fdivp st1,st0
-; fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
-; fistp qword [rsp]                    ; Store ST0 as integer
-; pop rax                              ; RAX = Integer pixel offset
-;
-; .DoneLatencyOrBandwidth:
-; 
-;- DEBUG Y-POSITION CALC -
-
 ; TODO. Optimize this mathematics.
 ; Remember about can use integer compare for floation point operands,
 ; because shifted order. Instead FCOM / FSTSW AX / SAHF.
@@ -462,101 +336,125 @@ add r12,GRIDBLANKX + 1
 ; Use median ordering for min-max also.
 ; Remove finit from body of cycle ? 
 
-; TODO. Use min/max logic by integer ordering, it already exist because median calculated.
+; UPDATED.
 
+; Load pointer, used for all statistics calculation
+lea r11,[DrawThreadParms]
+
+; Get current measurement, must be before ordering
+; at this point FPU x87 initialized
 finit
+fld qword [r14]
+
+; Calculate average CPI
+push r13                          ; R13 = divisor for averaging
+fld qword [r14]                   ; ST0 = current measured value
+fadd [r11 + DTHP.StatCpiSum]
+fst [r11 + DTHP.StatCpiSum]
+fidiv dword [rsp]
+fst [r11 + DTHP.StatCpiAverage]   ; store average CPI
+call CPItoNSPI
+fst [r11 + DTHP.StatNspiAverage]  ; store average nsPI = f (average CPI)
+call NSPItoMBPS
+fadd [r11 + DTHP.StatMbpsSum]
+fst [r11 + DTHP.StatMbpsSum]     ; store average MBPS, averaging separately
+fidiv dword [rsp]
+fimul [InputParms + IPB.UpdatedThreads]
+fstp [r11 + DTHP.StatMbpsAverage]
+pop r13
+
+; Median ordering, also used for min/max
+; Note floating point values can be ordered by integer compare,
+; because shifted exponent used at FP format
+.L23:
+lea rcx,[r13-1]
+lea rdx,[r11 + DTHP.MeasureArray]
+mov r9,rdx                            ; R9  = Pointer to array first element
+lea r10,[rdx + rcx*8]                 ; R10 = Pointer to array last element
+jrcxz .L21
+xor eax,eax
+.L20:
+mov r8,[rdx + 0]
+cmp r8,[rdx + 8]
+jbe .L22
+xchg r8,[rdx + 8]
+mov [rdx + 0],r8
+mov al,1
+.L22:
+add rdx,8
+dec ecx
+jnz .L20        ; DEC/JNZ faster then LOOP
+test eax,eax
+jnz .L23 
+.L21:
+
+; Get minimum and maximum after median ordering
+fld qword [r9]                    ; ST0 = first element, minimum CPI
+fst [r11 + DTHP.StatCpiMin]
+call CPItoNSPI
+fst [r11 + DTHP.StatNspiMin]
+call NSPItoMBPS
+fimul [InputParms + IPB.UpdatedThreads]
+fstp [r11 + DTHP.StatMbpsMax]
+
+fld qword [r10]                   ; ST0 = last element, maximum CPI
+fst [r11 + DTHP.StatCpiMax]
+call CPItoNSPI
+fst [r11 + DTHP.StatNspiMax]
+call NSPItoMBPS
+fimul [InputParms + IPB.UpdatedThreads]
+fstp [r11 + DTHP.StatMbpsMin]
+
+; Get median CPI, nsPI after median ordering, note FPU already initialized 
+lea rcx,[r13-1]
+shr ecx,1                      ; This branch for median ODD-sized array
+fld qword [r9 + rcx*8]         ; Get median
+jnc .L30                       ; Go if median for ODD size
+fadd qword [r9 + rcx*8 + 8]
 fld1
-lea r8,[DrawThreadParms]
-mov rax,[r14 + 8]     ; RAX = Executed block size, bytes, per one thread
-xor edx,edx
-mov ecx,[InputParms + IPB.OperandWidth]  ; TODO. Use register-pointer for IPB access
-shr ecx,3
-div rcx               ; RAX = Number of instructions executed at one thread
-push rcx rcx rax
-fild qword [r14 + 0]  ; ST0 = Number of TSC clocks
-fild qword [rsp]      ; ST0 = Number of instructions executed at one thread, ST1 = TSC clocks 
-fdivp st1,st0         ; ST0 = ST1/ST0 = Clocks Per Instruction (CPI) at one thread
+fadd st0,st0
+fdivp st1,st0
+.L30:
+fst [r11 + DTHP.StatCpiMedian]
+call CPItoNSPI
+fimul [InputParms + IPB.UpdatedThreads]
+fstp [r11 + DTHP.StatNspiMedian]
 
-; required store CPI statistics, this overwrites delta-TSC
-fst qword [r14 + 0]
+; Get median MBPS, recalculate because reciprocal restrictions
+lea rcx,[r13-1]
+shr ecx,1                      ; This branch for median ODD-sized array
+fld qword [r9 + rcx*8]         ; Get median
+pushf
+call CPItoNSPI
+call NSPItoMBPS
+popf
+jnc .L31                       ; Go if median for ODD size
+fld qword [r9 + rcx*8 + 8]
+call CPItoNSPI
+call NSPItoMBPS
+faddp st1,st0
+fld1
+fadd st0,st0
+fdivp st1,st0
+.L31:
+fstp [r11 + DTHP.StatMbpsMedian]
 
-cmp [r8 + DTHP.StatCpiMin],0
-je .L1 
-fcom [r8 + DTHP.StatCpiMin]
-fstsw ax
-sahf
-jnc .L0  ; Here EFLAGS.CF=1 if FPU SW.C0=1 means ST0 >= [operand]
-.L1:
-fst [r8 + DTHP.StatCpiMin]
-.L0:
- 
-fcom [r8 + DTHP.StatCpiMax]
-fstsw ax
-sahf
-jc .L2  ; Here EFLAGS.CF=1 if FPU SW.C0=1 means ST0 >= [operand]
-fst [r8 + DTHP.StatCpiMax]
-.L2:
-
-fld st0
-fadd [r8 + DTHP.StatCpiSum]
-fst [r8 + DTHP.StatCpiSum]
-mov [rsp],r13d
-fidiv dword [rsp]
-fstp [r8 + DTHP.StatCpiAverage]
-
-fmul [OutputParms + OPB.TSCperiodNs]  ; ST0 = Nanoseconds Per instruction
-fld st0
-fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
-fistp qword [rsp+16]   ; Store pixel offset for LATENCY
-fdivp st1,st0          ; ST0 = Instructions Per nanosecond
-fimul dword [rsp + 8]  ; ST0 = Bytes Per nanosecond
-; TODO. Use register-pointer for IPB access
-fimul [InputParms + IPB.UpdatedThreads]  ; ST0 = [ one thread performance ] * [ number of threads ]
-mov dword [rsp],1000
-fimul dword [rsp]      ; ST0 = Decimal Megabytes Per Second (MBPS)
-
-; required store MBPS statistics, this overwrites bytes per one thread
-fst qword [r14 + 8]
-
-cmp [r8 + DTHP.StatMbpsMin],0
-je .L11 
-fcom [r8 + DTHP.StatMbpsMin]
-fstsw ax
-sahf
-jnc .L10  ; Here EFLAGS.CF=1 if FPU SW.C0=1 means ST0 >= [operand]
-.L11:
-fst [r8 + DTHP.StatMbpsMin]
-.L10:
- 
-fcom [r8 + DTHP.StatMbpsMax]
-fstsw ax
-sahf
-jc .L12  ; Here EFLAGS.CF=1 if FPU SW.C0=1 means ST0 >= [operand]
-fst [r8 + DTHP.StatMbpsMax]
-.L12:
-
-fld st0
-fadd [r8 + DTHP.StatMbpsSum]
-fst [r8 + DTHP.StatMbpsSum]
-mov [rsp],r13d
-fidiv dword [rsp]
-fstp [r8 + DTHP.StatMbpsAverage]
-
-fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
-fistp qword [rsp]                    ; Store ST0 as integer
-pop rax rcx rcx        ; Store pixel offset for MBPS
-; Select MBPS or Latency
+; Start calculations for drawings Y = f( CPI ),
+; ST0 = current value, loaded before re-ordering
+call CPItoNSPI
 cmp [InputParms + IPB.UpdatedAsm],LATENCY_MODE
-jb @f
-xchg rax,rcx
-@@:
+jae .L50
+call NSPItoMBPS
+.L50:
+fimul [InputParms + IPB.UpdatedThreads]
+fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
+push rax
+fistp dword [rsp]
+pop rax
 
-;- DEBUG Y-POSITION CALC -
-;
-; xor eax,eax ; 0 = BaseY axis
-;
-;- DEBUG Y-POSITION CALC -
-
+; DEBUG FOR SET Y=0
+; XOR EAX,EAX
+; DEBUG
 
 ; Setup coordinates for GUI
 add eax,SUBWINY-GRIDBLANKY - 1
@@ -584,7 +482,7 @@ mov r8d,ecx
 sub r8d,eax
 cmp r8d,1
 jbe @f
-inc ecx            ; Make down extra-pixel for vertical line  
+inc ecx           ; Make down extra-pixel for vertical line  
 @@:
 
 ; Store coordinates for rectangle as part of line Y=F(X)
@@ -594,7 +492,6 @@ inc ecx            ; Make down extra-pixel for vertical line
 ;       otherwise no reaction at key (X = cache size) points.
 
 push r12
-
 mov r8d,[InputParms.UpdatedApprox]
 test r8d,r8d
 jz .NoApproxMode
@@ -614,9 +511,7 @@ mov [rdi+RECT.left],r12d
 mov [rdi+RECT.top],eax
 mov [rdi+RECT.right],edx
 mov [rdi+RECT.bottom],ecx
-
 pop r12
-
 
 ; Draw current point Y=F(X)
 mov rcx,rsi                    ; Parm#1 = RCX = Handle to a Device Context
@@ -624,72 +519,16 @@ mov rdx,rdi                    ; Parm#2 = RDX = Pointer to RECT strucnure
 mov r8,[HandlesBrushes + 08]   ; Parm#3 = R8 = Handle to a color brush
 call [FillRect]
 
-; Median ordering
-.L23:
-lea rcx,[r13-1]
-jrcxz .L21
-lea rdx,[DrawThreadParms + DTHP.MeasureArray]
-xor eax,eax
-.L20:
-mov r8,[rdx + 00]
-cmp r8,[rdx + 16]
-jbe .L22
-mov r9,[rdx + 08]
-xchg r8,[rdx + 16]
-xchg r9,[rdx + 24]
-mov [rdx + 00],r8
-mov [rdx + 08],r9
-mov al,1
-.L22:
-add rdx,16
-dec ecx
-jnz .L20        ; DEC/JNZ faster then LOOP
-test eax,eax
-jnz .L23 
-.L21:
-
-; Median extracting
-lea rdx,[DrawThreadParms + DTHP.MeasureArray]
-lea r8,[DrawThreadParms]   ; TODO. Eliminate this re-load
-lea rcx,[r13-1]
-shr rcx,1
-jc .L30
-imul rcx,rcx,16
-mov r9,[rdx + rcx + 0]
-mov r10,[rdx + rcx + 8]
-mov [r8 + DTHP.StatCpiMedian],r9
-mov [r8 + DTHP.StatMbpsMedian],r10
-jmp .L31
-.L30:
-imul rcx,rcx,16
-fld qword [rdx + rcx + 0]
-fadd qword [rdx + rcx + 16] 
-fld1
-fadd st0,st0
-fdivp st1,st0
-fstp qword [r8 + DTHP.StatCpiMedian] 
-fld qword [rdx + rcx + 8]
-fadd qword [rdx + rcx + 24]
-fld1
-fadd st0,st0
-fdivp st1,st0
-fstp qword [r8 + DTHP.StatMbpsMedian] 
-.L31:
-
 ; Cycle with update parameters
-add r14,16     ; R14 = Pointer to measurement results array
+add r14,8      ; R14 = Pointer to measurement results array
 inc r13d       ; R13D = Divisor for averaging
 inc r12d       ; R12D = X-coordinate offset by visualization position
 dec ebp        ; EBP = Number of pixels per timer tick
 jnz .DrawLine  ; This cycle for EBP points draw per one timer tick
 .EndLine:
-
-; ...
-; jmp .EndPaint
-; jmp .DrawVisual
 jmp .RedrawTexts
 
-
+; This branch for first paint, draw statical elements, not changed when draw
 .FirstPaint:
 mov byte [rcx],2          ; [rcx] = [Win1_Running]
 mov [DrawParms + DRPM.TimerCount],ebp
@@ -708,10 +547,11 @@ mov [rdi+RECT.left],ebp
 mov [rdi+RECT.top],ebp
 mov [rdi+RECT.right],SUBWINX
 mov [rdi+RECT.bottom],SUBWINY
-mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
-mov rdx,rdi                  ; Parm#2 = RDX = Pointer to RECT strucnure
-mov r8,[HandlesBrushes+16]   ; Parm#3 = R8 = Handle to a color brush
+mov rcx,rsi                   ; Parm#1 = RCX = Handle to a Device Context
+mov rdx,rdi                   ; Parm#2 = RDX = Pointer to RECT strucnure
+mov r8,[HandlesBrushes + 16]  ; Parm#3 = R8 = Handle to a color brush
 call [FillRect]
+
 ; Coordinate X-grid, vertical lines
 mov r12d,GRIDBLANKX          ; R12D = Base point, X
 mov r13d,SUBWINY-GRIDBLANKY  ; R13D = Base point, Y
@@ -722,12 +562,12 @@ mov [rdi+RECT.left],r12d
 mov [rdi+RECT.top],ebp
 mov [rdi+RECT.right],eax
 mov [rdi+RECT.bottom],r13d
-mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
-mov rdx,rdi                  ; Parm#2 = RDX = Pointer to RECT strucnure
-mov r8,[HandlesBrushes+00]   ; Parm#3 = R8 = Handle to a color brush
-call [FillRect]              ; Fill rectangle function
-add r12d,GRIDSTEPX           ; Add X grid step
-dec r14d                     ; Cycle for X-grid vertical lines
+mov rcx,rsi                   ; Parm#1 = RCX = Handle to a Device Context
+mov rdx,rdi                   ; Parm#2 = RDX = Pointer to RECT strucnure
+mov r8,[HandlesBrushes + 00]  ; Parm#3 = R8 = Handle to a color brush
+call [FillRect]               ; Fill rectangle function
+add r12d,GRIDSTEPX            ; Add X grid step
+dec r14d                      ; Cycle for X-grid vertical lines
 jnz .XVgrid
 ; Coordinate Y-grid, horizontal lines
 mov r12d,SUBWINY-GRIDBLANKY  ; R12D = Base point, Y
@@ -738,12 +578,12 @@ mov [rdi+RECT.left],GRIDBLANKX
 mov [rdi+RECT.top],eax
 mov [rdi+RECT.right],SUBWINX
 mov [rdi+RECT.bottom],r12d
-mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
-mov rdx,rdi                  ; Parm#2 = RDX = Pointer to RECT strucnure
-mov r8,[HandlesBrushes+00]   ; Parm#3 = R8 = Handle to a color brush
-call [FillRect]              ; Fill rectangle function
-sub r12d,GRIDSTEPY           ; Subtract Y grid step
-dec r13d                     ; Cycle for Y-grid vertical lines
+mov rcx,rsi                   ; Parm#1 = RCX = Handle to a Device Context
+mov rdx,rdi                   ; Parm#2 = RDX = Pointer to RECT strucnure
+mov r8,[HandlesBrushes + 00]  ; Parm#3 = R8 = Handle to a color brush
+call [FillRect]               ; Fill rectangle function
+sub r12d,GRIDSTEPY            ; Subtract Y grid step
+dec r13d                      ; Cycle for Y-grid vertical lines
 jnz .YHgrid
 
 ; TODO.
@@ -860,6 +700,70 @@ mov r9d,40+7+20 + 24         ; Parm#4 = R9 = X coordinate down/right corner
 mov eax,18+5                 ; RAX = Transit for Parm#5 = Y coordinate down/right corner
 call TextConstDraw
 
+; Print statistics table, lines and texts
+; TODO. Make EQU instead inline constants
+; strings: CPI, nsPI, MBPS
+lea r12,[DrawTextCPI]        ; R12 = Pointer to text string
+mov edx,522                  ; RDX = X coordinate up/left corner
+mov r8d,27                   ; R8 = Y coordinate up/left corner
+mov r9d,522+40               ; R9 = X coordinate down/right corner
+mov eax,27+17                ; RAX = Y coordinate down/right corner
+call TextConstDraw
+lea r12,[DrawTextNSPI]
+mov edx,522+64*1
+mov r8d,27
+mov r9d,522+64*1+40
+mov eax,27+17
+call TextConstDraw
+lea r12,[DrawTextMBPS]       ; TODO. Optimize because repeats
+mov edx,522+64*2
+mov r8d,27
+mov r9d,522+64*2+40
+mov eax,27+17
+call TextConstDraw
+; strings: maximum, minimum, average, median
+lea r12,[DrawTextMinimum]
+mov edx,458
+mov r8d,27+19
+mov r9d,458+60
+mov eax,27+19+17
+call TextConstDraw
+lea r12,[DrawTextMaximum]       ; TODO. Optimize because repeats
+mov edx,458
+mov r8d,27+19 + 15*1
+mov r9d,458+60
+mov eax,27+19+17 + 15*1
+call TextConstDraw
+lea r12,[DrawTextAverage]
+mov edx,458
+mov r8d,27+19 + 15*2
+mov r9d,458+60
+mov eax,27+19+17 + 15*2
+call TextConstDraw
+lea r12,[DrawTextMedian]
+mov edx,458
+mov r8d,27+19 + 15*3
+mov r9d,458+60
+mov eax,27+19+17 + 15*3
+call TextConstDraw
+; lines of table              ; TODO. Make helpers subroutines for compact call API
+mov [rdi+RECT.left],519
+mov [rdi+RECT.top],27+17
+mov [rdi+RECT.right],519+240
+mov [rdi+RECT.bottom],27+17+2
+mov rcx,rsi                   ; Parm#1 = RCX = Handle to a Device Context
+mov rdx,rdi                   ; Parm#2 = RDX = Pointer to RECT strucnure
+mov r8,[HandlesBrushes + 24]  ; Parm#3 = R8 = Handle to a color brush
+call [FillRect]               ; Fill rectangle function
+mov [rdi+RECT.left],518
+mov [rdi+RECT.top],27+19
+mov [rdi+RECT.right],518+2
+mov [rdi+RECT.bottom],27+19+17*4
+mov rcx,rsi                   ; Parm#1 = RCX = Handle to a Device Context
+mov rdx,rdi                   ; Parm#2 = RDX = Pointer to RECT strucnure
+mov r8,[HandlesBrushes + 24]  ; Parm#3 = R8 = Handle to a color brush
+call [FillRect]               ; Fill rectangle function
+
 ; Target method CPU instructions dump
 lea r12,[InputParms]
 xor r15,r15
@@ -929,67 +833,104 @@ call TextConstDraw
 ; This text strings must be updated at each visualization tick
 .RedrawTexts:
 
+; TODO. Optimize because repeats
+; TODO. Optimize and regularize subroutines parameters.
+
 ; Initializing parameters for benchmark statistics, bandwidth and timings
 mov r13d,0300h
 lea r14,[DrawThreadParms]
 ; Timings, CPI (Clocks Per Instructions)
 ; Statistics, CPI minimum
-mov edx,SUBWINX - 300
+mov edx,SUBWINX - 250
 mov r8d,24 + 23
-mov r9d,SUBWINX - 140 
+mov r9d,SUBWINX - 190 
 mov eax,42 + 23
 mov r11,[r14 + DTHP.StatCpiMin]
 lea r12,[DrawTextMinimum]
-lea r15,[DrawValueMinimum]
-call TextConstCpiMbps
-; Statistics, CPI maximum
-mov r8d,24 + 23 + 18*1
-mov eax,42 + 23 + 18*2
+call TextVarDouble
+mov edx,SUBWINX - 250
+mov r8d,24 + 23 + 15*1
+mov r9d,SUBWINX - 190 
+mov eax,42 + 23  + 15*1
 mov r11,[r14 + DTHP.StatCpiMax]
 lea r12,[DrawTextMaximum]
-lea r15,[DrawValueMaximum]
-call TextConstCpiMbps
-; Statistics, CPI average
-mov r8d,24 + 23 + 18*2
-mov eax,42 + 23 + 18*2
+call TextVarDouble
+mov edx,SUBWINX - 250
+mov r8d,24 + 23 + 15*2
+mov r9d,SUBWINX - 190 
+mov eax,42 + 23  + 15*2
 mov r11,[r14 + DTHP.StatCpiAverage]
 lea r12,[DrawTextAverage]
-lea r15,[DrawValueAverage]
-call TextConstCpiMbps
-; Statistics, CPI median
-mov r8d,24 + 23 + 18*3
-mov eax,42 + 23 + 18*3
+call TextVarDouble
+mov edx,SUBWINX - 250
+mov r8d,24 + 23 + 15*3
+mov r9d,SUBWINX - 190 
+mov eax,42 + 23  + 15*3
 mov r11,[r14 + DTHP.StatCpiMedian]
 lea r12,[DrawTextMedian]
-lea r15,[DrawValueMedian]
-call TextConstCpiMbps
+call TextVarDouble
 
-; Bandwidth, MBPS (Megabytes Per Second)
-mov r13d,0100h
-lea r12,[DrawTextMBPS]       ; This must be non-volatile register
-lea r15,[DrawValueMBPS]
-; Statistics, MBPS maximum
-mov edx,SUBWINX - 132
+; TODO. Optimize because repeats.
+
+mov edx,SUBWINX - 250 + 64*1
 mov r8d,24 + 23
-mov r9d,SUBWINX - 5
+mov r9d,SUBWINX - 190 + 64*1 
 mov eax,42 + 23
-mov r11,[r14 + DTHP.StatMbpsMax]
-call TextConstCpiMbps        ; MBPS (Megabytes per Second) visual
-; Statistics, MBPS minimum
-mov r8d,24 + 23 + 18*1
-mov eax,42 + 23 + 18*1
-mov r11,[r14 + DTHP.StatMbpsMin]
-call TextConstCpiMbps        ; MBPS (Megabytes per Second) visual
-; Statistics, MBPS average, this for statistics, MBPS average = F (clocks average)
-mov r8d,24 + 23 + 18*2
-mov eax,42 + 23 + 18*2
+mov r11,[r14 + DTHP.StatNspiMin]
+lea r12,[DrawTextMinimum]
+call TextVarDouble
+mov edx,SUBWINX - 250 + 64*1
+mov r8d,24 + 23 + 15*1
+mov r9d,SUBWINX - 190 + 64*1 
+mov eax,42 + 23  + 15*1
+mov r11,[r14 + DTHP.StatNspiMax]
+lea r12,[DrawTextMaximum]
+call TextVarDouble
+mov edx,SUBWINX - 250 + 64*1
+mov r8d,24 + 23 + 15*2
+mov r9d,SUBWINX - 190 + 64*1 
+mov eax,42 + 23  + 15*2
+mov r11,[r14 + DTHP.StatNspiAverage]
+lea r12,[DrawTextAverage]
+call TextVarDouble
+mov edx,SUBWINX - 250 + 64*1
+mov r8d,24 + 23 + 15*3
+mov r9d,SUBWINX - 190 + 64*1 
+mov eax,42 + 23  + 15*3
+mov r11,[r14 + DTHP.StatNspiMedian]
+lea r12,[DrawTextMedian]
+call TextVarDouble
+
+; TODO. Optimize because repeats.
+
+mov edx,SUBWINX - 250 + 64*2
+mov r8d,24 + 23
+mov r9d,SUBWINX - 150 + 64*2 
+mov eax,42 + 23
+mov r11,[r14 + DTHP.StatMbpsMax]  ; for MBPS, min/max swap. relative CPI, nsPI
+lea r12,[DrawTextMinimum]
+call TextVarDouble
+mov edx,SUBWINX - 250 + 64*2
+mov r8d,24 + 23 + 15*1
+mov r9d,SUBWINX - 150 + 64*2 
+mov eax,42 + 23  + 15*1
+mov r11,[r14 + DTHP.StatMbpsMin]  ; for MBPS, min/max swap. relative CPI, nsPI
+lea r12,[DrawTextMaximum]
+call TextVarDouble
+mov edx,SUBWINX - 250 + 64*2
+mov r8d,24 + 23 + 15*2
+mov r9d,SUBWINX - 150 + 64*2 
+mov eax,42 + 23  + 15*2
 mov r11,[r14 + DTHP.StatMbpsAverage]
-call TextConstCpiMbps        ; MBPS (Megabytes per Second) visual
-; TODO. Statistics MBPS, median. Note. doubles can be ordered as integer because shifted order.
-mov r8d,24 + 23 + 18*3
-mov eax,42 + 23 + 18*3
+lea r12,[DrawTextAverage]
+call TextVarDouble
+mov edx,SUBWINX - 250 + 64*2
+mov r8d,24 + 23 + 15*3
+mov r9d,SUBWINX - 150 + 64*2 
+mov eax,42 + 23  + 15*3
 mov r11,[r14 + DTHP.StatMbpsMedian]
-call TextConstCpiMbps        ; MBPS (Megabytes per Second) visual
+lea r12,[DrawTextMedian]
+call TextVarDouble
 
 ; End of prepare, visual prepared objects
 .DrawVisual:
@@ -1018,39 +959,63 @@ call [EndPaint]
 jmp .WinStatus
 
 
-; Helpers
+;------------------------ Helpers for calculations ----------------------------;
+
+;--- Convert CPI (Clocks per Instruction) to nsPI (nanosec. per instr.) ----;
+; INPUT:  ST0 = CPI as floating point double                                ;
+; OUTPUT: ST0 = nsPI as floating point double                               ;
+;---------------------------------------------------------------------------;
+CPItoNSPI:
+fmul [OutputParms.TSCperiodNs]
+ret
+
+;--- Convert nsPI (nanosec. per instr.) to MBPS (Megabytes per Second) -----;
+; INPUT:  ST0 = nsPI as floating point double                               ;
+; OUTPUT: ST0 = MBPS  as floating point double                              ;
+;---------------------------------------------------------------------------;
+NSPItoMBPS:
+push 1000      ; This constant for decimal megabytes and ns. TODO. Make EQU ?
+mov eax,[InputParms.OperandWidth]   ; RAX = bits per instruction
+shr eax,3                           ; RAX = bytes per instruction 
+push rax
+fild dword [rsp+8]   ; ST0 = 1000, f(decimal megabytes, ns), ST1 = nsPI 
+fxch st1             ; ST0 = nsPI , ST1 = 1000 
+fdivp st1,st0        ; ST0 = 1000 / nsPI = decimal megainstructions per second
+fimul dword [rsp+0]  ; ST0 = decimal megabytes per second
+pop rax rax
+ret
+ 
+
+;-------------------------- Helpers for drawings ------------------------------;
+
 ; Note about stack re-alignment when subroutines call
 ; TODO. Comment and remove to Helper_<old name>.
 ; TODO. Optimize input-output parameters with changed set of subroutines.
 
-
 TextConstDraw:
 mov rcx,rdi                  ; Parm#1 = RCX = Pointer to RECT structure to store parameters
-; push rax                   ; This for stack align
 push rax                     ; Parm#5 = Y coordinate down/right corner
 sub rsp,32                   ; Create parameters shadow
 call [SetRect]               ; Set region rectangle function 
-; add rsp,32+8+8             ; Remove parameters shadow, 1 parameter, align
-add rsp,32+8
+add rsp,32+8                 ; Remove parameters shadow, 1 parameter, align
 mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
 mov rdx,r12                  ; Parm#2 = RDX = Pointer to text string
 mov r8,-1                    ; Parm#3 = R8 = String length, -1 means NULL-terminated string
 mov r9,rdi                   ; Parm#4 = R9 = Pointer to RECT structure, initialized by [SetRect] function
-; push rax                   ; This for stack align
 push DT_LEFT                 ; Parm#5 = Method of formatting/alignment of text string
 sub rsp,32                   ; Create parameters shadow
 call [DrawText]              ; Set region rectangle function 
-; add rsp,32+8+8             ; Remove parameters shadow, 1 parameter, align
-add rsp,32+8
+add rsp,32+8                 ; Remove parameters shadow, 1 parameter, align
 ret
 
+; TODO. Optimize subroutine parameters and pushes/pops
 
-TextConstCpiMbps:
+TextVarDouble:
 push rbx rdx rdi r9 rax  ; RAX pushed for stack re-alignment when subroutine call
 
 push rax rbx rdi
 ; Blank field
-mov rdi,r15
+lea rdi,[BigTexts]
 mov ecx,12-3                 ; 12 (not 9) for blank if variable X-size font 
 mov ax,0000h + '?'
 stosw
@@ -1059,7 +1024,7 @@ rep stosb                    ; Blank entire field, if next value shorter then pr
 mov al,0
 stosb
 ; Print number
-mov rdi,r15
+lea rdi,[BigTexts]
 mov ebx,r13d
 mov rax,r11
 test rax,rax
@@ -1068,9 +1033,11 @@ call DoublePrint
 @@:
 pop rdi rbx rax
 
+lea r12,[BigTexts]       ; TODO. Optimize and regularize parameters
 call TextConstDraw 
 
 pop rax r9 rdi rdx rbx
 ret
+
 
 

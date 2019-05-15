@@ -383,6 +383,7 @@ BrushesList:
 DD  BRUSH_GRID         ; Grid with horizontal and vertical lines 
 DD  BRUSH_LINE         ; Draw Line Speed = F (Block Size)
 DD  BRUSH_BACKGROUND   ; Draw window background
+DD  BRUSH_STATISTICS   ; Statistics table lines
 
 ;------------------------------------------------------------------------------;
 ;               Strings for Window 1 - benchmarks drawings.                    ; 
@@ -394,13 +395,26 @@ WindowTitle_Win1  DB  'Performance = F (Block Size)',0
 ; CPI = Clocks Per Instruction
 DrawTextTSC          DB  'TSC clock (MHz)  = '
 DrawValueTSC         DB  12 DUP (' '), 0
-DrawTextMinimum      DB  'Minimum (CPI) = '
-DrawValueMinimum     DB  12 DUP (' '),0
-DrawTextMaximum      DB  'Maximum (CPI) = '
-DrawValueMaximum     DB  12 DUP (' '),0
-DrawTextAverage      DB  'Average (CPI) = '
-DrawValueAverage     DB  12 DUP (' '),0
-DrawTextMedian       DB  'Median (CPI) = '
-DrawValueMedian      DB  12 DUP (' '),0
-DrawTextMBPS         DB  'MBPS = '
-DrawValueMBPS        DB  12 DUP (' '),0  
+
+;
+;DrawTextMinimum      DB  'Minimum (CPI) = '
+;DrawValueMinimum     DB  12 DUP (' '),0
+;DrawTextMaximum      DB  'Maximum (CPI) = '
+;DrawValueMaximum     DB  12 DUP (' '),0
+;DrawTextAverage      DB  'Average (CPI) = '
+;DrawValueAverage     DB  12 DUP (' '),0
+;DrawTextMedian       DB  'Median (CPI) = '
+;DrawValueMedian      DB  12 DUP (' '),0
+;DrawTextMBPS         DB  'MBPS = '
+;DrawValueMBPS        DB  12 DUP (' '),0  
+;
+
+DrawTextCPI    DB  'CPI',0
+DrawTextNSPI   DB  'nsPI',0
+DrawTextMBPS   DB  'MBPS',0
+
+DrawTextMinimum  DB  'minimum',0
+DrawTextMaximum  DB  'maximum',0
+DrawTextAverage  DB  'average',0
+DrawTextMedian   DB  'median',0
+

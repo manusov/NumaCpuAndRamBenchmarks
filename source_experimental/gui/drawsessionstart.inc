@@ -292,8 +292,8 @@ test rax,rax                ; Status=0 means error
 jz .Error                   ; Go if error creating thread
 stosq                       ; Store handle in the thread parameters, ThreadHandle 
 ; Clear measurement counter and array of measurement results
-mov ecx,MEASURE_POINTS_COUNT * 2 + 15 - 3  ; OLD: + 4 dwords: 2 counters + break flag + align
-xor eax,eax                                ; -3 because 3 qwords already stored
+mov ecx,DRAW_POINTS_COUNT + 20 - 3   ; OLD: + 4 dwords: 2 counters + break flag + align
+xor eax,eax                          ; -3 because 3 qwords already stored
 rep stosq
 
 ; Done, no errors, parallel thread with  DrawSessionThread  subroutine RUNNING
