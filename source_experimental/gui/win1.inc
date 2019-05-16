@@ -48,11 +48,8 @@ jmp .WinFinish
 ;------------------ Handler for system event: window create -------------------;
 
 .WinCreate:
-; TODO.
-; Initializing statistics
-; call InitStatistics
+; Initializing drawing context
 mov [DrawParms + DRPM.DrawPreviousY],0
-; TODO. Make this at InitStatistics subroutine 
 ; Build buttons
 lea rsi,[DialogueContent_Win1]      ; RSI = Pointer to elements descriptors
 mov edi,START_HANDLE_WIN1           ; RDI = Start handle
@@ -219,18 +216,13 @@ lea rdi,[DrawThreadParms]
 finit
 cmp [InputParms + IPB.UpdatedAsm],LATENCY_MODE
 jae .L40
-
 fld [rdi + DTHP.StatMbpsMax]
 push 90 10
 jmp .L41
-
 .L40:
-; fld [rdi + DTHP.StatCpiMax]
 fld [rdi + DTHP.StatNspiMax]
 push 9 2
-
 .L41:
-; push 90 10
 fidiv dword [rsp+8]
 fimul dword [rsp]
 fistp dword [rsp+8]
@@ -353,13 +345,12 @@ fadd [r11 + DTHP.StatCpiSum]
 fst [r11 + DTHP.StatCpiSum]
 fidiv dword [rsp]
 fst [r11 + DTHP.StatCpiAverage]   ; store average CPI
-call CPItoNSPI
+call HelperCPItoNSPI
 fst [r11 + DTHP.StatNspiAverage]  ; store average nsPI = f (average CPI)
-call NSPItoMBPS
+call HelperNSPItoMBPS
 fadd [r11 + DTHP.StatMbpsSum]
 fst [r11 + DTHP.StatMbpsSum]     ; store average MBPS, averaging separately
 fidiv dword [rsp]
-fimul [InputParms + IPB.UpdatedThreads]
 fstp [r11 + DTHP.StatMbpsAverage]
 pop r13
 
@@ -391,18 +382,16 @@ jnz .L23
 ; Get minimum and maximum after median ordering
 fld qword [r9]                    ; ST0 = first element, minimum CPI
 fst [r11 + DTHP.StatCpiMin]
-call CPItoNSPI
+call HelperCPItoNSPI
 fst [r11 + DTHP.StatNspiMin]
-call NSPItoMBPS
-fimul [InputParms + IPB.UpdatedThreads]
+call HelperNSPItoMBPS
 fstp [r11 + DTHP.StatMbpsMax]
 
 fld qword [r10]                   ; ST0 = last element, maximum CPI
 fst [r11 + DTHP.StatCpiMax]
-call CPItoNSPI
+call HelperCPItoNSPI
 fst [r11 + DTHP.StatNspiMax]
-call NSPItoMBPS
-fimul [InputParms + IPB.UpdatedThreads]
+call HelperNSPItoMBPS
 fstp [r11 + DTHP.StatMbpsMin]
 
 ; Get median CPI, nsPI after median ordering, note FPU already initialized 
@@ -416,8 +405,7 @@ fadd st0,st0
 fdivp st1,st0
 .L30:
 fst [r11 + DTHP.StatCpiMedian]
-call CPItoNSPI
-fimul [InputParms + IPB.UpdatedThreads]
+call HelperCPItoNSPI
 fstp [r11 + DTHP.StatNspiMedian]
 
 ; Get median MBPS, recalculate because reciprocal restrictions
@@ -425,13 +413,13 @@ lea rcx,[r13-1]
 shr ecx,1                      ; This branch for median ODD-sized array
 fld qword [r9 + rcx*8]         ; Get median
 pushf
-call CPItoNSPI
-call NSPItoMBPS
+call HelperCPItoNSPI
+call HelperNSPItoMBPS
 popf
 jnc .L31                       ; Go if median for ODD size
 fld qword [r9 + rcx*8 + 8]
-call CPItoNSPI
-call NSPItoMBPS
+call HelperCPItoNSPI
+call HelperNSPItoMBPS
 faddp st1,st0
 fld1
 fadd st0,st0
@@ -441,12 +429,11 @@ fstp [r11 + DTHP.StatMbpsMedian]
 
 ; Start calculations for drawings Y = f( CPI ),
 ; ST0 = current value, loaded before re-ordering
-call CPItoNSPI
+call HelperCPItoNSPI
 cmp [InputParms + IPB.UpdatedAsm],LATENCY_MODE
 jae .L50
-call NSPItoMBPS
+call HelperNSPItoMBPS
 .L50:
-fimul [InputParms + IPB.UpdatedThreads]
 fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
 push rax
 fistp dword [rsp]
@@ -686,7 +673,7 @@ mov edx,SUBWINX-40 - 9       ; Parm#2 = RDX = X coordinate up/left corner
 mov r8d,SUBWINY-40 - 3       ; Parm#3 = R8  = Y coordinate up/left corner
 mov r9d,SUBWINX-4 - 9        ; Parm#4 = R9  = X coordinate down/right corner
 mov eax,SUBWINY-22 - 3       ; RAX = Transit for Parm#5 = Y coordinate down/right corner
-call TextConstDraw
+call HelperTextConstDraw
 
 ; Prepare for Y-units
 lea r12,[U_MBPS]             ; R12 = Pointer to text string , Mode = Cache&RAM
@@ -698,7 +685,7 @@ mov edx,7                    ; Parm#2 = RDX = X coordinate up/left corner
 mov r8d,5                    ; Parm#3 = R8 = Y coordinate up/left corner
 mov r9d,40+7+20 + 24         ; Parm#4 = R9 = X coordinate down/right corner
 mov eax,18+5                 ; RAX = Transit for Parm#5 = Y coordinate down/right corner
-call TextConstDraw
+call HelperTextConstDraw
 
 ; Print statistics table, lines and texts
 ; TODO. Make EQU instead inline constants
@@ -708,44 +695,34 @@ mov edx,522                  ; RDX = X coordinate up/left corner
 mov r8d,27                   ; R8 = Y coordinate up/left corner
 mov r9d,522+40               ; R9 = X coordinate down/right corner
 mov eax,27+17                ; RAX = Y coordinate down/right corner
-call TextConstDraw
+call HelperTextConstDraw
 lea r12,[DrawTextNSPI]
 mov edx,522+64*1
-mov r8d,27
 mov r9d,522+64*1+40
-mov eax,27+17
-call TextConstDraw
+call HelperTextConstDraw
 lea r12,[DrawTextMBPS]       ; TODO. Optimize because repeats
 mov edx,522+64*2
-mov r8d,27
 mov r9d,522+64*2+40
-mov eax,27+17
-call TextConstDraw
+call HelperTextConstDraw
 ; strings: maximum, minimum, average, median
 lea r12,[DrawTextMinimum]
 mov edx,458
 mov r8d,27+19
 mov r9d,458+60
 mov eax,27+19+17
-call TextConstDraw
+call HelperTextConstDraw
 lea r12,[DrawTextMaximum]       ; TODO. Optimize because repeats
-mov edx,458
 mov r8d,27+19 + 15*1
-mov r9d,458+60
 mov eax,27+19+17 + 15*1
-call TextConstDraw
+call HelperTextConstDraw
 lea r12,[DrawTextAverage]
-mov edx,458
 mov r8d,27+19 + 15*2
-mov r9d,458+60
 mov eax,27+19+17 + 15*2
-call TextConstDraw
+call HelperTextConstDraw
 lea r12,[DrawTextMedian]
-mov edx,458
 mov r8d,27+19 + 15*3
-mov r9d,458+60
 mov eax,27+19+17 + 15*3
-call TextConstDraw
+call HelperTextConstDraw
 ; lines of table              ; TODO. Make helpers subroutines for compact call API
 mov [rdi+RECT.left],519
 mov [rdi+RECT.top],27+17
@@ -802,7 +779,7 @@ and r10d,0Fh                 ; Bits 3-6 used for Y-positioning
 imul r10d,r10d,18            ; Y scale = 18 pixels per char 
 add r8d,r10d                 ; Add offset to Y-start
 add eax,r10d                 ; Add offset to Y-end
-call TextConstDraw
+call HelperTextConstDraw
 inc r15
 dec r13d
 jnz .AsmDump 
@@ -828,7 +805,7 @@ mov r8d,6                    ; Parm#3 = R8 = Y coordinate up/left corner
 mov r9d,SUBWINX - 5          ; Parm#4 = R9 = X coordinate down/right corner
 mov eax,6+18                 ; RAX = Transit for Parm#5 = Y coordinate down/right corner
 lea r12,[DrawTextTSC]        ; R12 = Pointer to text string
-call TextConstDraw
+call HelperTextConstDraw
 
 ; This text strings must be updated at each visualization tick
 .RedrawTexts:
@@ -846,29 +823,19 @@ mov r8d,24 + 23
 mov r9d,SUBWINX - 190 
 mov eax,42 + 23
 mov r11,[r14 + DTHP.StatCpiMin]
-lea r12,[DrawTextMinimum]
-call TextVarDouble
-mov edx,SUBWINX - 250
+call HelperTextVarDouble
 mov r8d,24 + 23 + 15*1
-mov r9d,SUBWINX - 190 
 mov eax,42 + 23  + 15*1
 mov r11,[r14 + DTHP.StatCpiMax]
-lea r12,[DrawTextMaximum]
-call TextVarDouble
-mov edx,SUBWINX - 250
+call HelperTextVarDouble
 mov r8d,24 + 23 + 15*2
-mov r9d,SUBWINX - 190 
 mov eax,42 + 23  + 15*2
 mov r11,[r14 + DTHP.StatCpiAverage]
-lea r12,[DrawTextAverage]
-call TextVarDouble
-mov edx,SUBWINX - 250
+call HelperTextVarDouble
 mov r8d,24 + 23 + 15*3
-mov r9d,SUBWINX - 190 
 mov eax,42 + 23  + 15*3
 mov r11,[r14 + DTHP.StatCpiMedian]
-lea r12,[DrawTextMedian]
-call TextVarDouble
+call HelperTextVarDouble
 
 ; TODO. Optimize because repeats.
 
@@ -877,60 +844,41 @@ mov r8d,24 + 23
 mov r9d,SUBWINX - 190 + 64*1 
 mov eax,42 + 23
 mov r11,[r14 + DTHP.StatNspiMin]
-lea r12,[DrawTextMinimum]
-call TextVarDouble
-mov edx,SUBWINX - 250 + 64*1
+call HelperTextVarDouble
 mov r8d,24 + 23 + 15*1
-mov r9d,SUBWINX - 190 + 64*1 
 mov eax,42 + 23  + 15*1
 mov r11,[r14 + DTHP.StatNspiMax]
-lea r12,[DrawTextMaximum]
-call TextVarDouble
-mov edx,SUBWINX - 250 + 64*1
+call HelperTextVarDouble
 mov r8d,24 + 23 + 15*2
-mov r9d,SUBWINX - 190 + 64*1 
 mov eax,42 + 23  + 15*2
 mov r11,[r14 + DTHP.StatNspiAverage]
-lea r12,[DrawTextAverage]
-call TextVarDouble
-mov edx,SUBWINX - 250 + 64*1
+call HelperTextVarDouble
 mov r8d,24 + 23 + 15*3
-mov r9d,SUBWINX - 190 + 64*1 
 mov eax,42 + 23  + 15*3
 mov r11,[r14 + DTHP.StatNspiMedian]
-lea r12,[DrawTextMedian]
-call TextVarDouble
+call HelperTextVarDouble
 
 ; TODO. Optimize because repeats.
 
+mov r13d,0200h
 mov edx,SUBWINX - 250 + 64*2
 mov r8d,24 + 23
 mov r9d,SUBWINX - 150 + 64*2 
 mov eax,42 + 23
 mov r11,[r14 + DTHP.StatMbpsMax]  ; for MBPS, min/max swap. relative CPI, nsPI
-lea r12,[DrawTextMinimum]
-call TextVarDouble
-mov edx,SUBWINX - 250 + 64*2
+call HelperTextVarDouble
 mov r8d,24 + 23 + 15*1
-mov r9d,SUBWINX - 150 + 64*2 
 mov eax,42 + 23  + 15*1
 mov r11,[r14 + DTHP.StatMbpsMin]  ; for MBPS, min/max swap. relative CPI, nsPI
-lea r12,[DrawTextMaximum]
-call TextVarDouble
-mov edx,SUBWINX - 250 + 64*2
+call HelperTextVarDouble
 mov r8d,24 + 23 + 15*2
-mov r9d,SUBWINX - 150 + 64*2 
 mov eax,42 + 23  + 15*2
 mov r11,[r14 + DTHP.StatMbpsAverage]
-lea r12,[DrawTextAverage]
-call TextVarDouble
-mov edx,SUBWINX - 250 + 64*2
+call HelperTextVarDouble
 mov r8d,24 + 23 + 15*3
-mov r9d,SUBWINX - 150 + 64*2 
 mov eax,42 + 23  + 15*3
 mov r11,[r14 + DTHP.StatMbpsMedian]
-lea r12,[DrawTextMedian]
-call TextVarDouble
+call HelperTextVarDouble
 
 ; End of prepare, visual prepared objects
 .DrawVisual:
@@ -965,7 +913,7 @@ jmp .WinStatus
 ; INPUT:  ST0 = CPI as floating point double                                ;
 ; OUTPUT: ST0 = nsPI as floating point double                               ;
 ;---------------------------------------------------------------------------;
-CPItoNSPI:
+HelperCPItoNSPI:
 fmul [OutputParms.TSCperiodNs]
 ret
 
@@ -973,7 +921,7 @@ ret
 ; INPUT:  ST0 = nsPI as floating point double                               ;
 ; OUTPUT: ST0 = MBPS  as floating point double                              ;
 ;---------------------------------------------------------------------------;
-NSPItoMBPS:
+HelperNSPItoMBPS:
 push 1000      ; This constant for decimal megabytes and ns. TODO. Make EQU ?
 mov eax,[InputParms.OperandWidth]   ; RAX = bits per instruction
 shr eax,3                           ; RAX = bytes per instruction 
@@ -982,6 +930,7 @@ fild dword [rsp+8]   ; ST0 = 1000, f(decimal megabytes, ns), ST1 = nsPI
 fxch st1             ; ST0 = nsPI , ST1 = 1000 
 fdivp st1,st0        ; ST0 = 1000 / nsPI = decimal megainstructions per second
 fimul dword [rsp+0]  ; ST0 = decimal megabytes per second
+fimul [InputParms + IPB.UpdatedThreads]  ; Multiply by number of threads
 pop rax rax
 ret
  
@@ -989,42 +938,61 @@ ret
 ;-------------------------- Helpers for drawings ------------------------------;
 
 ; Note about stack re-alignment when subroutines call
-; TODO. Comment and remove to Helper_<old name>.
-; TODO. Optimize input-output parameters with changed set of subroutines.
 
-TextConstDraw:
-mov rcx,rdi                  ; Parm#1 = RCX = Pointer to RECT structure to store parameters
-push rax                     ; Parm#5 = Y coordinate down/right corner
-sub rsp,32                   ; Create parameters shadow
-call [SetRect]               ; Set region rectangle function 
-add rsp,32+8                 ; Remove parameters shadow, 1 parameter, align
-mov rcx,rsi                  ; Parm#1 = RCX = Handle to a Device Context
-mov rdx,r12                  ; Parm#2 = RDX = Pointer to text string
-mov r8,-1                    ; Parm#3 = R8 = String length, -1 means NULL-terminated string
-mov r9,rdi                   ; Parm#4 = R9 = Pointer to RECT structure, initialized by [SetRect] function
-push DT_LEFT                 ; Parm#5 = Method of formatting/alignment of text string
-sub rsp,32                   ; Create parameters shadow
-call [DrawText]              ; Set region rectangle function 
-add rsp,32+8                 ; Remove parameters shadow, 1 parameter, align
+;--- Print text string ----------------------------------------------;
+; INPUT:   RDI = Pointer to RECT structure for draw region           ;
+;          RDX  = xLeft                                              ; 
+;          R8D  = yTop                                               ;
+;          R9D  = xRight                                             ;
+;          EAX  = yBottom                                            ;
+;          RSI  = Handle of a Device Context                         ; 
+;          R12  = Pointer to text string                             ;
+;                                                                    ;
+; OUTPUT:  None in the CPU registers                                 ;
+;          RAX, RDX, R8, R9  non volatile for this subroutine        ;    
+;--------------------------------------------------------------------;
+HelperTextConstDraw:
+push rax rdx r8 r9
+mov rcx,rdi           ; Parm#1 = RCX = Pointer to RECT structure to store parameters
+push rax              ; Parm#5 = Y coordinate down/right corner
+sub rsp,32            ; Create parameters shadow
+call [SetRect]        ; Set region rectangle function 
+add rsp,32+8          ; Remove parameters shadow, 1 parameter, align
+mov rcx,rsi           ; Parm#1 = RCX = Handle of a Device Context
+mov rdx,r12           ; Parm#2 = RDX = Pointer to text string
+mov r8,-1             ; Parm#3 = R8 = String length, -1 means NULL-terminated string
+mov r9,rdi            ; Parm#4 = R9 = Pointer to RECT structure, initialized by [SetRect] function
+push DT_LEFT          ; Parm#5 = Method of formatting/alignment of text string
+sub rsp,32            ; Create parameters shadow
+call [DrawText]       ; Set region rectangle function 
+add rsp,32+8          ; Remove parameters shadow, 1 parameter, align
+pop r9 r8 rdx rax
 ret
 
-; TODO. Optimize subroutine parameters and pushes/pops
-
-TextVarDouble:
+;--- Print floating point value, double -----------------------------;
+; INPUT:   EDX = X up left position                                  ;
+;          R8D = Y up left position                                  ; 
+;          R9D = X down right position                               ;
+;          EAX = Y down right position                               ;
+;          R11 = floating point value, double, 64-bit                ;
+;          R13 = numeric template for floating point print           ;
+;                                                                    ;
+; OUTPUT:  None in the CPU registers                                 ;
+;          RBX, RDX, RDI, R9  non volatile for this subroutine       ;
+;--------------------------------------------------------------------;      
+HelperTextVarDouble:
 push rbx rdx rdi r9 rax  ; RAX pushed for stack re-alignment when subroutine call
-
 push rax rbx rdi
-; Blank field
 lea rdi,[BigTexts]
-mov ecx,12-3                 ; 12 (not 9) for blank if variable X-size font 
-mov ax,0000h + '?'
+mov r12,rdi
+mov ecx,11-3         ; 11 (not 9) for blank if variable X-size font 
+mov ax,0000h + '?'   ; Blank field with "?" means yet not determined
 stosw
 mov al,' '
-rep stosb                    ; Blank entire field, if next value shorter then previous
+rep stosb            ; Blank entire field, if next value shorter then previous
 mov al,0
 stosb
-; Print number
-lea rdi,[BigTexts]
+mov rdi,r12
 mov ebx,r13d
 mov rax,r11
 test rax,rax
@@ -1032,12 +1000,7 @@ jz @f
 call DoublePrint
 @@:
 pop rdi rbx rax
-
-lea r12,[BigTexts]       ; TODO. Optimize and regularize parameters
-call TextConstDraw 
-
+call HelperTextConstDraw 
 pop rax r9 rdi rdx rbx
 ret
-
-
 

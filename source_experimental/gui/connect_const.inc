@@ -393,28 +393,15 @@ WindowTitle_Win1  DB  'Performance = F (Block Size)',0
 ; Text strings for write timings in the drawings window
 ; 12 (not 9) for blank area with variable (font char defined) Xsize
 ; CPI = Clocks Per Instruction
-DrawTextTSC          DB  'TSC clock (MHz)  = '
-DrawValueTSC         DB  12 DUP (' '), 0
+DrawTextTSC       DB  'TSC clock (MHz)  = '
+DrawValueTSC      DB  12 DUP (' '), 0
 
-;
-;DrawTextMinimum      DB  'Minimum (CPI) = '
-;DrawValueMinimum     DB  12 DUP (' '),0
-;DrawTextMaximum      DB  'Maximum (CPI) = '
-;DrawValueMaximum     DB  12 DUP (' '),0
-;DrawTextAverage      DB  'Average (CPI) = '
-;DrawValueAverage     DB  12 DUP (' '),0
-;DrawTextMedian       DB  'Median (CPI) = '
-;DrawValueMedian      DB  12 DUP (' '),0
-;DrawTextMBPS         DB  'MBPS = '
-;DrawValueMBPS        DB  12 DUP (' '),0  
-;
+DrawTextCPI       DB  'CPI',0
+DrawTextNSPI      DB  'nsPI',0
+DrawTextMBPS      DB  'MBPS',0
 
-DrawTextCPI    DB  'CPI',0
-DrawTextNSPI   DB  'nsPI',0
-DrawTextMBPS   DB  'MBPS',0
-
-DrawTextMinimum  DB  'minimum',0
-DrawTextMaximum  DB  'maximum',0
-DrawTextAverage  DB  'average',0
-DrawTextMedian   DB  'median',0
+DrawTextMinimum   DB  'minimum',0
+DrawTextMaximum   DB  'maximum',0
+DrawTextAverage   DB  'average',0
+DrawTextMedian    DB  'median',0
 

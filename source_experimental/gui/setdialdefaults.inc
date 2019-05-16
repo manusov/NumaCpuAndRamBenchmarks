@@ -148,15 +148,13 @@ stosb
 call [SendMessage]
 ; Disable edit block size field
 mov rcx,[SubHandles-128+HANDLE_CUSTOM_EDIT*8]  ; RCX = Parm#1 = Handle
-mov edx,WM_ENABLE                  ; RDX = Parm#2 = Message
-xor r8d,r8d                        ; R8  = Parm#3 = Select: 0=Disable, R13 from previous step
-xor r9d,r9d                        ; R9  = Parm#4 = Not used
+mov edx,WM_ENABLE       ; RDX = Parm#2 = Message
+xor r8d,r8d             ; R8  = Parm#3 = Select: 0=Disable, R13 from previous step
+xor r9d,r9d             ; R9  = Parm#4 = Not used
 call [SendMessage]                  
 ; Done
-; TODO. Same return #1
-mov rsp,rbp
-pop rax r11 r10 r9 r8 rbp rsi rax rdx rcx rbx    ; R8-R11 because API, volatile
-ret
+jmp DoneCreateWindow    ; R8-R11 because API, volatile
+
 
 
 

@@ -52,7 +52,7 @@ mov rcx,rdi             ; Parm#1 = Pointer to descriptor
 call [RegisterClassEx]  ; Register window class
 test rax,rax
 @@:
-jz ErrorCreateWindow     ; Go if error returned
+jz DoneCreateWindow     ; Go if error returned
 ; Start Create Window, create and show window
 ; Parm#1  = Extended window style = 0 , means none
 ; Parm#2  = Pointer to Window class name = ClassName
@@ -85,8 +85,7 @@ call [CreateWindowEx]	                    ; Call function
 add rsp,32+8*8	                          ; Remove shadow and parameters
 test rax,rax                              ; RAX = Status, 0 if error
 ; Done
-ErrorCreateWindow:    ; This branch must not corrupt flags, ZF used
-; TODO. Same return #1
+DoneCreateWindow:    ; This branch must not corrupt flags, ZF used
 mov rsp,rbp
 pop rax r11 r10 r9 r8 rbp rsi rax rdx rcx rbx    ; R8-R11 because API, volatile
 ret
