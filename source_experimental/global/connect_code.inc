@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------;
-;          Global Library: connect include files with subroutines.             ; 
+;     Global Library: connect include files with globally used subroutines.    ; 
 ;------------------------------------------------------------------------------;
 
 include 'stringwrite.inc'   ; Copy zero-terminated strings, include selectable

@@ -21,7 +21,7 @@
 ; TODO. 
 ; Regularize simple/brief/drawings calling conventions, what registers destroyed.
 ; TODO.
-; Better special simplified branch for single-thread, for precision reasons ? 
+; Better special simplified branch for single-thread, for precision reasons ?
 
 SessionProgress:
 

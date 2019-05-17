@@ -26,9 +26,9 @@ mov ecx,TEMP_BUFFER_SIZE / 8
 rep stosq
 
 lea rdi,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_RESULTS]
-call GetCpuName
+call GetCpuName         ; Update CPU NAME at vector brief data
 
-call MeasureTsc
+call MeasureTsc         ; Update TSC clock variables at vector brief data
 mov al,2
 jc .ExitRestoreStack 
 
@@ -84,10 +84,10 @@ add rdi,4*8                           ; RDI = Pointer to dTSC values storage
 ; Cycle for timings measurement patterns
 
 .L10:
-cmp dword [rsi],0
+cmp dword [rsi],0       ; compare entry bytes [0-3]
 jnz .L16
-cmp byte [rsi+4],0
-jz .L11                 ; Go if address=0 means end of list
+cmp byte [rsi+4],0      ; compare entry byte [4]
+jz .L11                 ; Go if all 5 bytes = 0 means end of list
 .L16:
 
 lea rbx,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_RESULTS]
@@ -118,7 +118,7 @@ bt rdx,rax
 jnc .L12         ; Go skip if routine not supported by OS context
 
 .L15:
-push rsi rdi
+push rsi rdi     ; store pointers, corrupted by performance patterns run
 lea rdi,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_TRANSIT]
 
 mov al,[rsi+0]                            ; AL = Method ID
@@ -147,7 +147,7 @@ mov [rdi + THCTRL.Base2],rax
 lea r8,[MathData]                    ; FIX THIS, USE Base3
 mov rbx,rdi                          ; TODO. Can remove this if Get...Pattern return in RAX 
 call RunTarget                       ; Return RAX = dTSC per pattern
-pop rdi rsi
+pop rdi rsi      ; restore pointers, corrupted by performance patterns run
 
 .L12:
 add rsi,5

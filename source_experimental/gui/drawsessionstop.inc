@@ -4,7 +4,9 @@
 ;                                                                              ;
 ; INPUT:   None at CPU registers                                               ;
 ;                                                                              ;
-; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;  
+; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;
+;          AL = error status, valid only if error detected (when CF=1)         ; 
+;               see file "thread manager\sessionstop.inc" for decode           ;   
 ;                                                                              ;
 ; All CPU registers can be corrupted                                           ;
 ;------------------------------------------------------------------------------;
@@ -64,7 +66,7 @@ jz .Error                           ; Go exit if error
 clc
 .L90:
 mov rsp,rbp
-.Exit:
+.Exit:                 ; Note AL = error status must be valid at this point
 ret
 
 ; Exit point for errors detected

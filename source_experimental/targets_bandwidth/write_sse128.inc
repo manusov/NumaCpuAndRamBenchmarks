@@ -11,6 +11,23 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_Write_SSE128:
+xorpd xmm0,xmm0                 ; Clear XMM0-XMM15 for write data
+xorpd xmm1,xmm1
+xorpd xmm2,xmm2
+xorpd xmm3,xmm3
+xorpd xmm4,xmm4
+xorpd xmm5,xmm5
+xorpd xmm6,xmm6
+xorpd xmm7,xmm7
+xorpd xmm8,xmm8
+xorpd xmm9,xmm9
+xorpd xmm10,xmm10
+xorpd xmm11,xmm11
+xorpd xmm12,xmm12
+xorpd xmm13,xmm13
+xorpd xmm14,xmm14
+xorpd xmm15,xmm15
+
 Measurement_Write_SSE128:
 ; Prepare big cycle
 ; Set pointer to middle of 256-byte interval, +/- offsets is code size optimal,

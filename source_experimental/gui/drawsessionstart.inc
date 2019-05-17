@@ -6,7 +6,9 @@
 ;          IPB = Input parameters block with benchmark scenario data           ;
 ;          DialogueContent with user options settings data                     ;
 ;                                                                              ;
-; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;  
+; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;
+;          AL = error status, valid only if error detected (when CF=1)         ; 
+;               see file "thread manager\sessionstart.inc" for decode          ;   
 ;                                                                              ;
 ; All CPU registers can be corrupted                                           ;
 ;------------------------------------------------------------------------------;
@@ -300,7 +302,7 @@ rep stosq
 clc
 .L90:
 mov rsp,rbp
-.Exit:
+.Exit:                 ; Note AL = error status must be valid at this point
 ret
 
 ; Exit point for errors detected

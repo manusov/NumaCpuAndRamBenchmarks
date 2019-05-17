@@ -110,19 +110,12 @@ mov [rsi + THCTRL.Base2],rax
 mov [rsi + THCTRL.SizeBytes],rcx
 
 ; Setup block size, instructions, this field must be updated per draw iteration
-; mov eax,[r12 + IPB.OperandWidth]
-; shr rax,3
-; jz .ErrorBuildThreads
-; xchg rax,rcx
-; xor edx,edx
-; div rcx 
-; mov [rsi + THCTRL.SizeInst],rax
-mov ecx,[r12 + IPB.OperandWidth]
-shr rcx,3
+mov ecx,[r12 + IPB.OperandWidth]    ; RCX = bits per instruction
+shr rcx,3                           ; RCX = bytes per instruction, BPI 
 jz .ErrorBuildThreads
 mov rax,[r12 + IPB.StartBlockSize]  ; here OPERATIONAL size
 xor edx,edx
-div rcx 
+div rcx                             ; Instruction count = Work length / BPI 
 mov [rsi + THCTRL.SizeInst],rax
 
 ; Setup Large Page option

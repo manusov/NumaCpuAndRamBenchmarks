@@ -10,13 +10,6 @@
 ;------------------------------------------------------------------------------;
 
 GetSystemParameters:
-; Load optional system functions
-; Optional (not a static import) because Win XP (x64) compatibility
-
-; TODO. Need show warnings after SystemFunctionsLoad,
-; separate this operations
-
-; call SystemFunctionsLoad    ; This subroutine output CF=1 if error
 
 ; TODO.
 ; Need check load status, check validity of required API functions

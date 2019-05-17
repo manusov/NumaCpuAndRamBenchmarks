@@ -25,7 +25,7 @@ je @f                      ; Otherwise address arithmetic error
 lea rdx,[RunErrorArithm]   ; Parm#2, pointer to message string #3
 @@:  
 xor r8d,r8d                ; Parm#3, Caption=0=error message, otherwise pointer to caption
-mov r9,MB_ICONERROR        ; Parm#4, Message Box Icon Error = MB_ICNERROR
+mov r9d,MB_ICONERROR       ; Parm#4, Message Box Icon Error = MB_ICNERROR
 call [MessageBoxA]
 
 mov rsp,rbp

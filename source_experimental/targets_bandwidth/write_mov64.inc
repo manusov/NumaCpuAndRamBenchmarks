@@ -11,6 +11,13 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_Write_MOV64:
+xor r8,r8                    ; Clear R8-R13 for write data
+xor r9,r9
+xor r10,r10
+xor r11,r11
+xor r12,r12
+xor r13,r13 
+
 Measurement_Write_MOV64:
 ; Prepare big cycle
 mov rax,rsi                  ; RAX = Reload source address

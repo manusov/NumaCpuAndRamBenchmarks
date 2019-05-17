@@ -9,10 +9,10 @@
 ;          RAX = Subroutine #2 entry point, walker              ; 
 ;---------------------------------------------------------------; 
 GetLatencyPattern:
-movzx eax,al
-imul eax,eax,6   ; sizeof.LATENCY_ENTRY
-movzx eax,word [LatencyPatterns + rax]
-lea rbx,[LatencyPatternsBase + rax]
+movzx eax,al                             ; This clears bits RAX[63-8]
+imul eax,eax,6                           ; 6 = sizeof.LATENCY_ENTRY
+movzx eax,word [LatencyPatterns + rax]   ; Read 16-bit compact offset
+lea rbx,[LatencyPatternsBase + rax]      ; Calculate 64-bit absolute address
 lea rax,[Pattern_Latency_Walk]
 ret
 

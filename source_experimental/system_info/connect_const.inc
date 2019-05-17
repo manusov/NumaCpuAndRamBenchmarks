@@ -30,7 +30,6 @@ DB  'SetThreadAffinityMask',0
 DB  'GetSystemFirmwareTable',0
 DB  'GetLogicalProcessorInformation',0
 DB  'GetLargePageMinimum',0
-; DB  'VirtualAllocEx',0
 DB  'GetActiveProcessorCount',0             ; added for support > 64 processors 
 DB  'GetActiveProcessorGroupCount',0        ; added for support > 64 processors
 DB  'GetNumaNodeProcessorMaskEx', 0         ; added for support > 64 processors

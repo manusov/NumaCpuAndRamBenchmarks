@@ -11,6 +11,8 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_Write_AVX256:
+vzeroall                     ; Clear YMM0-YMM15 for write data
+
 Measurement_Write_AVX256:
 ; Prepare big cycle
 ; Set pointer to middle of 512-byte interval, +/- offsets is code size optimal,

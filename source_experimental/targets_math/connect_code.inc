@@ -8,9 +8,9 @@
 ; OUTPUT:  RBX = Subroutine entry point                     ;
 ;-----------------------------------------------------------; 
 GetMathPattern:
-movzx eax,al
-movzx eax,word [MathPatterns + rax*2]
-lea rbx,[MathPatternsBase + rax]
+movzx eax,al                           ; This clears bits RAX[63-8]
+movzx eax,word [MathPatterns + rax*2]  ; Read 16-bit compact offset
+lea rbx,[MathPatternsBase + rax]       ; Calculate 64-bit absolute address
 ret
 
 ; Start offset for compact offsets encoding

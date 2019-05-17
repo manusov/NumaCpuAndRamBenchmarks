@@ -2,7 +2,8 @@
 ;    and when click "Defaults" button.                              ;
 ; INPUT:   RBX = Parent window handle                               ;
 ;          Sysinfo and Window 0 variables only                      ;
-; OUTPUT:  None, window 0 variables only                            ;
+; OUTPUT:  None in the CPU registers,                               ; 
+;          window 0 variables only                                  ;
 ;-------------------------------------------------------------------; 
 
 SetDialogueDefaults:

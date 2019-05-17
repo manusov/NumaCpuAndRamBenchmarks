@@ -21,26 +21,18 @@ lea rdi,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_TRANSIT]   ; RDI = Destination build
 lea rbx,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_RESULTS]   ; RBX = Test results
 lea rcx,[VectorBriefControl]                        ; RCX = Control table
 
-; CPU name
+; CPU name, already build by subroutine RunVectorBrief
 mov rsi,rbx
 call StringWrite
 
-; TSC clock
+; TSC clock, already build by subroutine RunVectorBrief
 lea rsi,[MsgResultBrief]                ; RSI = String constants
 call StringWrite_CRLF_Equal
-;finit
-;fild qword [rbx+VECTORBRIEF.TscClock]   ; TSC frequency at Hz, long integer
-;fld [DividendNs]
-;fdiv st0,st1
-;fstp [rbx+VECTORBRIEF.TscClockNs]       ; TSC period at nanoseconds, double 
-;fdiv [DivisorMHz]
-;fstp qword [rdi]
-;mov rax,[rdi]
 mov rax,[rbx+VECTORBRIEF.TscClockMHzF]
 mov bx,0200h
 call DoublePrint 
 
-; CPUID features
+; CPUID features, already build by subroutine RunVectorBrief
 lea rbx,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_RESULTS]   ; RBX = Test results
 call StringWrite_CRLF_Colon
 .L0:
@@ -149,19 +141,19 @@ push rax
 push qword [rbx+VECTORBRIEF.dtSse128read+r8]
 fild qword [rsp+08]    ; st0 = instructions count
 fild qword [rsp]       ; st0 = clocks count , st1 = instructions count
-fdiv st0,st1
-fst qword [rsp]
-fmul [rbx+VECTORBRIEF.TscClockNsF]
-fstp qword [rsp+08]
+fdiv st0,st1           ; st0 = clocks per instruction (CPI)
+fst qword [rsp]                      ; store CPI
+fmul [rbx+VECTORBRIEF.TscClockNsF]   ; st0 = nanoseconds per instruction (nsPI)
+fstp qword [rsp+08]                  ; store nsPI
 ffree st0
 fincstp
 pop rax
 mov bx,0300h
-call DoublePrint
+call DoublePrint   ; print CPI
 mov ax,' ('
 stosw
 pop rax
-call DoublePrint
+call DoublePrint   ; print nsPI, " ( x ns ) "
 mov eax,' ns)'
 stosd
 

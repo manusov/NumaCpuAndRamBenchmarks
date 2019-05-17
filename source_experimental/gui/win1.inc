@@ -380,13 +380,14 @@ jnz .L23
 .L21:
 
 ; Get minimum and maximum after median ordering
+; minimum time - maximum bandwidth
 fld qword [r9]                    ; ST0 = first element, minimum CPI
 fst [r11 + DTHP.StatCpiMin]
 call HelperCPItoNSPI
 fst [r11 + DTHP.StatNspiMin]
 call HelperNSPItoMBPS
 fstp [r11 + DTHP.StatMbpsMax]
-
+; maximum time - minimum bandwidth
 fld qword [r10]                   ; ST0 = last element, maximum CPI
 fst [r11 + DTHP.StatCpiMax]
 call HelperCPItoNSPI

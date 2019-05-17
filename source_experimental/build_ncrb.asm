@@ -48,7 +48,9 @@ lea rcx,[NameAdvapi32]
 call [LoadLibrary]
 mov [HandleAdvapi32],rax
 
-; Dynamical import, can't use static because WinXP x64 compatibility
+; Load optional system functions, dynamical import used
+; For this functions cannot use static import,
+; because required Win XP (x64) compatibility
 call SystemFunctionsLoad    ; This subroutine output CF=1 if error
 call ShowWarningAPI         ; This subroutine input CF as error flag
 
@@ -110,10 +112,10 @@ call [ExitProcess]
 ; Note INVOKE replaced to instructions for code size optimization!
 ; invoke MessageBoxA,0,r14,0,MB_ICONERROR
 .Error:
-xor ecx,ecx	         ; Parm#1, this clear entire RCX by x64 architecture rules
-mov rdx,r15	         ; Parm#2
-xor r8d,r8d	         ; Parm#3
-mov r9,MB_ICONERROR  ; Parm#4
+xor ecx,ecx	          ; Parm#1, this clear entire RCX by x64 architecture rules
+mov rdx,r15	          ; Parm#2
+xor r8d,r8d	          ; Parm#3
+mov r9d,MB_ICONERROR  ; Parm#4
 call [MessageBoxA]
 jmp .Exit
 

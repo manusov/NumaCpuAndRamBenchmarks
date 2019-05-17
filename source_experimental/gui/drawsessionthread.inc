@@ -3,9 +3,11 @@
 ;                                                                              ;
 ; INPUT:   None at CPU registers                                               ;
 ;                                                                              ;
-; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;  
+; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;
+;          STATUS RETURN RESERVED, NOT USED YET,                               ; 
+;          BECAUSE THIS IS SEPARATE THREAD                                     ;  
 ;                                                                              ;
-; All CPU registers can be corrupted                                           ;
+; CPU registers volatile / non volatile by Microsoft x64 calling convention    ;
 ;------------------------------------------------------------------------------;
 
 ; TODO.

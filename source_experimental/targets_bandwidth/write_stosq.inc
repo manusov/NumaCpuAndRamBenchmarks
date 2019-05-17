@@ -11,7 +11,9 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_Write_STOSQ:
+xor eax,eax                   ; Clear RAX for write data (RAX used by REP STOSQ)
 mov rdx,rcx                   ; RDX = Save block size , received RSI = Destination block base
+
 Measurement_Write_STOSQ:
 mov rdi,rsi                   ; RDI = Restore destination block base , restore - because measurement cycle
 mov rcx,rdx                   ; RCX = Restore block size , units = hardware cycle iterations

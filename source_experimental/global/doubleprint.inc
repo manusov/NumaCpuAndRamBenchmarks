@@ -19,14 +19,14 @@ cld
 ;--- Detect special cases for DOUBLE format ---
 mov rdx,07FFFFFFFFFFFFFFFh
 and rdx,rax
-jz .FP64_Zero                ; Go if special case = 0.0
+jz .FP64_Zero                ; Go if special cases = 0.0  or  -0.0
 mov rcx,07FF8000000000000h
 cmp rdx,rcx
-je .FP64_QNAN                ; Go if special case = QNAN
+je .FP64_QNAN                ; Go if special case = QNAN (Quiet Not a Number)
 mov rcx,07FF0000000000000h
 cmp rdx,rcx
-je .FP64_INF                 ; Go if special case = INF
-ja .FP64_NAN                 ; Go if special case = NAN
+je .FP64_INF                 ; Go if special case = INF (Infinity)
+ja .FP64_NAN                 ; Go if special case = NAN (Not a Number)
 ;--- Initializing FPU x87 ---
 finit
 ;--- Change rounding mode from default (nearest) to truncate ---  

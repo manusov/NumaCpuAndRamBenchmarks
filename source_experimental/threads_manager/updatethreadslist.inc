@@ -13,7 +13,6 @@
 ; drawing cycle.                                                              ;
 ; Can destroy registers, volatile by Microsoft x64 calling convention.        ;
 ;-----------------------------------------------------------------------------;
-
 ThreadsUpdateBlockSize:
 mov rax,r9
 mov r10d,[rdx + IPB.OperandWidth]
@@ -21,7 +20,7 @@ shr r10d,3
 jz .Error
 xor edx,edx
 div r10 
-
+; Entries update cycle
 @@:
 ; Update block size, bytes, this field must be updated per draw iteration
 mov [rcx + THCTRL.SizeBytes],r9
@@ -31,7 +30,6 @@ mov [rcx + THCTRL.SizeInst],rax
 add rcx,THCTRL_SIZE
 dec r8d
 jnz @b 
-
 ; Exit points
 clc
 ret
@@ -40,17 +38,16 @@ stc
 ret
 
 
-;--- Same operation for thread routine, --------------------------------------;
-;    this required for latency measurement mode,                              ;
-;    when change fill pattern to walk pattern                                 ;
-;                                                                             ;
-; INPUT:   RCX = Pointer to Threads Control List                              ;
-;          R8D = Number of threads                                            ;
-;          R9  = Pointer to performance pattern subroutine                    ; 
-;                                                                             ;
-; OUTPUT:  None                                                               ;
-;-----------------------------------------------------------------------------;
-
+;--- Same operation for thread routine, -----------------------------------;
+;    this required for latency measurement mode,                           ;
+;    when change fill pattern to walk pattern                              ;
+;                                                                          ;
+; INPUT:   RCX = Pointer to Threads Control List                           ;
+;          R8D = Number of threads                                         ;
+;          R9  = Pointer to performance pattern subroutine                 ; 
+;                                                                          ;
+; OUTPUT:  None                                                            ;
+;--------------------------------------------------------------------------;
 ThreadsUpdatePattern:
 @@:
 mov [rcx + THCTRL.EntryPoint],r9
@@ -60,18 +57,17 @@ dec r8d
 jnz @b 
 ret
  
-;--- Same operation for adaptive mode repeats count, -------------------------;
-;    this required for adaptive repeats mode,                                 ;
-;    when change Repeats count = F ( Block size )                             ;
-;                                                                             ;
-; INPUT:   RCX = Pointer to Threads Control List                              ;
-;          RDX = Pointer to Input Parameters Block (IPB)                      ;
-;          R8D = Number of threads                                            ;
-;          R9  = Block size, bytes                                            ; 
-;                                                                             ;
-; OUTPUT:  None                                                               ;
-;-----------------------------------------------------------------------------;
-
+;--- Same operation for adaptive mode repeats count, ----------------------;
+;    this required for adaptive repeats mode,                              ;
+;    when change Repeats count = F ( Block size )                          ;
+;                                                                          ;
+; INPUT:   RCX = Pointer to Threads Control List                           ;
+;          RDX = Pointer to Input Parameters Block (IPB)                   ;
+;          R8D = Number of threads                                         ;
+;          R9  = Block size, bytes                                         ; 
+;                                                                          ;
+; OUTPUT:  None                                                            ;
+;--------------------------------------------------------------------------;
 ThreadsUpdateAdaptive:
 mov r11,rdx
 mov rax,[r11 + IPB.AdaptiveProduct]

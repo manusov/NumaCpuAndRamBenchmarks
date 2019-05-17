@@ -96,8 +96,8 @@ TIMER_TICK       = 50     ; Milliseconds per tick, benchmarks progress timer
 ; TODO. Remove unused fields from DRPM structure.
 
 ; Draw parameters layout declaration
+; Note optimal layout is qwords alignment 8
 
-; TODO. Reorder for qwords alignment 8
 ; TODO. For fast systems, use MBPS/GBPS modes.
 
 struct DRPM
@@ -114,7 +114,7 @@ DrawPreviousY      dd  ?      ; Previous coordinate for vertical lines draw if r
 ; Better store value for multiply (not divide) at each iteration, for minimize CPU resources utilization
 ; A / B  replace to:  A * C , when C = 1/B. Store C.
 ; Also, vertical offset must be negative, upper means smaller offset, biggest MBPS/ns value
-Ymultiplier        dq  ?      ; ???
+Ymultiplier        dq  ?      ; Y pixels scale factor, floating point, double
 ends
 
 ; Number of pixels by X, used for drawings, means number of measurements per draw

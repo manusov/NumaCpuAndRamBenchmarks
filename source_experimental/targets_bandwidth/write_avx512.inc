@@ -11,6 +11,8 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_Write_AVX512:
+vzeroall                     ; Clear ZMM0-ZMM31 for write data
+
 Measurement_Write_AVX512:
 ; Prepare big cycle
 mov rax,rsi                  ; RAX = Reload source address
