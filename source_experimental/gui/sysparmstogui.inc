@@ -101,7 +101,7 @@ cmp [rsi + CPUCACHE.CpuidL2Unified],rax
 jnz @f                          ; Go skip if L2 Unified Cache exist
 or [rbx+L2_CACHE],edx           ; Disable (clear) L2 Cache checkbox
 @@:
-cmp [rsi + CPUCACHE.CpuidL2Unified],rax
+cmp [rsi + CPUCACHE.CpuidL3Unified],rax
 jnz @f                          ; Go skip if L3 Unified Cache exist
 or [rbx+L3_CACHE],edx           ; Disable (clear) L3 Cache checkbox
 @@:
