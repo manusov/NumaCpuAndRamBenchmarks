@@ -102,5 +102,6 @@ xor eax,eax
 rep stosd
 mov rax,[SystemParameters.SystemInfo.dwActiveProcessorMask] 
 mov [rbx + NUMACTRL.NodeAffinity],rax
+mov al,1               ; Set domains count = 1 if NUMA disabled
 jmp .DoneNumaBuild
 

@@ -245,8 +245,13 @@ lea rcx,[NumaNodesList]
 mov edx,[rdi + IPB.UpdatedPG]
 mov r8d,[rdi + IPB.UpdatedNUMA]
 call BuildNumaNodesList  ; CF returned, build list of NUMA nodes
+jnc .NumaValid           ; EAX = NUMA nodes count
 mov al,0                 ; AL = error status
-jc .Exit                 ; Go if error
+jmp .Exit                ; Go if error
+.NumaValid:
+
+; Update NUMA nodes count after rejection nodes with affinity mask = 0
+mov [rdi + IPB.DomainsCount],eax
 
 ; TODO (verify required).
 ; Support NUMA options by update IPB and NUMA nodes list
