@@ -131,26 +131,26 @@ VisualCounter    dd  ?   ; Number of visualized results, required because result
 MeasureBreak     dd  ?   ; Flag for measurement break, 0=None,   BIDIRECTIONAL SIGNALING IS REJECTED BECAUSE RESIZE BUTTON BUG: 1=Break or Done, signaling is BIDIRECTIONAL: Break and Done
 MeasureAlign     dd  ?   ; This required for QWORD alignment
 
-StatCpiMin       dq  ?
-StatCpiMax       dq  ?
-StatCpiAverage   dq  ?
-StatCpiMedian    dq  ?
-StatCpiSum       dq  ?
+StatCpiMin       dq  ?   ; Statistics for CPI (Clocks per Instruction), CPI minimum
+StatCpiMax       dq  ?   ; CPI maximum 
+StatCpiAverage   dq  ?   ; CPI average value
+StatCpiMedian    dq  ?   ; CPI median value, detected by numbers ordering
+StatCpiSum       dq  ?   ; Service parameter: values sum for averaging CPI
 
-StatNspiMin      dq  ?
+StatNspiMin      dq  ?   ; Statistics for nsPI (Nanoseconds per Instruction)
 StatNspiMax      dq  ?
 StatNspiAverage  dq  ?
 StatNspiMedian   dq  ?
 StatNspiSum      dq  ?
 
-StatMbpsMin      dq  ?
+StatMbpsMin      dq  ?   ; Statistics for MBPS (Megabytes per Second)
 StatMbpsMax      dq  ?
 StatMbpsAverage  dq  ?
 StatMbpsMedian   dq  ?
 StatMbpsSum      dq  ?
 
-MeasureArray     dq  DRAW_POINTS_COUNT dup (?)  ; Array of measurements results, unsigned integer 64-bit, [delta TSC] + [instructions count]
-                                                ; under measurement updated by elements [double CPI] + [double MBPS] and ordered for median     
+MeasureArray     dq  DRAW_POINTS_COUNT dup (?)  ; Array of measurements results, double precision floating point, 64-bit, [delta TSC]
+                                                ; under measurement ordered for median, remember it before get value for drawings     
 ends
 
 ; TODO.

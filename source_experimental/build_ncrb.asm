@@ -46,13 +46,13 @@ sub rsp,8*5
 ; Load this library, because it not loaded by statical import
 lea rcx,[NameAdvapi32]
 call [LoadLibrary]
-mov [HandleAdvapi32],rax
+mov [HandleAdvapi32],rax       ; Store RAX = Library handle
 
 ; Load optional system functions, dynamical import used
 ; For this functions cannot use static import,
 ; because required Win XP (x64) compatibility
-call SystemFunctionsLoad    ; This subroutine output CF=1 if error
-call ShowWarningAPI         ; This subroutine input CF as error flag
+call SystemFunctionsLoad       ; This subroutine output CF=1 if error
+call ShowWarningAPI            ; This subroutine input CF as error flag
 
 ; Get system information
 call GetSystemParameters       ; Get system information into fixed buffer
@@ -92,14 +92,14 @@ call WaitEvent                   ; Window 1 work as callbacks inside this
 .Exit:
 
 ; Unload dynamical import
-mov rcx,[HandleAdvapi32]
+mov rcx,[HandleAdvapi32]         ; RCX = Library ADVAPI32.DLL handle
 jrcxz @f                         ; Go skip unload if handle = null
 call [FreeLibrary]               ; Unload ADVAPI32.DLL
 @@:
 
 ; Exit application
-xor ecx,ecx
-call [ExitProcess]
+xor ecx,ecx                      ; RCX = Exit code for this application
+call [ExitProcess]               ; Exit application, NO RETURN from this call
 
 ; Exit point for error exit, terminology note: MB = Message Box
 ; Error handling: display OS message box, return button ID (not used)

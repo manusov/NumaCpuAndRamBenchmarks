@@ -340,21 +340,23 @@ fld qword [r14]
 
 ; Calculate average CPI
 push r13                          ; R13 = divisor for averaging
-fld qword [r14]                   ; ST0 = current measured value
+; fld qword [r14]                 ; ST0 = current measured value
+fld st0                           ; ST1 = ST0 = current measured value
+;-
 fadd [r11 + DTHP.StatCpiSum]
 fst [r11 + DTHP.StatCpiSum]
-fidiv dword [rsp]
+fidiv dword [rsp]                 ; this access to R13 in the stack
 fst [r11 + DTHP.StatCpiAverage]   ; store average CPI
 call HelperCPItoNSPI
 fst [r11 + DTHP.StatNspiAverage]  ; store average nsPI = f (average CPI)
 call HelperNSPItoMBPS
 fadd [r11 + DTHP.StatMbpsSum]
-fst [r11 + DTHP.StatMbpsSum]     ; store average MBPS, averaging separately
-fidiv dword [rsp]
+fst [r11 + DTHP.StatMbpsSum]      ; store average MBPS, averaging separately
+fidiv dword [rsp]                 ; this access to R13 in the stack
 fstp [r11 + DTHP.StatMbpsAverage]
 pop r13
 
-; Median ordering, also used for min/max
+; Median ordering, also used for min/max, ordering by "bubble" method
 ; Note floating point values can be ordered by integer compare,
 ; because shifted exponent used at FP format
 .L23:

@@ -11,7 +11,6 @@
 ;                                                                              ;
 ; OUTPUT:  RDI = Modified by text string write                                 ;  
 ;------------------------------------------------------------------------------;
-
 DoublePrint:
 ;--- Entry ---
 push rax rbx rcx rdx r8 r9 r10 r11
@@ -111,7 +110,7 @@ shl r10,4
 loop .L3         ; Cycle for digits in the INTEGER part
 ;--- Write decimal point ---
 test bh,bh
-jz .Visual  ; Skip if not print float part
+jz .Exit        ; Skip if not print float part
 mov al,'.'
 stosb
 ;--- Write FLOATING part ---
@@ -131,7 +130,7 @@ loop .L4             ; Cycle for digits in the FLOATING part
 pop rdi
 cld                  ; Restore strings increment mode
 ;--- Go exit subroutine ---
-jmp .Visual
+jmp .Exit
 ;--- Write strings for different errors types ---
 .FP64_Zero:					; Zero
 mov eax,'0.0 '
@@ -147,11 +146,11 @@ mov eax,'QNAN'      ; "QNAN" = Quiet not a number
 jmp .FP64_02
 .FP64_02:
 stosd
-jmp .Visual
+jmp .Exit
 .Error:
 mov al,'?'
 stosb
-.Visual:
+.Exit:
 ;--- Exit --- 
 finit
 pop r11 r10 r9 r8 rdx rcx rbx rax

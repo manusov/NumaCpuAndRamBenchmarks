@@ -18,7 +18,7 @@
 ;-------------------------------------------------------------------;
 
 CreateApplicationWindow:
-cld                                             ; Clear direction, because STOSQ used
+; cld                                           ; Clear direction, because STOSQ used
 push rbx rcx rdx rax rsi rbp r8 r9 r10 r11 rax  ; R8-R11 because API, volatile
 mov rbp,rsp                                     ; RBP used for restore RSP and addressing variables
 and rsp,0FFFFFFFFFFFFFFF0h                      ; Align stack

@@ -55,10 +55,12 @@ ret
 ;          Memory at [Input RDI] modified                                ; 
 ;------------------------------------------------------------------------;
 StringWrite_CRLF:
+cld
 mov ax,0A0Dh
 stosw
-call StringWrite
-ret
+; call StringWrite
+; ret
+jmp StringWrite
 
 ;--- Print " = " and source string, for " parameter = value " -----------;
 ; INPUT:   RSI = Source address                                          ;
@@ -70,6 +72,7 @@ ret
 StringWrite_CRLF_Equal:
 call StringWrite_CRLF
 mov ax,' ='
+StoreChars:
 stosw
 stosb
 ret
@@ -84,7 +87,8 @@ ret
 StringWrite_CRLF_Colon:
 call StringWrite_CRLF
 mov ax,' :'
-stosw
-stosb
-ret
+; stosw
+; stosb
+; ret
+jmp StoreChars 
 

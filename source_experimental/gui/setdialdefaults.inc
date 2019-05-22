@@ -114,31 +114,31 @@ call [CheckRadioButton]
 
 ; Options, Editable field for custom block size
 mov rcx,[SubHandles-128+HANDLE_CUSTOM_EDIT*8]  ; RCX = Parm#1 = Destination element handle
-mov edx,WM_SETTEXT                 ; RDX = Parm#2 = Command, "WM" means Window Message
-xor r8d,r8d                        ; R8  = Parm#3 = Don't used
-lea r9,[Edit_Size]                 ; R9  = Parm#4 = Source buffer  
+mov edx,WM_SETTEXT           ; RDX = Parm#2 = Command, "WM" means Window Message
+xor r8d,r8d                  ; R8  = Parm#3 = Don't used
+lea r9,[Edit_Size]           ; R9  = Parm#4 = Source buffer  
 ; Select block size
 lea rsi,[SystemParameters.CpuCache.CpuidL1Data]
 mov rbx,0FFFFFFFF00000000h
-mov rax,[rsi+00]                   ; RAX = L1 Data Cache size
+mov rax,[rsi+00]             ; RAX = L1 Data Cache size
 test rax,rax
-jz @f                              ; Go try next level if zero
+jz @f                        ; Go try next level if Size = 0
 test rax,rbx
-jz .PrintBlock                     ; Go print if valid, if Size<4GB
+jz .PrintBlock               ; Go print if valid, if Size < 4GB (high bits = 0)
 @@:
-mov rax,[rsi+12]                   ; RAX = L2 Unified Cache size
+mov rax,[rsi+12]             ; RAX = L2 Unified Cache size
 test rax,rax
-jz @f                              ; Go try next level if zero
+jz @f                        ; Go try next level if Size = 0
 test rax,rbx
-jz .PrintBlock                     ; Go print if valid, if Size>4GB
+jz .PrintBlock               ; Go print if valid, if Size < 4GB (high bits = 0)
 @@:
-mov rax,[rsi+24]                   ; RAX = L3 Unified Cache size
+mov rax,[rsi+24]             ; RAX = L3 Unified Cache size
 test rax,rax                       
-jz @f                              ; Go try next level if zero
+jz @f                        ; Go try next level if Size = 0
 test rax,rbx
-jz .PrintBlock                     ; Go print if valid, if Size>4GB
+jz .PrintBlock               ; Go print if valid, if Size < 4GB (high bits = 0)
 @@:
-mov eax,00010000h                  ; Set default size = 64KB if all invalid
+mov eax,00010000h            ; Set default size = 64KB if all invalid
 ; Print block size  
 .PrintBlock:
 mov rdi,r9
@@ -154,7 +154,7 @@ xor r8d,r8d             ; R8  = Parm#3 = Select: 0=Disable, R13 from previous st
 xor r9d,r9d             ; R9  = Parm#4 = Not used
 call [SendMessage]                  
 ; Done
-jmp DoneCreateWindow    ; R8-R11 because API, volatile
+jmp DoneCreateWindow    ; Go to registers restore and return, R8-R11 because API, volatile
 
 
 

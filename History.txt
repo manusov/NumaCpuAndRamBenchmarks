@@ -84,3 +84,13 @@ v1.01.14
 Fix NUMA highest node detection bug:
 check WinAPI-updated QWORD variable instead DWORD variable.
 
+Generation 2, tagged "experimental".
+
+v1.02.00 - v1.02.24
+Redesign.
+GUI changes.
+Add latency measurement.
+Add MMX instructions support.
+Add approximation and adaptive modes.
+
+
