@@ -3,24 +3,23 @@
 ;    Include run  DrawSessionThread  subroutine as parallel thread             ;
 ;                                                                              ;
 ; INPUT:   None at registers                                                   ;
-;          IPB = Input parameters block with benchmark scenario data           ;
 ;          DialogueContent with user options settings data                     ;
 ;                                                                              ;
 ; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;
 ;          AL = error status, valid only if error detected (when CF=1)         ; 
-;               see file "thread manager\sessionstart.inc" for decode          ;   
+;               see file "thread manager\sessionstart.inc" for decode          ;
+;          UPB = Update user parameters block with GUI widgets settings        ;
+;          IPB = Update input parameters block with benchmark scenario data    ;   
 ;                                                                              ;
+; UPB = f (GUI) , IPB = f (UPB)                                                ;
 ; All CPU registers can be corrupted                                           ;
 ;------------------------------------------------------------------------------;
-
-; TODO.
-; Required input-output parameters detalization and error type status definition.
 
 DrawSessionStart:
 
 mov al,1  ; Run context = drawings, with memory allocation multiplication
-call GuiToUserParms
-call SessionStart     ; Initializing, allocate events, threads, memory
+call GuiToUserParms   ; Update UPB
+call SessionStart     ; Initializing, allocate events, threads, memory, IPB
 jc .Exit              ; Go if error returned, AL = Error code
 
 ; Initializing pointers
@@ -40,9 +39,9 @@ jrcxz .L10
 lodsb
 cmp al,0
 jne .L11
-loop .L11
+loop .L11     ; find string indexed by RCX
 .L10:
-sub rsi,r15
+sub rsi,r15   ; calculate RSI.[15-0] = compact 16-bit offset
 mov [r14 + HANDLE_TEXT_METHOD1*16 - 256 + 12],si
 
 ; Down comments strings, target object (Cache, DRAM, Custom block)
@@ -56,9 +55,9 @@ jrcxz .L12
 lodsb
 cmp al,0
 jne .L13
-loop .L13
+loop .L13     ; find string indexed by RCX
 .L12:
-sub rsi,r15
+sub rsi,r15   ; calculate RSI.[15-0] = compact 16-bit offset
 mov [r14 + HANDLE_TEXT_OBJECT1*16 - 256 + 12],si
 
 ; Down comments strings, number of threads
@@ -67,8 +66,8 @@ mov word [rdi],0000h + '?'
 mov eax,[rbx + IPB.UpdatedThreads]
 cmp eax,MAX_THREADS
 ja .L14
-push rbx    ; TODO> RBX can be non-optimal because this PUSH/POP requirement
-mov bl,0
+push rbx    ; Store RBX = pointer to IPB
+mov bl,0    ; BL = print template mode
 call DecimalPrint32
 pop rbx
 .L14:
@@ -78,12 +77,20 @@ lea rdi,[Repeats_Number]
 push rdi 
 mov ecx,12
 mov al,' '
-rep stosb
-pop rdi 
-mov rax,[rbx + IPB.MeasureRepeats]   ; TODO. Required support overflows RAX=4GB, actual for adaptive modes
-push rbx    ; TODO> RBX can be non-optimal because this PUSH/POP requirement
-mov bl,0
+rep stosb   ; Pre-blank text field, 
+pop rdi     ; note can be previous long text at buffer or screen 
+mov rax,[rbx + IPB.MeasureRepeats]
+push rbx    ; Store RBX = pointer to IPB
+mov rbx,0FFFFFFFF00000000h
+test rax,rbx   ; Required support overflows RAX=4GB, actual for adaptive modes
+jz .L18        ; Go if no overflow
+mov eax,' >4G'
+stosd
+jmp .L19
+.L18:
+mov bl,0    ; BL = print template mode
 call DecimalPrint32
+.L19:
 pop rbx
 
 ; Down comments strings, normal or large pages
@@ -92,7 +99,7 @@ cmp [rbx + IPB.UpdatedLP],LP_USED
 jne .L15 
 lea rax,[LPages_String]
 .L15:
-sub rax,r15
+sub rax,r15   ; calculate RSI.[15-0] = compact 16-bit offset
 mov [r14 + HANDLE_LARGE_PAGES1*16 - 256 + 12],ax
 
 ; Down comments strings, NUMA optimization mode
@@ -107,7 +114,7 @@ cmp al,0
 jne .L17
 loop .L17
 .L16:
-sub rsi,r15
+sub rsi,r15   ; calculate RSI.[15-0] = compact 16-bit offset
 mov [r14 + HANDLE_NUMA_MODE1*16 - 256 + 12],si
 
 ; Support option, actual for drawings only: adaptive measurement modes
@@ -130,11 +137,12 @@ mov [rbx + IPB.AdaptiveSeconds],rax
 
 
 ; Select Bandwidth or Latency measurement mode
+lea rsi,[ThreadsList]
+mov rcx,rsi
 cmp [rbx + IPB.UpdatedAsm],LATENCY_MODE
 jae .L22
 
 ; Bandwidth mode
-lea rcx,[ThreadsList]
 mov edx,[rbx + IPB.UpdatedThreads]
 call ThreadsReStart
 jmp .L21
@@ -142,21 +150,20 @@ jmp .L21
 ; Latency mode
 ; Setup pattern for prepare walk list
 .L22:
-lea rcx,[ThreadsList]
 mov r8d,[rbx + IPB.UpdatedThreads]
-mov r9,[rbx + IPB.PatternRoutine]
+mov r9,[rbx + IPB.PatternRoutine]    ; for first call, prepare list for walk
 call ThreadsUpdatePattern
 ; Run service pattern, prepare walk list, delta TSC ignored here
-lea rcx,[ThreadsList]
+mov rcx,rsi
 mov edx,[rbx + IPB.UpdatedThreads]
 call ThreadsReStart
 ; Setup pattern for walk
-lea rcx,[ThreadsList]
+mov rcx,rsi
 mov r8d,[rbx + IPB.UpdatedThreads]
-mov r9,[rbx + IPB.WalkRoutine]
+mov r9,[rbx + IPB.WalkRoutine]       ; for second call, walk at prepared list
 call ThreadsUpdatePattern
 ; Run measurement pattern, walk by prepared walk list, get delta TSC in the RAX
-lea rcx,[ThreadsList]
+mov rcx,rsi
 mov edx,[rbx + IPB.UpdatedThreads]
 call ThreadsReStart
 .L21:
@@ -177,41 +184,38 @@ pop rax
 ; Skip point for non-adaptive modes
 .L20:
 
-; Support option, actual for drawings only: X-approximation modes
+; Note option: X-approximation modes, 
+; interpreted and supported at drawsessionthread.inc module. 
 
-; UNDER CONSTRUCTION
-
-
-; TODO. Optimize RSI/RBX usage.
-
-lea rsi,[InputParms]
+;- lea rsi,[InputParms]
 lea rdi,[DrawParms]
 
 ; Calculate X grid step values, must be integer power of 2 for next step correct
-; Note this operation increase memory size requirements, because increase RAX 
-mov rax,[rsi + IPB.StartBlockSize]
+; Note this operation increase memory size requirements, because increase RAX
+mov rax,[rbx + IPB.StartBlockSize]
 bsr rcx,rax
 mov eax,1
-shl eax,cl
+shl eax,cl   ; RAX = Target block size, note example here RAX=8K for L1=32K
 
 ; Special support for DRAM and Custom modes
-; TODO. Make this at block setup, for detect mode single time ?
-mov ecx,[rsi + IPB.UpdatedTarget]
+; TODO. Make this at block setup, for detect mode single time ? 
+; But check  IPB.StartBlockSize  usages before move.
+mov ecx,[rbx + IPB.UpdatedTarget]
 cmp ecx,TARGET_DRAM
-je .L1
+je .L1                    ; Go for size / 8 if target = DRAM
 cmp ecx,TARGET_CUSTOM
-jne .L2
+jne .L2                   ; Go skip without size / 8 if target = not a Custom
 .L1:
-shr eax,3
+shr eax,3                 ; size / 8 , for DRAM and Custom modes
 .L2:
 
 ; Set Xstart, Xdelta for drawings
-push rax
-xor edx,edx
-mov ecx,GRIDSTEPX
-div rcx
-mov [rsi + IPB.StartBlockSize],rax  ; X start value
-mov [rsi + IPB.DeltaBlockSize],rax  ; X addend per draw iteration 
+push rax                            ; RAX = Block size per X-grid
+xor edx,edx                         ; RDX = Dividend high 64 bits, =0
+mov ecx,GRIDSTEPX                   ; RCX = Pixels per X-grid
+div rcx                             ; (Block size per grid) / (pixels per grid)
+mov [rbx + IPB.StartBlockSize],rax  ; X start value
+mov [rbx + IPB.DeltaBlockSize],rax  ; X addend per draw iteration 
 pop rax
 
 ; Update and store X grid step values
@@ -229,10 +233,10 @@ shr eax,10
 mov [rdi + DRPM.ValueGridX],eax
 mov [rdi + DRPM.SelectUnits],edx
 
-; Set first approximation constant for Y grid step values
+; Set first approximation constant for Y-grid step values
 mov eax,DEFAULT_Y_MBPS_PER_GRID
 xor edx,edx
-cmp [rsi + IPB.UpdatedAsm],LATENCY_MODE
+cmp [rbx + IPB.UpdatedAsm],LATENCY_MODE
 jb @f
 mov eax,DEFAULT_Y_NS_PER_GRID
 inc edx

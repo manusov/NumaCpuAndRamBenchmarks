@@ -6,15 +6,15 @@
 ;  System support data definitions: constants, structures, macro definitions.  ;
 ;     Make this module as separate file for useable by samples under debug     ;
 ;------------------------------------------------------------------------------;
-; Block size for RAM and Storage benchmarks, default values 
+; Block size for DRAM benchmarks, default values 
 ; must be corrected by platform configuration checks
-DEFAULT_DRAM_BLOCK    EQU  32*1024*1024
+DEFAULT_DRAM_BLOCK    EQU  32 * 1024 * 1024
 ; Constant for memory allocation option
 MEM_LARGE_PAGES       EQU  020000000h
 ; Selector for all processor groups
 ALL_PROCESSOR_GROUPS  EQU  0000FFFFh 
 ; Required 48 Kilobytes miscellaneous buffer
-TEMP_BUFFER_SIZE      EQU  49152
+TEMP_BUFFER_SIZE      EQU  48 * 1024
 
 ; Thread control entry, or entire benchmark control if single thread
 ; Note keep 128 bytes per entry, see ThreadEntry, can be non parametrized coding
@@ -58,17 +58,20 @@ MAX_THREADS            EQU  256      ; old = 64, this extension is UNDER CONSTRU
 MAX_THREADS_PER_GROUP  EQU  64
 ; Maximum number of supported NUMA nodes
 MAX_NODES              EQU  64
-; 8192 bytes, 64 entries for (multi) thread management
+; Thread entry size = 128 bytes, const because optimal shift by 7 can be used
+; 32768 bytes, 256 entries * 128 bytes, used for (multi) thread management
 THCTRL_SIZE            EQU  sizeof.THCTRL
 THREADS_LIST_SIZE      EQU  MAX_THREADS * THCTRL_SIZE
-; 512 bytes, 64 handles, separate list req. for WaitForMultipleObjects function  
+; Event handle size = 8 bytes (64-bit)
+; 2048 bytes, 256 handles * 8 bytes, 
+; separate sequental list req. for WaitForMultipleObjects function  
 EVENT_SIZE             EQU  8
 EVENTS_LIST_SIZE       EQU  MAX_THREADS * EVENT_SIZE
-; 4096 bytes, 64 entries for NUMA nodes description, not a same as THREAD
+; NUMA node entry size = 64 bytes, const because optimal shift by 6 can be used
+; 16384 bytes, 256 entries * 64 bytes,
+; for NUMA nodes description, not a same as THREAD
 NUMACTRL_SIZE          EQU  sizeof.NUMACTRL
 NUMA_LIST_SIZE         EQU  MAX_NODES * NUMACTRL_SIZE  
-
-; TODO. Check usable CustomBlockEnd, CustomBlockDelta.
 
 ; Test USER parameters layout declaration
 struct UPB
@@ -83,8 +86,9 @@ OptionMeasure     dd  ?    ; Measurement repeats { 0=fast, 1=slow, 2=fast adapti
 OptionApprox      dd  ?    ; Approximation for X { 0=none, 1=X16, 2=X32 }
 RunContext        dd  ?    ; Run context: 0 = "Run simple" , 1 = "Run drawings" 
 CustomBlockStart  dq  ?    ; Override start block size, or 0=default
-CustomBlockEnd    dq  ?    ; Override end block size, or 0=default
-CustomBlockDelta  dq  ?    ; Override delta block size, or 0=default
+; YET NOT USED FIELDS:
+; CustomBlockEnd    dq  ?    ; Override end block size, or 0=default
+; CustomBlockDelta  dq  ?    ; Override delta block size, or 0=default
 ends
 
 ; Test INPUT parameters layout declaration,
@@ -143,6 +147,7 @@ LATENCY_MODE        EQU  35     ; modes ID = 35, 36 for latency measurement
 ; 36 names for assembler methods
 ASM_LIMIT           EQU  36+1
 
+; Parallel threads option
 PARALLEL_LIMIT      EQU  2
 PARALLEL_NOT_SUP    EQU  0
 PARALLEL_NOT_USED   EQU  1

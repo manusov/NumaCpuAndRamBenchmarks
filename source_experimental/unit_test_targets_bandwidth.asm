@@ -27,30 +27,30 @@ lea rsi,[ TEMP_BUFFER + 0 ]
 lea rdi,[ TEMP_BUFFER + 16384 ] 
 mov ecx,16384/32                 ; Here fixed 32 bytes per instruction
 mov ebp,10000000
-mov [rsp+0],ecx
-mov [rsp+8],ebp
+mov [rsp+0],ecx                  ; ECX = Instructions count per block
+mov [rsp+8],ebp                  ; EBP = Measurement repeats count
 rdtsc
 shl rdx,32
 lea r15,[rax+rdx]
-call rbx ; old = qword [rbx]
+call rbx                         ; call target fragment, old = qword [rbx]
 rdtsc
 shl rdx,32
 add rax,rdx
 sub rax,r15
-mov [rsp+16],rax
+mov [rsp+16],rax                 ; RAX = Delta TSC
 
 ; calculations and build result strings
 lea rsi,[MessageText]
 lea rdi,[TEMP_BUFFER]
 call StringWrite
 finit
-fild qword [rsp+16]
-fild dword [rsp]
-fimul dword [rsp+8]
-fdivp st1,st0
+fild qword [rsp+16]   ; Load delta TSC
+fild dword [rsp]      ; Load copy of work counter: executed instructions count
+fimul dword [rsp+8]   ; Multiply by copy of measurement counter
+fdivp st1,st0         ; Result ST0 = TSC clocks per Instruction (CPI)
 fstp qword [rsp+16]
 pop rax rax rax
-mov bx,0300h
+mov bx,0300h          ; format = 3 numbers after decimal point
 call DoublePrint
 mov al,0
 stosb

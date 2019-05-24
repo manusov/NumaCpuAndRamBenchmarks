@@ -15,7 +15,7 @@ DoublePrint:
 ;--- Entry ---
 push rax rbx rcx rdx r8 r9 r10 r11
 cld
-;--- Detect special cases for DOUBLE format ---
+;--- Detect special cases for DOUBLE format, yet unsigned indication ---
 mov rdx,07FFFFFFFFFFFFFFFh
 and rdx,rax
 jz .FP64_Zero                ; Go if special cases = 0.0  or  -0.0
@@ -135,15 +135,14 @@ jmp .Exit
 .FP64_Zero:					; Zero
 mov eax,'0.0 '
 jmp .FP64_02
-.FP64_INF:           ; "INF" = Infinity
+.FP64_INF:          ; "INF" = Infinity, yet unsigned infinity indicated
 mov eax,'INF '
 jmp .FP64_02
 .FP64_NAN:
-mov eax,'NAN '      ; "NAN" = Not a number
+mov eax,'NAN '      ; "NAN" = (Signaled) Not a number
 jmp .FP64_02
 .FP64_QNAN:
 mov eax,'QNAN'      ; "QNAN" = Quiet not a number
-jmp .FP64_02
 .FP64_02:
 stosd
 jmp .Exit
@@ -151,7 +150,7 @@ jmp .Exit
 mov al,'?'
 stosb
 .Exit:
-;--- Exit --- 
+;--- Exit with re-initialize x87 FPU --- 
 finit
 pop r11 r10 r9 r8 rdx rcx rbx rax
 ret

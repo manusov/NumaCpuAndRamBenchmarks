@@ -162,7 +162,7 @@ xor r8d,r8d               ; R8  = Parm#3 = Don't used
 call [SendMessage]
 
 
-;-------------------------- Buttons handlers ----------------------------------;
+;---------------------- Buttons handlers selector -----------------------------;
 
 ; Detect buttons press
 cmp r14,HANDLE_BUTTON_ABOUT

@@ -4,7 +4,7 @@
 ;------------------------------------------------------------------------------;
 
 ;------------------------------------------------------------------------------;
-; Base point for compact offsets encoding,                                     ;
+; Base point for compact offsets encoding (16-bit relative offsets 0-65535),   ;
 ; note all used offsets must be POSITIVE relative this point.                  ;
 ;------------------------------------------------------------------------------;
 BasePointGui:
@@ -19,7 +19,7 @@ BasePointGui:
 PRODUCT_ID     DB  'NUMA CPU&RAM Benchmarks for Win64',0                                    
 ABOUT_CAP      DB  'Program info',0
 ABOUT_ID       DB  'NUMA CPU&RAM Benchmarks'   , 0Dh,0Ah
-               DB  'v1.02.24 for Windows x64'  , 0Dh,0Ah
+               DB  'v1.02.25 for Windows x64'  , 0Dh,0Ah
                DB  '(C)2019 IC Book Labs'      , 0Dh,0Ah,0
 
 ;------------------------------------------------------------------------------;

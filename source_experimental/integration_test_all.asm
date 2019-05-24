@@ -94,6 +94,8 @@ ExitProgram:
 ; Unit test purpose dummy point
 ErrorProgram:
 
+; Note ADVAPI32 library unload absent in this test, it exist at BUILD_NCRB.ASM
+
 ; exit
 xor ecx,ecx
 call [ExitProcess]

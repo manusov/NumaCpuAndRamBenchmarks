@@ -11,9 +11,6 @@
 ; All CPU registers can be corrupted                                           ;
 ;------------------------------------------------------------------------------;
 
-; TODO.
-; Required input-output parameters detalization.
-
 GuiToUserParms:
 
 ; Setup User Parameters Block (UPB) pointer

@@ -158,8 +158,6 @@ ends
 ; use OS timer 100 ns ?
 ; BOTH for "Run simple" and "Run draw".
 ; BOTH for Bandwidth and Latency.
-; TODO.
-; Use nsPI, CPI, MBPS instead CPI + MBPS only,
-; BUG: calibrate by CPI maximum, required by MBPS maximum. 
+; Make OPTION for select TSC or OS timer.
 
 

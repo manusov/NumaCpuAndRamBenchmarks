@@ -1,4 +1,4 @@
-;--- Create window. ------------------------------------------------;
+;--- Create GUI window. --------------------------------------------;
 ; Called from HeadBlock and from Window 0.                          ;
 ; Terminology notes: WS = Window Style                              ;
 ;                                                                   ;

@@ -2,16 +2,14 @@
 ;    (gray or black) by system information results                             ; 
 ;                                                                              ;
 ; INPUT:   None at registers                                                   ;
-;          System Parameters Block = results of system information             ; 
+;          System Parameters Block = results of system information             ;
+;          see global\connect_equ.inc for layout                               ; 
 ;                                                                              ;
 ; OUTPUT:  None at registers                                                   ;
 ;          GUI control structures                                              ;  
 ;                                                                              ;
 ; All CPU registers can be corrupted                                           ;
 ;------------------------------------------------------------------------------;
-
-; TODO.
-; Required input-output parameters detalization.
 
 SysParmsToGui:
 

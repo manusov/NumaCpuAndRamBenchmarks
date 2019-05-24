@@ -40,10 +40,11 @@ start:
 sub rsp,8*5
 
 ; Pre-load library ADVAPI32.DLL, next step uses GetModuleHandle, GetProcAddress
-; for detect functions entry points. Returned handle and status ignored at this
-; step, because availability of library and functions detected at next step.
+; for detect functions entry points. Returned handle and status stored but 
+; ignored at this step, because availability of library and functions
+; detected at next step: at subroutine SystemFunctionsLoad
 ; Note pre-load KERNEL32.DLL not required because static import used.
-; Load this library, because it not loaded by statical import
+; Load this library (ADVAPI32.DLL), because it not loaded by static import
 lea rcx,[NameAdvapi32]
 call [LoadLibrary]
 mov [HandleAdvapi32],rax       ; Store RAX = Library handle
@@ -117,7 +118,7 @@ mov rdx,r15	          ; Parm#2
 xor r8d,r8d	          ; Parm#3
 mov r9d,MB_ICONERROR  ; Parm#4
 call [MessageBoxA]
-jmp .Exit
+jmp .Exit             ; Go exit with dynamical imported library unload
 
 ; NCRB code: set of subroutines
 include 'global\connect_code.inc'              ; Global library

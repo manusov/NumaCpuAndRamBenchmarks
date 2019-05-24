@@ -11,9 +11,6 @@
 ; All CPU registers can be corrupted                                           ;
 ;------------------------------------------------------------------------------;
 
-; TODO.
-; Required input-output parameters detalization and error type status definition.
-
 DrawSessionStop:
 
 call SessionStop    ; De-initializing, release events, threads, memory

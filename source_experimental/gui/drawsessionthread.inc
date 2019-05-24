@@ -10,11 +10,6 @@
 ; CPU registers volatile / non volatile by Microsoft x64 calling convention    ;
 ;------------------------------------------------------------------------------;
 
-; TODO.
-; Required input-output parameters detalization and error type status definition.
-; TODO.
-; Error handling required, but note this is SEPARATE thread.
-
 DrawSessionThread:
 
 ; Entry point, must be compliant Microsoft x64 calling convention.
@@ -35,7 +30,7 @@ call [SetEvent]                   ; Call WinAPI function
 lea rsi,[InputParms]
 lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
-call ThreadsReStart
+call ThreadsReStart    ; TODO. Error handling required, but note this is SEPARATE thread.
 
 ; Measurement cycle
 .BackgroundProcess:
@@ -73,7 +68,7 @@ jae .LatencyMode
 ; Measurement pattern
 lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
-call ThreadsReStart
+call ThreadsReStart    ; TODO. Error handling required, but note this is SEPARATE thread.
 jmp .DoneBandwidthOrLatency
 
 .LatencyMode:
@@ -85,7 +80,7 @@ call ThreadsUpdatePattern
 ; Run service pattern, prepare walk list, delta TSC ignored here
 lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
-call ThreadsReStart
+call ThreadsReStart    ; TODO. Error handling required, but note this is SEPARATE thread.
 ; Setup pattern for walk
 lea rcx,[ThreadsList]
 mov r8d,[rsi + IPB.UpdatedThreads]
@@ -94,7 +89,7 @@ call ThreadsUpdatePattern
 ; Run measurement pattern, walk by prepared walk list, get delta TSC in the RAX
 lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
-call ThreadsReStart
+call ThreadsReStart    ; TODO. Error handling required, but note this is SEPARATE thread.
 
 .DoneBandwidthOrLatency:
 

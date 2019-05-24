@@ -41,6 +41,8 @@ call [MessageBoxA]
 
 RunError:
 
+; Note ADVAPI32 library unload absent in this test, it exist at BUILD_NCRB.ASM
+
 xor ecx,ecx
 call [ExitProcess]
 

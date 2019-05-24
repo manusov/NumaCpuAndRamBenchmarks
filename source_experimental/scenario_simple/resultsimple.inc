@@ -24,7 +24,7 @@ call StringWrite
 call StringWrite_CRLF_Equal
 push rsi
 lea rsi,[AM_Strings_Prefix]     ; RSI = Pointer to strings sequence
-mov eax,[r8+IPB.UpdatedAsm]    ; AL = Selector
+mov eax,[r8+IPB.UpdatedAsm]     ; AL = Selector
 inc al
 mov ah,ASM_LIMIT
 call StringWriteSelected        ; Write string selected by AL from pool [rsi]

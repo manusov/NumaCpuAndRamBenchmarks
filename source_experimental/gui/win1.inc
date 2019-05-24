@@ -201,12 +201,13 @@ jne .WinDefaultProc                   ; Go if not "Resize" button
 ; TODO. Check errors (CF flag) after thread control routines, see below all
 
 ; Set thread break flag
+
 mov [DrawThreadParms + DTHP.MeasureBreak],1
 ; Wait for measurement thread done, this event at thread exit point
 mov rcx,[DrawThreadParms + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done event
 mov edx,10000                                ; RDX = Parm#2 = 10 seconds
 call [WaitForSingleObject]
-; Remove thread and associated handles
+; Remove thread and associated handles, note can corrupt pointers
 call DrawSessionStop
 ; Clear drawings variables 
 mov [DrawParms + DRPM.DrawPreviousY],0
@@ -227,7 +228,7 @@ fidiv dword [rsp+8]
 fimul dword [rsp]
 fistp dword [rsp+8]
 ; Restart
-call DrawSessionStart
+call DrawSessionStart   ; note can corrupt pointers
 pop rax rax
 test eax,eax
 jnz @f
@@ -291,10 +292,6 @@ je .EndPaint
 cmp al,1                   ; 1 = First drawings (grid)
 je .FirstPaint             ; Go if this is first pass, draw axes
 ; continue draw y=f(x), not a first pass
-
-; TODO. Replace to DrawSessionThread
-; call DrawSessionProgress
-
 ; Setup drawings
 lea rcx,[DrawThreadParms]
 lea r14,[rcx + DTHP.MeasureArray]
@@ -327,8 +324,6 @@ add r12,GRIDBLANKX + 1
 ; Better use helpers subroutines for comparision and conditional update ?
 ; Use median ordering for min-max also.
 ; Remove finit from body of cycle ? 
-
-; UPDATED.
 
 ; Load pointer, used for all statistics calculation
 lea r11,[DrawThreadParms]
@@ -588,7 +583,6 @@ mov r12d,GRIDBLANKX          ; R12D = Base point, X
 mov r13d,SUBWINY-20          ; R13D = Base point Y
 xor ebp,ebp                  ; EBP = Units value
 .BothGrids:
-.XVYHtext:
 ; Build ASCII string
 push rdi
 lea rdi,[BigTexts]           ; RDI = Pointer for print decimal string as ASCII
@@ -634,24 +628,25 @@ sub rsp,32                   ; Create parameters shadow
 call [DrawText]              ; Draw text function 
 add rsp,32+8                 ; Remove parameters shadow and 1 parameter
 ; Cycle for lines of selected grid
+lea rcx,[DrawParms]
 cmp bh,1
 je .YGrid
-; TODO.
-; Make compact offsets with base register = offset DrawParms
-add ebp,[DrawParms + DRPM.ValueGridX]   ; Addend per X grid
+; X-mode entry point
+add ebp,[rcx + DRPM.ValueGridX]   ; Addend per X grid
 add r12d,GRIDSTEPX
 jmp .CycleGrids
+; Y-mode entry point
 .YGrid:
-add ebp,[DrawParms + DRPM.ValueGridY]   ; Addend per Y grid
+add ebp,[rcx + DRPM.ValueGridY]   ; Addend per Y grid
 sub r13d,GRIDSTEPY
 .CycleGrids:
 dec r14d
-jnz .XVYHtext 
+jnz .BothGrids  
 ; Cycle for horizontal and vertical grids
 mov r14d,GRIDY - 1                             ; R14D = Number of lines, Y
 mov r12d,GRIDBLANKX - 68                       ; R12D = X coordinate , TODO MAKE EQU INSTEAD NUMBER. OR ADAPTIVE RIGHT ALIGNED
 mov r13d,SUBWINY-GRIDBLANKY - GRIDSTEPY - 15   ; R13D = Y coordinate
-mov ebp,[DrawParms + DRPM.ValueGridY]
+mov ebp,[rcx + DRPM.ValueGridY]
 dec bh
 jnz .BothGrids
 pop rbx

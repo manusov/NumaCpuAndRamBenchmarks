@@ -102,6 +102,8 @@ lea r8,[PRODUCT_ID]     ; R8  = Parm#3 = Pointer to caption
 xor r9d,r9d             ; R9  = Parm#4 = Message box icon type
 call [MessageBoxA]
 
+; Note ADVAPI32 library unload absent in this test, it exist at BUILD_NCRB.ASM
+
 ; exit
 xor ecx,ecx
 call [ExitProcess]

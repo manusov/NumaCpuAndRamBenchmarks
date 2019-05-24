@@ -15,39 +15,44 @@ start:
 
 sub rsp,8*5
 
+; Note ADVAPI32 library load in the SystemFunctionsLoad subroutine at this test 
+; this action moved to main module at BUILD_NCRB.ASM
+
 call SystemFunctionsLoad
 jc ErrorSkip
 
 lea rcx,[NumaNodesList]
 xor edx,edx
-call BuildNumaNodesList
+call BuildNumaNodesList  ; Build list of NUMA nodes
 jc ErrorSkip
 test eax,eax
 jz ErrorSkip
 
 cld
-push rax
+push rax                 ; Store nodes count
 lea rsi,[MessageText]
 lea rdi,[TEMP_BUFFER]
-call StringWrite
-pop rcx
+call StringWrite         ; Write name of test
+pop rcx                  ; RCX = restore nodes count
 
 lea rsi,[NumaNodesList]
 @@:
 mov ax,0A0Dh
 stosw
 mov rax,[rsi + NUMACTRL.NodeAffinity]
-call HexPrint64
-add rsi,NUMACTRL_SIZE
+call HexPrint64          ; Write 64-bit hex number: node affinity mask
+add rsi,NUMACTRL_SIZE    ; RSI = Pointer for nodes entries in the list
 mov al,'h'
 stosb
-loop @b
+loop @b                  ; cycle for all nodes
 
 lea rdx,[TEMP_BUFFER]  ; RDX = Parm #2 = Message
 lea r8,[WinCaption]    ; R8  = Parm #3 = Caption (upper message)
 xor r9d,r9d            ; R9  = Parm #4 = Message flags
 xor ecx,ecx            ; RCX = Parm #1 = Parent window
 call [MessageBoxA]
+
+; Note ADVAPI32 library unload absent in this test, it exist at BUILD_NCRB.ASM
 
 ErrorSkip:
 

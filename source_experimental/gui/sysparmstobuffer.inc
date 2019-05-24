@@ -2,15 +2,13 @@
 ;                                                                              ;
 ; INPUT:   None at registers                                                   ;
 ;          System Parameters Block = results of system information             ;
+;          see global\connect_equ.inc for layout                               ;
 ;                                                                              ;
 ; OUTPUT:  None at registers                                                   ;
 ;          Temporary multifunctional buffer, data for visualization            ;  
 ;                                                                              ;
 ; All CPU registers can be corrupted                                           ;
 ;------------------------------------------------------------------------------;
-
-; TODO.
-; Required input-output parameters detalization.
 
 SysParmsToBuffer:
 
