@@ -1,5 +1,8 @@
 ;---------- Call benchmark target subroutine ----------------------------------;
-; INPUT:   RBX = Pointer to Control Entry                                      ; 
+;                                                                              ;
+; INPUT:   RBX = Pointer to Control Entry                                      ;
+;          Control entry data , see global\connect_equ.inc , THCTRL layout     ;
+;                                                                              ;
 ; OUTPUT:  RAX = Delta TSC                                                     ;  
 ;          Registers corrupted, except R15 = saved                             ;
 ;------------------------------------------------------------------------------;
@@ -7,7 +10,7 @@
 RunTarget:
 ; Load input parameters, part 1
 mov rsi,[rbx + THCTRL.Base1]       ; RSI = Block #1 pointer (64-bit flat)
-mov rdi,[rbx + THCTRL.Base2]       ; RDI = Block #1 pointer (64-bit flat)
+mov rdi,[rbx + THCTRL.Base2]       ; RDI = Block #2 pointer (64-bit flat)
 mov rbp,[rbx + THCTRL.Repeats]     ; RBP = Number of measurement repeats
 mov r14,rbx
 ; Serialization, note EAX,EBX,ECX,EDX changed
@@ -29,7 +32,7 @@ or rax,rdx         ; RAX = Interval end TSC value, integral 64 bits
 sub rax,r14        ; RAX = Delta TSC value
 push rax
 xor eax,eax        ; EAX=0 means function 0 for CPUID
-cpuid              ; This CPUID for events serialization only, results ignored
+cpuid              ; This CPUID for serialization only, results ignored
 pop rax
 ; Return, RAX = delta TSC
 ret

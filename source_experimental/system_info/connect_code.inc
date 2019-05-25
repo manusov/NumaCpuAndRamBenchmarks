@@ -2,8 +2,9 @@
 ;     System Information Library: connect include files with subroutines.      ;
 ;------------------------------------------------------------------------------;
 
-include 'checkcpuid.inc'      ; Check CPUID instruction and functions available
 include 'sysfncload.inc'      ; Load optional WinAPI by dynamical import
+
+include 'checkcpuid.inc'      ; Check CPUID instruction and functions available
 include 'getacpi.inc'         ; Get and parse ACPI tables, use WinAPI
 include 'getcpucache.inc'     ; Get CPU cache by CPUID instruction
 include 'getcpufeatures.inc'  ; Get CPU features by CPUID/XGETBV instructions 

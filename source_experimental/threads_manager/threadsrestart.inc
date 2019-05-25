@@ -39,10 +39,10 @@ mov ebx,edi                    ; EBX = Store number of threads
 .RestartThreads:
 mov rcx,[rsi + THCTRL.EventDone]   ; RCX = Parm#1 = Event handle
 jrcxz ErrorThreads                 ; Error if this entry not allocated
-call [ResetEvent]                  ; Reset event cause repeat benchmark call
+call [ResetEvent]                  ; Reset event cause done signal clear
 mov rcx,[rsi + THCTRL.EventStart]  ; RCX = Parm#1 = Event handle
 jrcxz ErrorThreads                 ; Error if this entry not allocated
-call [SetEvent]                    ; Reset event cause repeat benchmark call
+call [SetEvent]                    ; Set event cause repeat benchmark call
 ; Cycle
 add rsi,THCTRL_SIZE                ; Select next thread entry
 dec edi                            ; Count threads

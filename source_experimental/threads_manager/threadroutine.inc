@@ -1,5 +1,5 @@
 ;---------- Thread routine, called by OS callback mechanism -------------------;
-; Variant without support Processor Groups, systems with <64 logical CPUs      ;
+; Variant without support Processor Groups, systems with <= 64 logical CPUs    ;
 ;                                                                              ;
 ; INPUT:   RCX = Parm#1 = Thread ID, 0-63                                      ;
 ; OUTPUT:  None, because no return                                             ;
@@ -22,8 +22,8 @@ mov rbx,r15
 ; Set affinity mask for this thread
 mov rcx,[rbx + THCTRL.ThreadHandle]     ; Parm#1 = RCX = Thread handle
 mov rdx,[rbx + THCTRL.ThreadAffinity]   ; Parm#2 = RDX = Thread Affinity mask
-test rdx,rdx
-jz @f                ; Skip set affinity mask if memory allocated without NUMA
+test rdx,rdx    ; Check for affinity mask = 0
+jz @f           ; Skip set affinity mask if memory allocated without NUMA
 call [_SetThreadAffinityMask]
 @@:
 
@@ -40,7 +40,7 @@ call [SetEvent]                    ; Call WinAPI function
 mov rcx,[r15 + THCTRL.EventStart]  ; RCX = Parm#1 = Handle for this thread
 mov edx,-1                         ; RDX = Parm#2 = Wait infinite, no timeout
 call [WaitForSingleObject]
-; Restart thread
+; Repeat measurement iteration in this thread
 jmp .ThreadRepeat
 
 ;---------- Thread routine, called by OS callback mechanism -------------------;
@@ -68,7 +68,7 @@ mov rbx,r15
 mov rcx,[rbx + THCTRL.ThreadHandle]     ; Parm#1 = RCX = Thread handle
 lea rdx,[rbx + THCTRL.ThreadAffinity]   ; Parm#2 = RDX = Pointer to mask + group
 lea r8,[rbx + THCTRL.OrigAffinity]      ; Parm#3 = R8 = Pointer to get original
-cmp qword [rdx],0
+cmp qword [rdx],0    ; Check for affinity mask = 0
 je @f                ; Skip set affinity mask if memory allocated without NUMA
 call [_SetThreadGroupAffinity]      ; This changed for Processor Groups
 @@:
@@ -86,6 +86,6 @@ call [SetEvent]                    ; Call WinAPI function
 mov rcx,[r15 + THCTRL.EventStart]  ; RCX = Parm#1 = Handle for this thread
 mov edx,-1                         ; RDX = Parm#2 = Wait infinite, no timeout
 call [WaitForSingleObject]
-; Restart thread
+; Repeat measurement iteration in this thread
 jmp .ThreadRepeat
 

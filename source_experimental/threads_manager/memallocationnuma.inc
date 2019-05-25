@@ -25,8 +25,8 @@ mov edi,r8d                  ; RDI = Number of nodes
 
 ; Check for large pages
 mov r12d,MEM_RESERVE + MEM_COMMIT  ; R12 = Memory allocation flags
-cmp r9d,2                          ; Check Large Pages mode, 2=supported and used
-jne .SkipLargePages                ; Go if Large Pages not used
+cmp r9d,LP_USED              ; Check Large Pages mode, 2=supported and used
+jne .SkipLargePages          ; Go if Large Pages not used
 mov r12d,MEM_RESERVE + MEM_COMMIT + MEM_LARGE_PAGES  ; Memory allocation flags for Large Pages
 .SkipLargePages:
 
@@ -37,13 +37,11 @@ jz .ErrorAllocationNuma      ; Go error if Handle=0
 xchg r13,rax                 ; R13 = Process Handle, XCHG for compact
 
 ; Select NUMA or Non-NUMA branches, EDI = nodes count
-; TODO. Yet this branch if nodes=0, can use it for nodes >= 1.
-; test edi,edi
-; jz .NoNumaAllocation
 cmp edi,1
 jbe .NoNumaAllocation 
 
-; Branch for platform with NUMA
+
+;--- Branch for platform/modes with NUMA ---
 
 ; Cycle for nodes, allocate memory block per each NUMA node
 .NumaAllocation:
@@ -78,36 +76,23 @@ ret
 stc                   ; CF=1 means status = error detected
 jmp .ExitAllocationNuma
 
-; Branch for platform without NUMA
+
+;--- Branch for platform/modes without NUMA ---
  
 .NoNumaAllocation:
 mov [rbx + NUMACTRL.AlignedSize],rsi  ; Store memory block size
-; test r12d,MEM_LARGE_PAGES
-; jnz .LargePages                       ; TODO. Check this redundant ?
-
-; Branch for Normal Pages
-; .NormalPages:
-; xor ecx,ecx                        ; Parm#1 = RCX = Virtual address, 0=Auto select
-; mov rdx,rsi                        ; Parm#2 =  RDX = Memory block size, here 1 allocation (no NUMA means 1 node) 
-; mov r8,r12                         ; Parm#3 = Allocation type
-; mov r9d,PAGE_READWRITE             ; Parm#4 = Page Attribute
-; call [VirtualAlloc]                ; Call memory allocation WinAPI, return RAX = Pointer
-; jmp .StatusPhase                   ; Go to status phase
-
-; Branch for Large Pages
-; .LargePages:
-call [GetCurrentProcess]           ; RAX = Get Process Handle
-test rax,rax                       ; Check process handle
-jz .StatusPhase                    ; Go error if process handle = 0
-mov rcx,rax                        ; Parm#1 = RCX = Process Handle
-xor edx,edx                        ; Parm#2 = RDX = Virtual address, 0=Auto select
-mov r8,rsi                         ; Parm#3 = R8 = Block size 
-mov r9,r12                         ; Parm#4 = R9 = Allocation type
-push 0                             ; Alignment
-push PAGE_READWRITE                ; Parm#5 = [RSP+40] = Page Attribute
-sub rsp,32                         ; Create stack frame
-call [VirtualAllocEx]              ; Call memory allocation WinAPI, return RAX = Pointer
-add rsp,32+16                      ; Remove stack frame
+call [GetCurrentProcess]  ; RAX = Get Process Handle
+test rax,rax              ; Check process handle
+jz .StatusPhase           ; Go error if process handle = 0
+mov rcx,rax               ; Parm#1 = RCX = Process Handle
+xor edx,edx               ; Parm#2 = RDX = Virtual address, 0=Auto select
+mov r8,rsi                ; Parm#3 = R8 = Block size 
+mov r9,r12                ; Parm#4 = R9 = Allocation type
+push 0                    ; Push for stack alignment
+push PAGE_READWRITE       ; Parm#5 = [RSP+40] = Page Attribute
+sub rsp,32                ; Create stack frame
+call [VirtualAllocEx]     ; Call memory allocation WinAPI, return RAX = Pointer
+add rsp,32+16             ; Remove stack frame
 
 ; Status phase, RAX = allocation result
 .StatusPhase:

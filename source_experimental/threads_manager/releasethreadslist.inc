@@ -52,12 +52,12 @@ call [CloseHandle]                   ; Call WinAPI function
 test rax,rax                         ; Status=0 means error
 jz .ReleaseError                     ; Go exit if error
 @@:
-dec edi                              ; Count threads entries, for used entries
-jz .ThreadsDone
+dec edi                             ; Count threads entries, for used entries
+jz .ThreadsDone                     ; Go exit if used threads done before limit
 ; Cycle for release threads
-add rsi,THCTRL_SIZE                  ; Select next thread entry
-dec ebx                              ; Count threads entries, for limit
-jnz .ReleaseThreads                  ; Cycle for all entries
+add rsi,THCTRL_SIZE                 ; Select next thread entry
+dec ebx                             ; Count threads entries, for limit
+jnz .ReleaseThreads                 ; Cycle for all entries
 
 ; Exit points
 .ThreadsDone:

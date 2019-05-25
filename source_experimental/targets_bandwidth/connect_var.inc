@@ -1,4 +1,6 @@
 ;------------------------------------------------------------------------------;
+;                  This performance patterns used in the                       ; 
+;              "Run simple", "Run drawings" benchmark scenarios.               ;
 ;          Library of performance patterns for bandwidth measurement:          ;
 ;                   variables without pre-defined values.                      ;
 ;------------------------------------------------------------------------------;

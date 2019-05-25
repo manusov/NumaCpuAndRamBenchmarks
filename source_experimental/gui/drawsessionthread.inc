@@ -7,7 +7,8 @@
 ;          STATUS RETURN RESERVED, NOT USED YET,                               ; 
 ;          BECAUSE THIS IS SEPARATE THREAD                                     ;  
 ;                                                                              ;
-; CPU registers volatile / non volatile by Microsoft x64 calling convention    ;
+; CPU registers volatile / non volatile by Microsoft x64 calling convention,   ;
+; note about this subroutine is object for OS callback.                        ;
 ;------------------------------------------------------------------------------;
 
 DrawSessionThread:

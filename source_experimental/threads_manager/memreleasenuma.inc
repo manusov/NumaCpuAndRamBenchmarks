@@ -1,31 +1,29 @@
 ;---------- NUMA-aware memory release -----------------------------------------;
+; Note this single memory release subroutine used                              ;
+; for NUMA / No NUMA , for Normal Pages / Large Pages.                         ; 
+;                                                                              ;
 ; INPUT:   RCX = Pointer to nodes list                                         ;
-;          EDX = Number of nodes                                               ; 
+;          EDX = Number of nodes, can be EDX=1 if NUMA not used / not sup.     ; 
 ;                                                                              ;
 ; OUTPUT:  CF = Error flag: 0(NC)=no errors, 1(C)=error                        ;
 ;                                                                              ;
 ; Can destroy registers, volatile by Microsoft x64 calling convention.         ; 
 ;------------------------------------------------------------------------------;
 
-; TODO. Single memory release branch used 
-; for NUMA / No NUMA,
-; for Normal Pages / Large Pages. 
-; Required verify this acceptable.
-
 MemReleaseNuma:
 cld
 push rbx rsi rdi rbp r12
 mov rbp,rsp
-and rsp,0FFFFFFFFFFFFFFF0h         ; Stack alignment because WinAPI call
-sub rsp,32                         ; Make parameters shadow because WinAPI call 
+and rsp,0FFFFFFFFFFFFFFF0h    ; Stack alignment because WinAPI call
+sub rsp,32                    ; Make parameters shadow because WinAPI call 
 ; Reload input parameters to non-volatile registers
-mov rsi,rcx                        ; RSI = Pointer to NUMA nodes list
-mov edi,edx                        ; EDI = Number of used NUMA nodes
+mov rsi,rcx                   ; RSI = Pointer to NUMA nodes list
+mov edi,edx                   ; EDI = Number of used NUMA nodes
 ; Get current process handle
-call [GetCurrentProcess]           ; Return RAX = Handle
-xchg rbx,rax                       ; Copy to non-volatile register, XCHG for compact
+call [GetCurrentProcess]      ; Return RAX = Handle
+xchg rbx,rax                  ; Copy to non-volatile register, XCHG for compact
 ; Set nodes list limit
-mov r12d,MAX_NODES                 ; R12D = Maximum number of NUMA nodes
+mov r12d,MAX_NODES            ; R12D = Maximum number of NUMA nodes
 
 ; Cycle for release memory, allocated at all nodes
 .NumaRelease:

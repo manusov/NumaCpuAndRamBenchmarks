@@ -14,27 +14,27 @@
 ; Can destroy registers, volatile by Microsoft x64 calling convention.        ;
 ;-----------------------------------------------------------------------------;
 ThreadsUpdateBlockSize:
-mov rax,r9
-mov r10d,[rdx + IPB.OperandWidth]
-shr r10d,3
-jz .Error
+mov rax,r9                           ; RAX  = new block size, units = bytes
+mov r10d,[rdx + IPB.OperandWidth]    ; R10D = operand width, bits 
+shr r10d,3                           ; R10D = operand width, bytes, means / 8
+jz .Error                            ; Go error if width = 0
 xor edx,edx
-div r10 
+div r10                           ; RAX = new block size, units = INSTRUCTIONS 
 ; Entries update cycle
 @@:
 ; Update block size, bytes, this field must be updated per draw iteration
 mov [rcx + THCTRL.SizeBytes],r9
 ; Update block size, instructions, this field must be updated per draw iteration
 mov [rcx + THCTRL.SizeInst],rax
-; Cycle
-add rcx,THCTRL_SIZE
-dec r8d
+; Cycle for all threads
+add rcx,THCTRL_SIZE          ; RCX = threads entries pointer
+dec r8d                      ; R8D = threads entries counter
 jnz @b 
 ; Exit points
-clc
+clc             ; CF = 0 means no errors
 ret
 .Error:
-stc
+stc             ; CF = 1 means error
 ret
 
 
@@ -50,10 +50,10 @@ ret
 ;--------------------------------------------------------------------------;
 ThreadsUpdatePattern:
 @@:
-mov [rcx + THCTRL.EntryPoint],r9
+mov [rcx + THCTRL.EntryPoint],r9   ; R9 = pointer to pattern routine
 ; Cycle
-add rcx,THCTRL_SIZE
-dec r8d
+add rcx,THCTRL_SIZE                ; RCX = threads entries pointer
+dec r8d                            ; R8D = threads entries counter
 jnz @b 
 ret
  
@@ -69,23 +69,23 @@ ret
 ; OUTPUT:  None                                                            ;
 ;--------------------------------------------------------------------------;
 ThreadsUpdateAdaptive:
-mov r11,rdx
-mov rax,[r11 + IPB.AdaptiveProduct]
-mov r10,[r11 + IPB.StartBlockSize]
+mov r11,rdx                          ; R11 = IPB base pointer
+mov rax,[r11 + IPB.AdaptiveProduct]  ; RAX = total constant adaptive count 
+mov r10,[r11 + IPB.StartBlockSize]   ; R10 = block size, units = bytes
 xor edx,edx
-div r10
+div r10                          ; RAX = repeats = total constant / block size 
 ; Prevent overflow, if repeats count = 0, set repeats count = 1
 test rax,rax
-jnz @f
-inc eax 
+jnz @f                           ; Go skip correction if repeats > 0
+inc eax                          ; correction, if repeats = 0, set repeats = 1 
 @@:
 ; Update IPB
-mov [r11 + IPB.MeasureRepeats],rax
+mov [r11 + IPB.MeasureRepeats],rax  ; R11 = IPB base pointer
 ; Cycle for fill threads list
 @@:
-mov [rcx + THCTRL.Repeats],rax
-add rcx,THCTRL_SIZE
-dec r8d
+mov [rcx + THCTRL.Repeats],rax   ; RAX = updated repeats count
+add rcx,THCTRL_SIZE              ; RCX = threads entries pointer
+dec r8d                          ; R8D = threads entries counter
 jnz @b 
 ret
 

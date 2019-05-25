@@ -26,14 +26,14 @@ mov rsi,rcx                    ; RSI = Control list pointer
 mov edi,edx                    ; EDI = Number of used threads
 
 ; Serializing and get TSC, measurement interval start
-xor eax,eax
-cpuid                          ; This for serializing only
-rdtsc                          ; Get TSC to EDX=High, EAX=Low
+xor eax,eax                  ; CPUID function 0
+cpuid                        ; This CPUID for serializing only, results ignored
+rdtsc                        ; Get TSC to EDX=High, EAX=Low
 shl rdx,32
-lea r12,[rax+rdx]              ; R12 = TSC value, 64-bit
+lea r12,[rax+rdx]            ; R12 = TSC value, 64-bit
 ; Scan list of threads
 lea r13,[rsi + THREADS_LIST_SIZE + EVENTS_LIST_SIZE]  ; R13 = DONE events list
-mov ebx,edi                    ; EBX = Store number of threads
+mov ebx,edi                  ; EBX = Store number of threads
 
 ; Cycle for run (resume) threads
 .RunThreads:
@@ -62,12 +62,12 @@ mov rax,-1
 jnz ErrorThreads
 
 ; Serializing and get TSC, measurement interval end 
-xor eax,eax
-cpuid                          ; This for serializing only
-rdtsc                          ; Get TSC to EDX=High, EAX=Low
+xor eax,eax                  ; CPUID function 0
+cpuid                        ; This CPUID for serializing only, results ignored
+rdtsc                        ; Get TSC to EDX=High, EAX=Low
 shl rdx,32
-add rax,rdx                    ; RAX = TSC value, 64-bit
-sub rax,r12                    ; RAX = Delta TSC = Current TSC - Start TSC
+add rax,rdx                  ; RAX = TSC value, 64-bit
+sub rax,r12                  ; RAX = Delta TSC = Current TSC - Start TSC
 
 ; Exit points
 ; This points also referenced by Re-Start subroutine

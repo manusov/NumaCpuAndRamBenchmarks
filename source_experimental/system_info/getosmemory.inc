@@ -38,11 +38,13 @@ push rbx rsi rbp
 mov rbp,rsp                  ; RBP used for restore RSP and addressing variables
 and rsp,0FFFFFFFFFFFFFFF0h   ; Align stack because WinAPI used
 sub rsp,32                   ; Make parameters shadow
+
 ; Here buffer not blanked by REP STOSB, and RDI valid only if no errors,
 ; because errors in this function is fatal and application exit
 ; Get Sysyem Info
 mov rcx,rdi                  ; Parm#1 = RCX = Output buffer address
 call [GetSystemInfo]
+
 ; Get Memory Info
 add rdi,48                   ; Sub buffer #1 size is 48 bytes
 mov rcx,rdi                  ; Parm#1 = RCX = Output buffer address
@@ -55,6 +57,7 @@ test rax,rax                 ; Check for RAX=0 means error
 .ErrorOsInfo:
 stc                          ; CF=1(C) means error
 jz .ExitOsInfo               ; Go exit if error returned 
+
 ; Exit points
 add rdi,64                   ; Sub buf. #2 size is 64 bytes, also clear CF=0(NC)
 .ExitOsInfo:

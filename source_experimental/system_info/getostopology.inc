@@ -69,7 +69,7 @@ sub rsp,32                   ; Make parameters shadow
 mov rbx,rdi
 mov ecx,16
 xor eax,eax
-rep stosd
+rep stosd                     ; Buffer size is 64 bytes
 ; Call WinAPI target function
 mov rcx,rsi                   ; RCX = Parm#1 = Pointer to output buffer 
 mov rdx,rbp                   ; RDX = Parm#2 = Pointer to output var. = size
@@ -172,6 +172,7 @@ mov [rbx+32+rdx],r9d   ; Store THREADS PER this CACHE
 .SkipThis:
 loop .ScanRelations
 pop rdi
+
 ; Calculate number of cores per one processor package (or per NUMA node)
 mov eax,[rbx+52]
 xor edx,edx
@@ -184,16 +185,15 @@ jecxz .L1
 div ecx
 mov [rbx+52],eax
 .L1:
-; Exit point, OK
+
+; Exit point, OK, flag CF = 0 means no errors
 .SkipOsMpInfo:
-; add rdi,64      ; Buffer size is 64 bytes, also clear CF=0(NC)
 clc
-;
 .ExitOsMpInfo:
 mov rsp,rbp
 pop rax rbp rsi rbx
 ret
-; Exit point, Error
+; Exit point, Error, flag CF = 1 means error
 .ErrorOsMpInfo:
 stc
 jmp .ExitOsMpInfo

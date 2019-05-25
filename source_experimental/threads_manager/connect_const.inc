@@ -1,5 +1,5 @@
 ;------------------------------------------------------------------------------;
-;                  Library for memory and threads management:                  ;
+;   Library for memory and threads management, include adjust measurements:    ;
 ;               constants and variables with pre-defined values.               ;
 ;------------------------------------------------------------------------------;
 
@@ -20,7 +20,7 @@ DD  L1_REPEATS_FAST , L2_REPEATS_FAST , L3_REPEATS_FAST , L4_REPEATS_FAST
 DD  DRAM_REPEATS_FAST , CUSTOM_REPEATS_FAST
 
 ; Number of measurement iterations for objects, for slow (precision) mode,
-;; for Cache, RAM, Custom modes
+; for Cache, RAM, Custom modes
 ; Group must be 24 bytes size for indexed access, 6 dwords
 DD  L1_REPEATS_SLOW , L2_REPEATS_SLOW , L3_REPEATS_SLOW , L4_REPEATS_SLOW
 DD  DRAM_REPEATS_SLOW , CUSTOM_REPEATS_SLOW
@@ -31,3 +31,4 @@ DD  DRAM_REPEATS_SLOW , CUSTOM_REPEATS_SLOW
 AdaptiveRepeats:
 DQ  ADAPTIVE_FAST
 DQ  ADAPTIVE_SLOW
+

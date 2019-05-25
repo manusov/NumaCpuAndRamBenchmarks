@@ -1,15 +1,21 @@
-;--- Stop measurement and drawings session, release resources -----------------;
-;    used for draw performance = f( block size ) function.                     ;
-;    Include terminate  DrawSessionThread  subroutine as parallel thread       ;
-;                                                                              ;
-; INPUT:   None at CPU registers                                               ;
-;                                                                              ;
-; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;
-;          AL = error status, valid only if error detected (when CF=1)         ; 
-;               see file "thread manager\sessionstop.inc" for decode           ;   
-;                                                                              ;
-; All CPU registers can be corrupted                                           ;
-;------------------------------------------------------------------------------;
+;--- Stop measurement and drawings session, release resources ---------------;
+;    used for draw performance = f( block size ) function.                   ;
+;    Include terminate  DrawSessionThread  subroutine as parallel thread     ;
+;                                                                            ;
+; INPUT:   None at CPU registers                                             ;
+;                                                                            ;
+; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                     ;
+;          AL = error status, valid only if error detected (when CF=1)       ; 
+;               see file "thread manager\sessionstop.inc" for decode         ;   
+;                                                                            ;
+; All CPU registers can be corrupted, this rule for complex modules:         ;
+; directory threads_manager\:                                                ;
+;   sessionstart.inc, sessionstop.inc, sessionprogress.inc.                  ;
+; directory gui\:                                                            ;
+;   drawsessionstart.inc, drawsessionstop.inc                                ;
+;   but not drawsessionthread.inc because OS callback                        ;       
+; Remember about PUSH-POP in the callers.                                    ;
+;----------------------------------------------------------------------------;
 
 DrawSessionStop:
 

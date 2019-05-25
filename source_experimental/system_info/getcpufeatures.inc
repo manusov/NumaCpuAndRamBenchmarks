@@ -122,7 +122,6 @@ or esi,00010000b          ; Set ESI.4 = AVX512F
 ; Store result
 .Store:
 xchg eax,esi
-;- movzx eax,al           ; Clear reserved bits EAX[8-31]
 movzx eax,ax              ; Clear reserved bits EAX[16-31]
 stosd 
 ; Exit

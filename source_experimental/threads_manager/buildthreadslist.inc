@@ -44,7 +44,7 @@ call [CreateEvent]                     ; Call WinAPI function
 test rax,rax                           ; Status=0 means error
 jz .ErrorBuildThreads                  ; Go if error creating event
 mov [rsi + THCTRL.EventStart],rax      ; Store handle in the threads block
-stosq 
+stosq                                  ; Copy to sequental list, used by OS API
 
 ; Create event for thread done, store event handle
 xor ecx,ecx                            ; RCX = Parm#1 = lpEventAttributes  
@@ -55,12 +55,12 @@ call [CreateEvent]                     ; Call WinAPI function
 test rax,rax                           ; Status=0 means error
 jz .ErrorBuildThreads                  ; Go if error creating event
 mov [rsi + THCTRL.EventDone],rax       ; Store handle in the threads block
-mov [rdi +  EVENTS_LIST_SIZE - 8],rax 
+mov [rdi + EVENTS_LIST_SIZE - 8],rax   ; Copy to sequental list, used by OS API 
 
 ; Create thread, store event handle
 xor ecx,ecx                            ; RCX = Parm#1 = Security
 xor edx,edx                            ; RDX = Parm#2 = Stack size, 0=default
-cmp [r12 + IPB.UpdatedPG],2            ; Processor Group option, 2=used
+cmp [r12 + IPB.UpdatedPG],PG_OPTIMAL   ; Processor Group option, 2=used
 lea r8,[ThreadRoutineSingleGroup]      ; R8  = Parm#3 = Execute routine pointer
 mov [rsi + THCTRL.AffinityMode],1      ; This added for single-thread affinitization
 jne .AfterSetRoutine                   ; Go if simple system, single group 
@@ -78,6 +78,7 @@ jz .ExitBuildThreads                   ; Go if error creating thread
 mov [rsi + THCTRL.ThreadHandle],rax    ; Store thread handle in the per-thread list
 
 ; Setup affinity mask (include processor group) from NUMA to Thread Entry
+; include special affinization for HT supported but not used
 mov rax,[rbx + NUMACTRL.NodeAffinity]
 cmp [r12 + IPB.UpdatedHT],HT_NOT_USED  ; detect means HT supported but not used
 mov rcx,rax
@@ -96,18 +97,18 @@ mov rax,[r12 + IPB.PatternRoutine]
 mov [rsi + THCTRL.EntryPoint],rax
 
 ; Setup base address for block1, block2, note 2 blocks because block copy sup.
-mov rax,[rbx + NUMACTRL.AlignedBase]
-add rax,[rbp+08]
-mov [rsi + THCTRL.OrigBase],rax
-mov rcx,[r12 + IPB.MemoryPerThread]  ; here ALLOCATED size
-add [rbp+08],rcx
+mov rax,[rbx + NUMACTRL.AlignedBase]   ; RAX = base address allocated at node
+add rax,[rbp+08]                       ; add offset
+mov [rsi + THCTRL.OrigBase],rax        ; store base address
+mov rcx,[r12 + IPB.MemoryPerThread]    ; RCX = ALLOCATED size
+add [rbp+08],rcx                       ; modify offset by this thread memory
 shr rcx,1
-mov [rsi + THCTRL.Base1],rax
+mov [rsi + THCTRL.Base1],rax           ; Operational base 1 = base
 add rax,rcx
-mov [rsi + THCTRL.Base2],rax
+mov [rsi + THCTRL.Base2],rax           ; Operational base 2 = base + size / 2
 
 ; Setup block size, bytes, this field must be updated per draw iteration
-mov [rsi + THCTRL.SizeBytes],rcx
+mov [rsi + THCTRL.SizeBytes],rcx       ; Operational block size, units = BYTES
 
 ; Setup block size, instructions, this field must be updated per draw iteration
 mov ecx,[r12 + IPB.OperandWidth]    ; RCX = bits per instruction
@@ -115,8 +116,8 @@ shr rcx,3                           ; RCX = bytes per instruction, BPI
 jz .ErrorBuildThreads
 mov rax,[r12 + IPB.StartBlockSize]  ; here OPERATIONAL size
 xor edx,edx
-div rcx                             ; Instruction count = Work length / BPI 
-mov [rsi + THCTRL.SizeInst],rax
+div rcx                          ; Instruction count = Work length / BPI 
+mov [rsi + THCTRL.SizeInst],rax  ; Operational block size, units = INSTRUCTIONS
 
 ; Setup Large Page option
 mov eax,[r12 + IPB.UpdatedLP]
@@ -128,10 +129,10 @@ mov [rsi + THCTRL.Repeats],rax
 
 ; Select next NUMA node if THREADS per NODES counter done
 dec r15d                ; R15D = Threads per NUMA node ratio
-jnz .AfterCountNode 
-mov r15d,[rbp+00]
+jnz .AfterCountNode     ; Go skip reload if continue threads per this node
+mov r15d,[rbp+00]       ; R15D = Reload threads per this node
 mov qword [rbp+08],0    ; Blank block offset because next NUMA node
-add rbx,NUMACTRL_SIZE   ; RBX = Nodes entries pointer
+add rbx,NUMACTRL_SIZE   ; RBX = NUMA nodes entries pointer
 .AfterCountNode:
 
 ; Cycle for Threads

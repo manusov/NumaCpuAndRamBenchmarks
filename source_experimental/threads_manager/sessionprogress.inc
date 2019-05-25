@@ -1,5 +1,8 @@
 ;--- Execute measurement session --------------------------------------------;
-; Release allocated memory and resources handles when session stops          ;
+; Execute measurements (run target performance pattern),                     ; 
+; use allocated memory and threads resources handles,                        ; 
+; allocated when session starts (see sessionstart.inc).                      ;
+; See complementar routines: sessionstart.inc , sessionstop.inc.             ;
 ;                                                                            ;
 ; INPUT:   None in the registers                                             ;
 ;          IPB = Memory and Threads allocation data, used for release        ;
@@ -15,13 +18,21 @@
 ;          OPB = Benchmark results data                                      ;
 ;          Threads List, NUMA nodes list                                     ;
 ;                                                                            ;
-; All CPU registers can be corrupted                                         ;
+; All CPU registers can be corrupted, this rule for complex modules:         ;
+; directory threads_manager\:                                                ;
+;   sessionstart.inc, sessionstop.inc, sessionprogress.inc.                  ;
+; directory gui\:                                                            ;
+;   drawsessionstart.inc, drawsessionstop.inc                                ;
+;   but not drawsessionthread.inc because OS callback                        ;       
+; Remember about PUSH-POP in the callers.                                    ;
 ;----------------------------------------------------------------------------;
 
-; TODO. 
-; Regularize simple/brief/drawings calling conventions, what registers destroyed.
 ; TODO.
 ; Better special simplified branch for single-thread, for precision reasons ?
+
+; TODO.
+; Can pre-heat after change pattern for latency mode, yet for latency:
+; pre-heat = walk list build , start execution = walk on prepared list
 
 SessionProgress:
 
@@ -29,43 +40,48 @@ SessionProgress:
 mov rbp,rsp                    ; RBP = Save input RSP
 and rsp,0FFFFFFFFFFFFFFF0h     ; Align stack because WinAPI used
 sub rsp,32+16                  ; Build parameters shadow, 4 qwords
+
 ; Setup pointers
-lea rsi,[InputParms]
-lea rdi,[OutputParms]
+lea rsi,[InputParms]   ; RSI = Pointer to IPB, benchmarks scenario
+lea rdi,[OutputParms]  ; RDI = Pointer to OPB, benchmarks results
+
 ; Pre-heat phase for result stabilization
-; TODO. This pre-heat for simple only, not use this for drawings
+; Note this pre-heat for simple only, not use this for drawings
 lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
 call ThreadsReStart
+
 ; Replace fill pattern to walk pattern for latency mode
 lea rcx,[ThreadsList]
 cmp [rsi + IPB.UpdatedAsm],LATENCY_MODE
-jb .L20
-mov r8d,[rsi + IPB.UpdatedThreads]
-mov r9,[rsi + IPB.WalkRoutine]
-call ThreadsUpdatePattern
+jb .L20                ; Go skip this update if not a LATENCY MEASUREMENT mode
+mov r8d,[rsi + IPB.UpdatedThreads]   ; R8D = Threads count
+mov r9,[rsi + IPB.WalkRoutine]       ; R9  = Pointer to pattern routine
+call ThreadsUpdatePattern  ; replace list build pattern to list walk pattern
 .L20:
-; Get start time point
-lea rcx,[rsp+32]
+
+; Get start time point, by OS timer API (alternative of TSC)
+lea rcx,[rsp+32]  ; RCX = Pointer to updated variable, OS timer, 64-bit
 call [GetSystemTimeAsFileTime]
+
 ; Measurement pattern
-lea rcx,[ThreadsList]
-mov edx,[rsi + IPB.UpdatedThreads]
+lea rcx,[ThreadsList]               ; RCX = Pointer to threads list
+mov edx,[rsi + IPB.UpdatedThreads]  ; EDX = number of threads
 call ThreadsReStart
 mov al,2  ; AL = error status, valid if CF=1 only
 jc .Exit
-
 mov [rdi + OPB.TSCtimerDelta],rax   ; Store delta-TSC, units = TSC clocks
-; Get stop time point
-lea rcx,[rsp+40]
+
+; Get stop time point, by OS timer API (alternative of TSC)
+lea rcx,[rsp+40]  ; RCX = Pointer to updated variable, OS timer, 64-bit
 call [GetSystemTimeAsFileTime]
-mov rax,[rsp+40]
-sub rax,[rsp+32]
+mov rax,[rsp+40]  ; RAX = Time at this point
+sub rax,[rsp+32]  ; Subtract time before target fragment execution
 mov [rdi + OPB.OStimerDelta],rax    ; Store delta-OS timer, units = 100 ns 
 
 ; Done
-clc
-.Exit:
+clc            ; CF=0 means no errors
+.Exit:         ; Can go to this point if CF=1 when errors detected
 mov rsp,rbp
 ret
 

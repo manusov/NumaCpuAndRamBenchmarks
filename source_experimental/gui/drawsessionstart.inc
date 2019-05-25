@@ -1,19 +1,26 @@
-;--- Initializing and start measurement and drawings session, -----------------;
-;    used for draw performance = f( block size ) function.                     ;
-;    Include run  DrawSessionThread  subroutine as parallel thread             ;
-;                                                                              ;
-; INPUT:   None at registers                                                   ;
-;          DialogueContent with user options settings data                     ;
-;                                                                              ;
-; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;
-;          AL = error status, valid only if error detected (when CF=1)         ; 
-;               see file "thread manager\sessionstart.inc" for decode          ;
-;          UPB = Update user parameters block with GUI widgets settings        ;
-;          IPB = Update input parameters block with benchmark scenario data    ;   
-;                                                                              ;
-; UPB = f (GUI) , IPB = f (UPB)                                                ;
-; All CPU registers can be corrupted                                           ;
-;------------------------------------------------------------------------------;
+;--- Initializing and start measurement and drawings session, ---------------;
+;    used for draw performance = f( block size ) function.                   ;
+;    Include run  DrawSessionThread  subroutine as parallel thread           ;
+;                                                                            ;
+; INPUT:   None at registers                                                 ;
+;          DialogueContent with user options settings data                   ;
+;                                                                            ;
+; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                     ;
+;          AL = error status, valid only if error detected (when CF=1)       ; 
+;               see file "thread manager\sessionstart.inc" for decode        ;
+;          UPB = Update user parameters block with GUI widgets settings      ;
+;          IPB = Update input parameters block with benchmark scenario data  ;   
+;                                                                            ;
+; UPB = f (GUI) , IPB = f (UPB)                                              ;
+;                                                                            ;
+; All CPU registers can be corrupted, this rule for complex modules:         ;
+; directory threads_manager\:                                                ;
+;   sessionstart.inc, sessionstop.inc, sessionprogress.inc.                  ;
+; directory gui\:                                                            ;
+;   drawsessionstart.inc, drawsessionstop.inc                                ;
+;   but not drawsessionthread.inc because OS callback                        ;       
+; Remember about PUSH-POP in the callers.                                    ;
+;----------------------------------------------------------------------------;
 
 DrawSessionStart:
 

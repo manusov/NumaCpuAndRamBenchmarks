@@ -16,27 +16,14 @@
 SystemFunctionsLoad:
 push rbx rbp rsi rdi r12
 cld
-
-; Pre-load library ADVAPI32.DLL, next step uses GetModuleHandle, GetProcAddress
-; for detect functions entry points. Returned handle and status ignored at this
-; step, because availability of library and functions detected at next step.
-; Note pre-load KERNEL32.DLL not required because static import used.
-; Load this library, because it not loaded by statical import
-; mov rbp,rsp
-; and rsp,0FFFFFFFFFFFFFFF0h
-; sub rsp,32
-; lea rcx,[NameAdvapi32]
-; call [LoadLibrary]
-; mov [HandleAdvapi32],rax
-; mov rsp,rbp
-
 ; Load functions of KERNEL32.DLL
 lea rcx,[NameKernel32]            ; RCX = Parm#1 = Pointer to module name string
 lea rsi,[FunctionsNamesKernel32]  ; RSI = Pointer to functions names list
 lea rdi,[FunctionsPointersAll]    ; RDI = Pointer to fncs. pointers list build 
 xor r12d,r12d                     ; R12 = Error flag, pre-blank
 call HelperLoadLibraries 
-; Load functions of ADVAPI32.DLL
+; Load functions of ADVAPI32.DLL, 
+; note this library must be pre-loaded when application starts
 lea rcx,[NameAdvapi32]
 lea rsi,[FunctionsNamesAdvapi32]
 call HelperLoadLibraries
@@ -45,16 +32,19 @@ shr r12,1                    ; Move bit R12.0 to CF
 pop r12 rdi rsi rbp rbx
 ret
 
-; Local helper subroutine for load functions,
-; subroutine required because 2 DLLs
-; INPUT:   RCX = Pointer to DLL file name
-;          RSI = Pointer to DLL functions names constants list
-;          RDI = Pointer to DLL functions entry points variables list
-;          R12 = Error flag value for OR operation, bit R12.0 = error flag
-; OUTPUT:  RDI = Advance by output list build
-;          R12 = Error flag updated
-;          Functions entries pointers updated
-;          Other registers can be corrupted
+;--- Local helper subroutine for load functions, ----------------------------;
+;    subroutine required because 2 DLLs                                      ;
+;                                                                            ;
+; INPUT:   RCX = Pointer to DLL file name                                    ;
+;          RSI = Pointer to DLL functions names constants list               ;
+;          RDI = Pointer to DLL functions entry points variables list        ;
+;          R12 = Error flag value for OR operation, bit R12.0 = error flag   ;
+;                                                                            ;
+; OUTPUT:  RDI = Advance by output list build                                ;
+;          R12 = Error flag updated                                          ;
+;          Functions entries pointers updated                                ;
+;          Other registers can be corrupted                                  ;
+;----------------------------------------------------------------------------;
    
 HelperLoadLibraries:
 mov rbp,rsp

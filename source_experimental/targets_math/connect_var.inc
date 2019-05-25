@@ -1,4 +1,5 @@
 ;------------------------------------------------------------------------------;
+;   This performance patterns used in the "Vector brief" benchmark scenario.   ;
 ;           Library of performance patterns for mathematics benchmarks:        ;
 ;                   variables without pre-defined values.                      ;
 ;------------------------------------------------------------------------------;
