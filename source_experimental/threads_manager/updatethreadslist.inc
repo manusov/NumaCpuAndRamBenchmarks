@@ -79,11 +79,11 @@ test rax,rax
 jnz @f                           ; Go skip correction if repeats > 0
 inc eax                          ; correction, if repeats = 0, set repeats = 1 
 @@:
-; Update IPB
-mov [r11 + IPB.MeasureRepeats],rax  ; R11 = IPB base pointer
+; Update IPB, note R11 = IPB base pointer
+mov [r11 + IPB.MeasureRepeats],rax  ; Update repeats count, note 64-bit
 ; Cycle for fill threads list
 @@:
-mov [rcx + THCTRL.Repeats],rax   ; RAX = updated repeats count
+mov [rcx + THCTRL.Repeats],rax   ; RAX = updated repeats count, note 64-bit
 add rcx,THCTRL_SIZE              ; RCX = threads entries pointer
 dec r8d                          ; R8D = threads entries counter
 jnz @b 

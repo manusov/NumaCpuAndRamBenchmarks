@@ -94,10 +94,7 @@ jmp .ExitNumaBuild
 
 ; Branch without NUMA support, for platform without NUMA or
 ; rejected by NUMA option settings
-
-; TODO.
-; Bug if NUMA rejected, but Processor Groups supported
-
+; Note about NUMA rejected, but Processor Groups supported 
 .WithoutNuma:
 mov rdi,rbx                      ; RDI = RBX = Base address of build nodes list
 mov ecx,NUMACTRL_SIZE / 4        ; RCX = One NUMA entry size, units = dwords

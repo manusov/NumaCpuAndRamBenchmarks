@@ -144,10 +144,10 @@ lea rax,[TEMP_BUFFER + VECTOR_BRIEF_TEMP_DATA]
 mov [rdi + THCTRL.Base1],rax
 add rax,VECTOR_BRIEF_DATA_SIZE / 2
 mov [rdi + THCTRL.Base2],rax
-lea r8,[MathData]                    ; FIX THIS, USE Base3
-mov rbx,rdi                          ; TODO. Can remove this if Get...Pattern return in RAX 
-call RunTarget                       ; Return RAX = dTSC per pattern
-pop rdi rsi      ; restore pointers, corrupted by performance patterns run
+lea r8,[MathData]  ; FIX THIS, USE Base3
+mov rbx,rdi        ; Note can remove this if Get...Pattern return in RAX 
+call RunTarget     ; Return RAX = dTSC per pattern
+pop rdi rsi        ; restore pointers, corrupted by performance patterns run
 
 .L12:
 add rsi,5

@@ -3,8 +3,12 @@
 ;      Formats defined by Microsoft Windows and this application design.       ;
 ;------------------------------------------------------------------------------;
 
-; TODO.
-; Too many structures IPB, OPB, UPB, DRPM, DTHP.  Optimize usage ?
+; Note about used structures:
+; UPB  = User Parameters Block, contains user options settings, from widgets
+; IPB  = Input Parameters Block, scenario build IPB = f ( UPB, System Parms. )  
+; OPB  = Output Parameters Block, results of measurements, benchmarks + TSC
+; DRPM = Draw Parameters: visualization control
+; DTHP = Draw Thread Parameters: handles, measurements, statistics 
 
 ;------------------------------------------------------------------------------;
 ;            Element descriptor for user interface window element.             ;
@@ -25,9 +29,6 @@ MACRO DIALSTOP
 DW  0                    ; Ysize=0 means stop
 }
 
-; TODO.
-; Change some constants functionality.
-; Remove unused constants.
 ;------------------------------------------------------------------------------;
 ;       GUI data definitions: constants, structures, macro definitions.        ;
 ;     Make this module as separate file for useable by samples under debug     ;
@@ -83,23 +84,17 @@ Y_DIV = 10
 DEFAULT_Y_MBPS_PER_GRID = Y_RANGE_MAX_BANDWIDTH / Y_DIV  ; Default units per grid Y , megabytes per second
 DEFAULT_Y_NS_PER_GRID = Y_RANGE_MAX_LATENCY / Y_DIV      ; Default units per grid Y , nanoseconds
 
-; TODO. Update timers constant logic.
-
 ; Benchmarks measurement and visualization timings parameters
-TIMER_MEASURE = 15     ; Milliseconds per tick, measurement constant interval  
-TIMER_VISUAL  = 50     ; Milliseconds per tick, benchmarks progress visual
+; Unused timer constants disabled.
+;- TIMER_MEASURE = 15     ; Milliseconds per tick, measurement constant interval  
+;- TIMER_VISUAL  = 50     ; Milliseconds per tick, benchmarks progress visual
 
 ; Benchmarks visualization timings parameters
 TIMER_TICK       = 50     ; Milliseconds per tick, benchmarks progress timer
 
-; TODO. Floating point values make double. Xmultiplier ?, YdivisorFloat
-; TODO. Remove unused fields from DRPM structure.
-
 ; Draw parameters layout declaration
 ; Note optimal layout is qwords alignment 8
-
-; TODO. For fast systems, use MBPS/GBPS modes.
-
+; DRPM = Draw Parameters: visualization control
 struct DRPM
 ; Benchmarks units control
 ; Used indexed access from this base, include next groups, don't reorder variables!
@@ -121,6 +116,7 @@ ends
 DRAW_POINTS_COUNT  EQU  640
 
 ; Benchmarking drawings measurement parallel thread state structure.
+; DTHP = Draw Thread Parameters: handles, measurements, statistics
 struct DTHP
 
 EventStart       dq  ?   ; Event handle for signaling this thread starts
@@ -130,6 +126,9 @@ MeasureCounter   dd  ?   ; Number of stored results, 0 means no stores before ru
 VisualCounter    dd  ?   ; Number of visualized results, required because results generation and timer ticks is asynchronous
 MeasureBreak     dd  ?   ; Flag for measurement break, 0=None,   BIDIRECTIONAL SIGNALING IS REJECTED BECAUSE RESIZE BUTTON BUG: 1=Break or Done, signaling is BIDIRECTIONAL: Break and Done
 MeasureAlign     dd  ?   ; This required for QWORD alignment
+
+; Note qwords Min, Max, Average, Median must be SEQUENTAL for pointers advance,
+; see gui\win1.inc statistics values write 
 
 StatCpiMin       dq  ?   ; Statistics for CPI (Clocks per Instruction), CPI minimum
 StatCpiMax       dq  ?   ; CPI maximum 
@@ -143,8 +142,8 @@ StatNspiAverage  dq  ?
 StatNspiMedian   dq  ?
 StatNspiSum      dq  ?
 
-StatMbpsMin      dq  ?   ; Statistics for MBPS (Megabytes per Second)
-StatMbpsMax      dq  ?
+StatMbpsMax      dq  ?   ; Statistics for MBPS (Megabytes per Second)
+StatMbpsMin      dq  ?   ; Note Min/Max here swapped, because min. time means max. bandwidth
 StatMbpsAverage  dq  ?
 StatMbpsMedian   dq  ?
 StatMbpsSum      dq  ?
@@ -152,12 +151,4 @@ StatMbpsSum      dq  ?
 MeasureArray     dq  DRAW_POINTS_COUNT dup (?)  ; Array of measurements results, double precision floating point, 64-bit, [delta TSC]
                                                 ; under measurement ordered for median, remember it before get value for drawings     
 ends
-
-; TODO.
-; TSC is unstable under Oracle VirtualBox,
-; use OS timer 100 ns ?
-; BOTH for "Run simple" and "Run draw".
-; BOTH for Bandwidth and Latency.
-; Make OPTION for select TSC or OS timer.
-
 

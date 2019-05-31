@@ -58,8 +58,6 @@ StringWrite_CRLF:
 cld
 mov ax,0A0Dh
 stosw
-; call StringWrite
-; ret
 jmp StringWrite
 
 ;--- Print " = " and source string, for " parameter = value " -----------;
@@ -87,8 +85,5 @@ ret
 StringWrite_CRLF_Colon:
 call StringWrite_CRLF
 mov ax,' :'
-; stosw
-; stosb
-; ret
 jmp StoreChars 
 

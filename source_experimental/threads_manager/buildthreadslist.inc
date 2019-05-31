@@ -119,11 +119,11 @@ xor edx,edx
 div rcx                          ; Instruction count = Work length / BPI 
 mov [rsi + THCTRL.SizeInst],rax  ; Operational block size, units = INSTRUCTIONS
 
-; Setup Large Page option
+; Setup Large Page option, note get 32-bit value, set zero-extended 64-bit value
 mov eax,[r12 + IPB.UpdatedLP]
 mov [rsi + THCTRL.LargePages],rax
 
-; Setup number of repeat measurement iterations
+; Setup number of repeat measurement iterations, note copy 64-bit value
 mov rax,[r12 + IPB.MeasureRepeats]
 mov [rsi + THCTRL.Repeats],rax 
 

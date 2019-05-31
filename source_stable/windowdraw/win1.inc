@@ -832,6 +832,8 @@ add rsp,32+40+8              ; Remove parameters shadow, 5 parameters, 1 qword f
 ; Delete paint context
 .EndPaint:
 mov rcx,rbx                  ; Parm#1 = RCX = Parent window handle
-mov rdx,[PaintStruc]         ; Parm#2 = RDX = Pointer to PAINTSTRUCT structure
+;- mov rdx,[PaintStruc]      ; Parm#2 = RDX = Pointer to PAINTSTRUCT structure
+lea rdx,[PaintStruc]
+;- changes for v1.01.15
 call [EndPaint]
 jmp .WinStatus

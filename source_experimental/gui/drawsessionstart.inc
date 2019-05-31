@@ -134,27 +134,19 @@ ja .L20
 mov rax,[rsi + rax*8]
 mov [rbx + IPB.AdaptiveSeconds],rax
 
-
-; Run with recommended repeats count, TODO. Check CF flag, detect errors
-; TODO. Repeats count must be 64-bit, see also threads list initialization and
-;       performance patterns.
-; TODO. Buggy no-interpreting adaptive options cases for "Run simple".
-; TODO. Visual settings when adaptive modes.
-; TODO. Overflow problems when latency measurement.
-
-
 ; Select Bandwidth or Latency measurement mode
-lea rsi,[ThreadsList]
+lea rsi,[ThreadsList]  ; RSI = storage for RCX reloads
 mov rcx,rsi
 cmp [rbx + IPB.UpdatedAsm],LATENCY_MODE
 jae .L22
 
-; Bandwidth mode
+; Run with default recommended repeats count: Bandwidth mode
 mov edx,[rbx + IPB.UpdatedThreads]
 call ThreadsReStart
+jc .Error02                  ; If error, go to error handling branch
 jmp .L21
 
-; Latency mode
+; Run with default recommended repeats count: Latency mode
 ; Setup pattern for prepare walk list
 .L22:
 mov r8d,[rbx + IPB.UpdatedThreads]
@@ -164,6 +156,7 @@ call ThreadsUpdatePattern
 mov rcx,rsi
 mov edx,[rbx + IPB.UpdatedThreads]
 call ThreadsReStart
+jc .Error02                  ; If error, go to error handling branch
 ; Setup pattern for walk
 mov rcx,rsi
 mov r8d,[rbx + IPB.UpdatedThreads]
@@ -173,9 +166,15 @@ call ThreadsUpdatePattern
 mov rcx,rsi
 mov edx,[rbx + IPB.UpdatedThreads]
 call ThreadsReStart
+jc .Error02                  ; If error, go to error handling branch
+
+; Done point for adaptive modes ( bandwidth and latency branches ),
+; pre-measurements executed, 
+; next, test control = f ( results ) must be calculated
 .L21:
 
-; Calculate seconds and ratio after calibration measurement
+; Calculate seconds and ratio after run with default recommended repeats count
+; for measurements calibration 
 push rax                            ; RAX = Delta TSC after ThreadsReStart
 finit
 fld [rbx + IPB.AdaptiveSeconds]     ; ST0 = Target seconds
@@ -187,14 +186,15 @@ fmulp st1,st0                       ; ST0 = Corrected product
 fild [rbx + IPB.StartBlockSize]
 fmulp st1,st0                       ; ST0 = Corrected product for divide per bytes count 
 fistp [rbx + IPB.AdaptiveProduct]
-pop rax
+pop rax                             ; This for release stack only
+
 ; Skip point for non-adaptive modes
 .L20:
 
 ; Note option: X-approximation modes, 
 ; interpreted and supported at drawsessionthread.inc module. 
 
-;- lea rsi,[InputParms]
+; Load pointer to drawings parameters
 lea rdi,[DrawParms]
 
 ; Calculate X grid step values, must be integer power of 2 for next step correct
@@ -205,8 +205,6 @@ mov eax,1
 shl eax,cl   ; RAX = Target block size, note example here RAX=8K for L1=32K
 
 ; Special support for DRAM and Custom modes
-; TODO. Make this at block setup, for detect mode single time ? 
-; But check  IPB.StartBlockSize  usages before move.
 mov ecx,[rbx + IPB.UpdatedTarget]
 cmp ecx,TARGET_DRAM
 je .L1                    ; Go for size / 8 if target = DRAM
@@ -251,12 +249,9 @@ inc edx
 mov [rdi + DRPM.ValueGridY],eax
 mov [rdi + DRPM.SelectMode],edx
 
-; Set Ymultiplier scale constant for conversion
+; Set Ymultiplier scale constant for conversion 
 ; measurement results to Y-coordinate
-
-; TODO. Move this to win1.inc for re-scaling, 
-; correct RDI based reference by new context.
-
+; Note same operation at win1.inc for re-scaling, 
 finit
 push rax -GRIDSTEPY
 fild dword [rsp]      ; ST0 = - grid step, pixels
@@ -321,4 +316,10 @@ ret
 stc
 jmp .L90
 
+; CF=1 with AL=2  means timings measurement error, 
+; note this branch without valid RBP
+.Error02:
+mov al,2
+stc
+ret
 

@@ -27,13 +27,6 @@
 ; Remember about PUSH-POP in the callers.                                    ;
 ;----------------------------------------------------------------------------;
 
-; TODO.
-; Better special simplified branch for single-thread, for precision reasons ?
-
-; TODO.
-; Can pre-heat after change pattern for latency mode, yet for latency:
-; pre-heat = walk list build , start execution = walk on prepared list
-
 SessionProgress:
 
 ; Stack alignment, required because OS API used, save number of threads

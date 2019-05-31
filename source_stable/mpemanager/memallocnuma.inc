@@ -6,7 +6,7 @@
 ; INPUT:   RBX = Pointer to nodes list                                         ;
 ;          ECX = Number of nodes                                               ;
 ;          RDX = Required memory size per node                                 ;
-;          R8  = Large Pages Flag
+;          R8  = Large Pages Flag                                              ;
 ; OUTPUT:  CF = Error flag: 0(NC)=no errors, 1(C)=error                        ;
 ;          Registers corrupted: assume all                                     ;
 ;------------------------------------------------------------------------------;

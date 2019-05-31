@@ -45,7 +45,7 @@ mov ecx,esi                ; RCX = Parm #1 = Node number
 mov rdx,rdi                ; RDX = Parm #2 = Pointer to var. = Processor Mask
 mov rax,[_GetNumaNodeProcessorMask]
 test rax,rax
-jz .Exit                   ; Go skip if function not declared by OS , TODO. Buggy output RDI 
+jz .Exit                   ; Go skip if function not declared by OS , Note Buggy output RDI 
 call rax                   ; Write qword to [rdx]
 test  rax,rax
 jnz @f                     ; Go skip blank if this node valid

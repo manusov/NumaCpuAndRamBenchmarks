@@ -39,8 +39,6 @@ call ReleaseThreadsList
 mov al,1  ; AL = error status, valid if CF=1 only
 jc .Exit  ; Go if error
 
-; TODO. Add "Threads release error" yet supported as "Memory release error"
-
 ; NUMA-aware or unaware memory release
 lea rcx,[NumaNodesList]             ; RCX = Pointer to NUMA nodes list
 mov edx,[rdi + IPB.DomainsCount]    ; EDX = NUMA domains count

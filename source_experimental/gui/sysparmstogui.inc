@@ -103,7 +103,7 @@ cmp [rsi + CPUCACHE.CpuidL3Unified],rax
 jnz @f                          ; Go skip if L3 Unified Cache exist
 or [rbx+L3_CACHE],edx           ; Disable (clear) L3 Cache checkbox
 @@:
-; TODO. L4 support add required, yet disabled = const
+; Note L4 support add required, yet disabled = const
 or [rbx+L4_CACHE],edx
 
 ; Large Pages option

@@ -107,10 +107,10 @@ UpdatedApprox     dd  ?    ; Approximation for X { 0=none, 1=X16, 2=X32 }
 AllocatedBlock1   dq  ?
 AllocatedBlock2   dq  ?
 ; This items generated as f( first 8 items, platform configuration )
-StartBlockSize    dq  ?    ; Start block size, or 0=default
+StartBlockSize    dq  ?    ; Start block size, or 0=default, unite = bytes
 EndBlockSize      dq  ?    ; End block size, or 0=default
 DeltaBlockSize    dq  ?    ; Delta block size, or 0=default
-MeasureRepeats    dq  ?    ; Number of measurement repeats
+MeasureRepeats    dq  ?    ; Number of measurement repeats, note 64-bit value
 OperandWidth      dd  ?    ; Used instructions operand width, bits 
 GroupsCount       dd  ?    ; Number of Processor Groups
 DomainsCount      dd  ?    ; Number of NUMA domains
@@ -275,14 +275,15 @@ CVterminator      db  4  DUP (?)     ; Terminator byte + alignment for dwords
 CpuNameString     db  48 DUP (?)     ; Result of CPUID#80000002h-80000004h
 CNterminator      db  4  DUP (?)     ; Terminator byte + alignment for dwords     
 CpuSignature      dd  ?              ; Resut EAX of CPUID#1 = TFMS
-; CPU feature flags, ordered by NCRB functionality
-; TODO. Make this bit flags sequental: MMX-SSE-SSE4-AVX-AVX2-AVX512-... ?
+; CPU feature flags, selected and ordered by NCRB functionality
+; Note this bit flags is not sequental by x86 instructions generations:
+; MMX-SSE-SSE4-AVX-AVX2-AVX512-...
 ; D0=SSE, D1=AVX, D2=FMA, D3=AVX2
 ; D4=AVX512F (foundation part of AVX512)
 ; D5=SSE4.1 (for 128-bit NT Read, VMOVNTDQA xmm)
 ; D6=RDRAND (for randomization address in latency test)
 ; D7=HT (Hyper Threading)
-; D8=MMX
+; D8=MMX (added at NCRB v1.02.xx generation)
 ; D[9-31]=Reserved bits
 ; HT bit can be updated by WinAPI results, note CPU can return HT support=1
 ; when CPU support HT but HT disabled by CMOS setup option or OS

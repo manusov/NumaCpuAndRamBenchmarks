@@ -30,8 +30,8 @@ _GetActiveProcessorGroupCount    DQ  ?    ; added for support > 64 processors
 _GetNumaNodeProcessorMaskEx      DQ  ?    ; added for support > 64 processors
 _SetThreadGroupAffinity          DQ  ?    ; added for support > 64 processors    
 ; Entry points at ADVAPI32.DLL
-_OpenProcessToken                DQ  ?
-_AdjustTokenPrivileges           DQ  ?
+_OpenProcessToken                DQ  ?    ; added for Large Pages support
+_AdjustTokenPrivileges           DQ  ?    ; added for Large Pages support
 ; Handle for ADVAPI32.DLL
 HandleAdvapi32                   DQ  ?
 

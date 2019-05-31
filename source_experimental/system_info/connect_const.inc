@@ -30,14 +30,14 @@ DB  'SetThreadAffinityMask',0
 DB  'GetSystemFirmwareTable',0
 DB  'GetLogicalProcessorInformation',0
 DB  'GetLargePageMinimum',0
-DB  'GetActiveProcessorCount',0             ; added for support > 64 processors 
-DB  'GetActiveProcessorGroupCount',0        ; added for support > 64 processors
-DB  'GetNumaNodeProcessorMaskEx', 0         ; added for support > 64 processors
-DB  'SetThreadGroupAffinity',0              ; added for support > 64 processors
+DB  'GetActiveProcessorCount',0           ; added for support > 64 processors 
+DB  'GetActiveProcessorGroupCount',0      ; added for support > 64 processors
+DB  'GetNumaNodeProcessorMaskEx', 0       ; added for support > 64 processors
+DB  'SetThreadGroupAffinity',0            ; added for support > 64 processors
 DB  0                           ; List must be terminared by additional 00 byte
 ; Functions names at ADVAPI32.DLL
 FunctionsNamesAdvapi32:
-DB  'OpenProcessToken',0
-DB  'AdjustTokenPrivileges',0
+DB  'OpenProcessToken',0                  ; added for Large Pages support
+DB  'AdjustTokenPrivileges',0             ; added for Large Pages support
 DB  0                           ; List must be terminared by additional 00 byte
 

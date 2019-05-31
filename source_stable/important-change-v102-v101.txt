@@ -1,0 +1,16 @@
+;- changes for v1.01.15
+
+win1.inc differences.
+
+; ...
+
+; Delete paint context
+.EndPaint:
+mov rcx,rbx                  ; Parm#1 = RCX = Parent window handle
+;- mov rdx,[PaintStruc]      ; Parm#2 = RDX = Pointer to PAINTSTRUCT structure
+lea rdx,[PaintStruc]
+; This LEA is DIFFERENCE from v1.01.xx ?
+call [EndPaint]
+jmp .WinStatus
+
+; ...

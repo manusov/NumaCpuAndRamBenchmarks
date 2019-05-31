@@ -81,9 +81,8 @@ pop rsi
 ; (9) Operation block size per thread
 call StringWrite_CRLF_Equal
 mov rax,[r8+IPB.StartBlockSize]
-; mov bl,0FFh          ; BL = Units select for size print, 0FFh = auto
-mov bl,1               ; TODO. Possible adaptive, but "15.5K" is optimal, yet "K" fixed
-call SizePrint64
+mov bl,1             ; BL = Units select for size print, old = 0FFh = auto
+call SizePrint64     ; Note pssible adaptive, but "15.5K" is optimal, yet "K" fixed
 ; (10) Measurement profile, brief/careful/brief adaptive/careful adaptive
 call StringWrite_CRLF_Equal
 push rsi
@@ -94,7 +93,7 @@ call StringWriteSelected
 pop rsi
 ; (11) Measurement repeats, num. of same operation repeats for precision
 call StringWrite_CRLF_Equal
-mov rax,[r8+IPB.MeasureRepeats]  ; TODO. Required support overflows, RAX>4GB, actual for adaptive modes
+mov rax,[r8+IPB.MeasureRepeats]  ; Note required support overflows, RAX>4GB, actual for adaptive modes
 mov bl,0             ; BL = Template (chars) for decimal print, 0 = no template
 call DecimalPrint32
 
@@ -175,11 +174,11 @@ call DoublePrint
 cmp [r8+IPB.UpdatedAsm],LATENCY_MODE
 jae .L9
 
-; Branch for Bandwidth)
+; Branch for Bandwidth
 ; (1)  Speed(MBPS)
 call StringWrite_CRLF_Equal
-mov rax,[r8+IPB.StartBlockSize]
-mov rcx,[r8+IPB.MeasureRepeats]
+mov rax,[r8+IPB.StartBlockSize]    ; RAX = Operational block size, bytes 
+mov rcx,[r8+IPB.MeasureRepeats]    ; RCX = Repeats, iterations, note 64-bit     
 mul rcx                            ; RAX = BlockSize * Repeats
 mov ecx,[r8+IPB.UpdatedThreads]    ; Required all threads same size
 mul rcx                            ; RAX = BlockSize * Repeats * Threads

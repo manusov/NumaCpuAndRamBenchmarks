@@ -1,6 +1,6 @@
 ;==============================================================================;
 ;                                                                              ;
-;               NCRB (NUMA CPU&RAM Benchmarks). Win64 Edition.                 ; 
+;               NCRB (NUMA CPU&RAM Benchmarks). Win64 Edition.                 ;
 ;                           (C)2018 IC Book Labs.                              ;
 ;                                                                              ;
 ;  This file is main module: translation object, interconnecting all modules.  ;

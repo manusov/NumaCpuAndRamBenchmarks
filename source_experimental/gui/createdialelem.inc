@@ -1,4 +1,5 @@
 ;--- Cycle for create all dialogue elements ------------------------;
+;                                                                   ;
 ; INPUT:   RSI = Pointer to elements descriptors list               ;
 ;          RDI = Start (numeric) handle for sequence                ;
 ;          R14 = Parent (true) module handle = [wc.hInstance]       ;

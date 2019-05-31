@@ -32,8 +32,6 @@ jbe @b                             ; Cycle for radio buttons group
 sub esi,HANDLE_X86_READ            ; 0 = First method toggler
 mov [rdi + UPB.OptionAsm],esi      ; Write method number = ESI 
 
-; TODO. Optimize, WS_DISABLED and PARALLEL_NUMA_PG_BASE constants use in the registers
-
 ; Extract USE PARALLEL THREADS, for this option detect both GRAY and CHECKED 
 xor eax,eax                        ; PARALLEL_NOT_SUP
 test dword [PARALLEL_NUMA_PG_BASE + E_PARALLEL_THREADS],WS_DISABLED
@@ -71,7 +69,6 @@ inc eax                            ; PG_USED
 mov [rdi + UPB.OptionPG],eax       ; Write option state = EAX
 
 ; Extract NUMA CONTROL, for this option detect both GRAY and CHECKED
-; TODO. Check subtracted constant "HANDLE_NUMA_UNAWARE - 1" see next option, but there 0=L1, here 0=UNAWARE really checked but gray ? REGULARIZE !
 xor esi,esi
 test dword [PARALLEL_NUMA_PG_BASE + NUMA_UNAWARE],WS_DISABLED
 jnz .NumaOff                       ; Go skip if NUMA not sup. by platform, SI=0 

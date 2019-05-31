@@ -213,11 +213,11 @@ xor ecx,ecx                        ; RCX = Parm#1 = Security
 xor edx,edx                        ; RDX = Parm#2 = Stack size, 0=default
 ; INT3
 lea r8,[ThreadsEntry]              ; R8  = Parm#3 = Execute routine pointer
-mov [rsi+THCTRL.AffinityMode],1    ; This added for single-thread affinityzation
+mov [rsi+THCTRL.AffinityMode],1    ; This added for single-thread affinitization
 cmp [ProcessorsTotal],MAX_THREADS_PER_GROUP
 jbe .AfterSetEntry                 ; Go if simple system, single group 
 lea r8,[ThreadsEntryGroupMode]     ; This routine with affinitization with groups
-mov [rsi+THCTRL.AffinityMode],2    ; This added for single-thread affinityzation
+mov [rsi+THCTRL.AffinityMode],2    ; This added for single-thread affinitization
 
 .AfterSetEntry:
 ;

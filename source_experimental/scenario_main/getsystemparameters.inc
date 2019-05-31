@@ -11,10 +11,8 @@
 
 GetSystemParameters:
 
-; TODO.
-; Need check load status, check validity of required API functions
+; Note required check load status, check validity of required API functions
 ; check for pointer = NULL. 
-
 ; Detect CPU features, abort if x87 not found or TSC not found
 lea rdi,[SystemParameters]  ; Prepare destination pointer
 mov r12,rdi

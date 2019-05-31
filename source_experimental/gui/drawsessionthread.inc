@@ -31,13 +31,14 @@ call [SetEvent]                   ; Call WinAPI function
 lea rsi,[InputParms]
 lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
-call ThreadsReStart    ; TODO. Error handling required, but note this is SEPARATE thread.
+call ThreadsReStart
+jc .BackgroundSkip  ; Go skip operations if error, note this is separate thread
 
 ; Measurement cycle
 .BackgroundProcess:
 
-cmp [r15 + DTHP.MeasureCounter],DRAW_POINTS_COUNT  ; TODO. Replace this to wait with minimum utilization.
-jae .BackgroundSkip
+cmp [r15 + DTHP.MeasureCounter],DRAW_POINTS_COUNT
+jae .BackgroundSkip    ; Can replace this to wait with minimum utilization ?
 
 lea rsi,[InputParms]
 lea rdi,[OutputParms]
@@ -69,7 +70,8 @@ jae .LatencyMode
 ; Measurement pattern
 lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
-call ThreadsReStart    ; TODO. Error handling required, but note this is SEPARATE thread.
+call ThreadsReStart
+jc .BackgroundSkip  ; Go skip operations if error, note this is separate thread
 jmp .DoneBandwidthOrLatency
 
 .LatencyMode:
@@ -81,7 +83,9 @@ call ThreadsUpdatePattern
 ; Run service pattern, prepare walk list, delta TSC ignored here
 lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
-call ThreadsReStart    ; TODO. Error handling required, but note this is SEPARATE thread.
+call ThreadsReStart
+jc .BackgroundSkip  ; Go skip operations if error, note this is separate thread
+
 ; Setup pattern for walk
 lea rcx,[ThreadsList]
 mov r8d,[rsi + IPB.UpdatedThreads]
@@ -90,7 +94,8 @@ call ThreadsUpdatePattern
 ; Run measurement pattern, walk by prepared walk list, get delta TSC in the RAX
 lea rcx,[ThreadsList]
 mov edx,[rsi + IPB.UpdatedThreads]
-call ThreadsReStart    ; TODO. Error handling required, but note this is SEPARATE thread.
+call ThreadsReStart
+jc .BackgroundSkip  ; Go skip operations if error, note this is separate thread
 
 .DoneBandwidthOrLatency:
 
@@ -121,19 +126,18 @@ lea rdi,[r15 + DTHP.MeasureArray + rdx]
 push rax       ; RAX = Delta TSC per target operation, integer 64-bit
 finit
 fild qword [rsp]
-mov rax,[rsi + IPB.StartBlockSize]   ; Block size, units = bytes
-mov rcx,[rsi + IPB.MeasureRepeats]   ; Total bytes per measurement cycle
-mul rcx                              ; TODO. Compact MUL by memory
-mov ecx,[rsi + IPB.OperandWidth]     ; RCX = bits per instruction
-shr ecx,3                            ; RCX = bytes per instruction
+mov rax,[rsi + IPB.StartBlockSize]  ; Block size, units = bytes
+mul [rsi + IPB.MeasureRepeats]      ; Multiply by total bytes per measurement cycle
+mov ecx,[rsi + IPB.OperandWidth]    ; RCX = bits per instruction
+shr ecx,3                           ; RCX = bytes per instruction
 xor edx,edx
-div rcx                              ; TODO. Use x87 to prevent exception 0
+div rcx                             ; Note can use x87 to prevent exception 0
 mov [rsp],rax
 fild qword [rsp]  ; ST0 = Instruction cound, ST1 = Delta TSC
 fdivp st1,st0     ; ST0 = CPI
 fstp qword [rsp]
 pop rax        ; RAX = Clocks per Instruction (CPI), floating point, double
-stosq
+stosq          ; Store this for communication with parent thread
 
 ; Update block size for performance = f(size)
 mov rax,[rsi + IPB.DeltaBlockSize]

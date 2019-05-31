@@ -1,12 +1,14 @@
 ;--- Callback handler for main-parent window ----------------------------------;
 ; This subroutine called by OS,                                                ; 
 ; when application call DispatchMessage subroutine                             ;
-; WM = Window Message                                                          ; 
-; Callback procedure parameters:                                               ;
-; Parm#1 = RCX = hwnd = Handle to the window                                   ;
-; Parm#2 = RDX = uMsg = System defined message                                 ;
-; Parm#3 = R8  = wParam = Additional message information (1), uMsg-dependent   ;
-; Parm#4 = R9  = lParam = Additional message information (2), uMsg-dependent   ;
+; WM = Window Message                                                          ;
+;                                                                              ; 
+; Callback procedure input parameters:                                         ;
+;  Parm#1 = RCX = hwnd = Handle to the window                                  ;
+;  Parm#2 = RDX = uMsg = System defined message                                ;
+;  Parm#3 = R8  = wParam = Additional message information (1), uMsg-dependent  ;
+;  Parm#4 = R9  = lParam = Additional message information (2), uMsg-dependent  ;
+;                                                                              ;
 ; Output = RAX = Status, encoding = f(message type)                            ; 
 ;------------------------------------------------------------------------------;
 
@@ -246,14 +248,14 @@ push rbx               ; save handle for restore parent window activity
 ; Extract settings from GUI widgets
 mov al,0  ; Run context = simple, without memory allocation multiplication
 call GuiToUserParms
-; TODO.
+; Required modification.
 ; Resources (memory) must be relesed even if error detected
 call SessionStart
-jc .RunSimpleError
+jc .RunSimpleError     ; Go if error at start
 call SessionProgress
-jc .RunSimpleError
+jc .RunSimpleError     ; Go if error at execution
 call SessionStop
-jc .RunSimpleError
+jc .RunSimpleError     ; Go if error at termination
 ; call routines from "Run simple" scenario
 call ResultSimple 
 ; input parameters for build message box

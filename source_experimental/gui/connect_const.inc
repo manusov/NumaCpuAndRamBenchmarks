@@ -4,15 +4,17 @@
 ;      Formats defined by Microsoft Windows and this application design.       ;
 ;------------------------------------------------------------------------------;
 
-; TODO. Correct HANDLE numbers and numbers in comment, it shifted.
 ;------------------------------------------------------------------------------;
-;                         Window 0 elements list.                              ;                             
+;                         Window 0 elements list.                              ;
+;                Note HANDLE numbers and numbers in comment                    ; 
+;               must be manually synchronized, when shifted.                   ;                             
 ;------------------------------------------------------------------------------;
 
 ; Window 0 = Main window of application, brief info and menu of operations.
 ; List of GUI window elements descriptors.
 
-; If x2=BasePointGui, Result=StringsNull-StringsNull=0
+; Note about DIALELEMENT macro,
+; If x2 = BasePointGui, Result = StringsNull-StringsNull=0
 START_HANDLE_WIN0 = 16
 DialogueContent_Win0:
 ; All frames by vertical floors: Sysinfo, Settings, Buttons                                             ; Handle
@@ -20,7 +22,7 @@ DIALELEMENT  ClassButton , BasePointGui , 0003 , 0000 , 0743 , 0167 , WS_VISIBLE
 DIALELEMENT  ClassButton , BasePointGui , 0003 , 0162 , 0743 , 0192 , WS_VISIBLE+WS_CHILD+BS_GROUPBOX   ; 17 = Frame for options, size Y+36 when add 2 debug routines
 DIALELEMENT  ClassButton , BasePointGui , 0003 , 0349 , 0743 , 0179 , WS_VISIBLE+WS_CHILD+BS_GROUPBOX   ; 18 = Frame for buttons, Y+36 when add 2 debug routines
 ; Sysinfo strings
-; TODO. Make access CpuVendorString, CpuNameString by TEMP_BUFFER, single regular method for all accesses 
+; Note strings CpuVendorString, CpuNameString accessed directly (not in the by TEMP_BUFFER) 
 DIALELEMENT  ClassStatic , SystemParameters.CpuVendorString , 0010 , 0012 , 0110 , 0018 , WS_VISIBLE+WS_CHILD   ; 19 = CPU Vendor String
 DIALELEMENT  ClassStatic , TEMP_BUFFER + 000                , 0113 , 0012 , 0220 , 0018 , WS_VISIBLE+WS_CHILD   ; 20 = CPU TFMS
 DIALELEMENT  ClassStatic , SystemParameters.CpuNameString   , 0248 , 0012 , 0348 , 0018 , WS_VISIBLE+WS_CHILD   ; 21 = CPU Name String
@@ -201,7 +203,6 @@ PG_D_00          DB  'Use processor groups',0
 ; Large pages, for dialogue window
 LP_D_00          DB  'Use large pages',0
 ; NUMA modes, for dialogue
-; TODO. Update by new extended set of NUMA options
 NUMA_D_00        DB  'NUMA unaware',0
 NUMA_D_01        DB  'NUMA single domain',0
 NUMA_D_02        DB  'NUMA optimal',0
@@ -324,7 +325,8 @@ ClassEdit     DB  'EDIT',0        ; Class EDIT (reference to windows classes)
 ;------------------------------------------------------------------------------;
 ; Window 1 = Measurement window, drawings Y=F(X).
 ; List of GUI window elements descriptors.
-; If x2=BasePoint, Result=StringsNull-StringsNull=0
+; Note about DIALELEMENT macro,
+; If x2 = BasePoint, Result = StringsNull-StringsNull=0
 START_HANDLE_WIN1 = 16
 DialogueContent_Win1:
 ; Buttons and ASM method string
@@ -395,6 +397,29 @@ WindowTitle_Win1  DB  'Performance = F (Block Size)',0
 ; CPI = Clocks Per Instruction
 DrawTextTSC       DB  'TSC clock (MHz)  = '
 DrawValueTSC      DB  12 DUP (' '), 0
+
+MACRO SHORTPOINTER x1
+{
+DW x1 - BasePointGui
+}
+
+MACRO SHORTPOINTEREND
+{
+DW 0
+}
+
+DrawTableUp:
+SHORTPOINTER DrawTextCPI
+SHORTPOINTER DrawTextNSPI
+SHORTPOINTER DrawTextMBPS
+SHORTPOINTEREND
+
+DrawTableLeft:
+SHORTPOINTER DrawTextMinimum
+SHORTPOINTER DrawTextMaximum
+SHORTPOINTER DrawTextAverage
+SHORTPOINTER DrawTextMedian
+SHORTPOINTEREND
 
 DrawTextCPI       DB  'CPI',0
 DrawTextNSPI      DB  'nsPI',0

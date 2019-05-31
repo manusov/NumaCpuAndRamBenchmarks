@@ -84,6 +84,13 @@ v1.01.14
 Fix NUMA highest node detection bug:
 check WinAPI-updated QWORD variable instead DWORD variable.
 
+v1.01.15
+Fix wrong input parameter:
+Parm#2 = RDX = Pointer to PAINTSTRUCT structure
+before WinAPI call:
+call [EndPaint]
+
+
 Generation 2, tagged "experimental".
 
 v1.02.00 - v1.02.24
@@ -92,5 +99,10 @@ GUI changes.
 Add latency measurement.
 Add MMX instructions support.
 Add approximation and adaptive modes.
+
+v1.02.25 - v1.02.27
+Some optimizations at drawings window GUI.
+Some "TODO" fixed.
+Other "TODO" moved to separate document, for source readability.
 
 

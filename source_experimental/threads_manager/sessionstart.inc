@@ -167,6 +167,9 @@ mov ecx,50     ; Important DIVISOR CONSTANT for latency mode
 div ecx        ; If Latency mode, make measurement repeats / 50 ,
 .L13:          ; note after this, bits RAX.63-32 = 0
 mov [rdi + IPB.MeasureRepeats],rax  ; Setup number of measurement repeats
+; Note this measurement repeats value can be updated in the adaptive modes,
+; for drawings, at subroutine gui\drawsessionstart.inc,
+; at this subroutine sessionstart.inc set default approximation only 
 
 ; Setup measurement scenario as block sizes sequence,
 ; for "Run simple" mode required one block size only 
@@ -181,12 +184,12 @@ mov rcx,[rbx + SYSPARMS.CpuCache + CPUCACHE.CpuidL3Unified]
 cmp al,TARGET_L3
 je .L12 
 mov rcx,DEFAULT_DRAM_BLOCK
-cmp al,TARGET_L4                 ; TODO. Required detect L4 cache
+cmp al,TARGET_L4               ; Note required add detect L4 cache here
 je .L12
 cmp al,TARGET_DRAM
 je .L9
 ; Support Custom block
-mov rax,[rsi + UPB.CustomBlockStart]  ; TODO. Check for wrong block size
+mov rax,[rsi + UPB.CustomBlockStart]  ; Note requir. check for wrong block size
 ; Restrictions for custom block size
 mov ecx,CUSTOM_BLOCK_ALIGN
 xor edx,edx
@@ -279,9 +282,8 @@ jmp .Exit                      ; Go for error handling
 ; Update NUMA nodes count after rejection nodes with affinity mask = 0
 mov [rdi + IPB.DomainsCount],eax
 
-; TODO (verify required).
+; Note verify required).
 ; Support NUMA options by update IPB and NUMA nodes list
-
 ; Option = NUMA_NOT_SUPPORTED, NUMA_NO_CONTROL
 ;   NUMA unaware = not change prepared list 
 ; Option = NUMA_CURRENT_ONLY
@@ -297,7 +299,7 @@ jne .L30                         ; Go if not a single NUMA domain mode
 mov [rdi + IPB.DomainsCount],1
 cmp [rdi + IPB.UpdatedThreads],1
 jbe .L30                         ; Go if not a multi-thread mode
-mov eax,[SystemParameters.SystemInfo.dwNumberOfProcessors]  ; TODO. Get this from system or from one domain ?
+mov eax,[SystemParameters.SystemInfo.dwNumberOfProcessors]  ; Change required: Get this from system or from one domain ?
 mov [rdi + IPB.UpdatedThreads],eax  ; Update number of threads = f ( NUMA mode )
 .L30:
 
@@ -318,8 +320,7 @@ loop .L32       ; cycle for swapped domains
 mov [r8],rax    ; write mask to last NUMA domain entry 
 .L31:
 
-; TODO.
-; Possible bug if assymetric domains (processors per domain).
+; Note possible bug if assymetric domains (processors per domain).
 
 ; Both NUMA-aware / unaware memory allocation 
 ; inside subroutine MemAllocationNuma, 
@@ -343,8 +344,6 @@ lea rdx,[InputParms]
 call BuildThreadsList    ; CF returned 
 mov al,0                 ; AL = error status, valid if CF=1
 jc .Exit                 ; Go if error
-
-; TODO. Add "Threads allocation error" yet supported as "Memory allocation error"
 
 ; Update visualized block#1, block#2 bases at IPB from Threads List first entry
 lea rcx,[ThreadsList]
@@ -372,8 +371,6 @@ lea rcx,[ThreadsList]
 mov edx,[rdi + IPB.UpdatedThreads]
 call ThreadsStart  ; CF returned
 mov al,2           ; AL = error status, valid if CF=1 only
-
-; TODO. Add "Threads run error", yet supported as "Timings measurement error"
 
 ; Initialization done, next phase is per-iterations calls, CF actual here
 .Exit:

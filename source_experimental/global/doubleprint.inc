@@ -58,29 +58,32 @@ push rax
 fimul dword [rsp]
 pop rax
 ;--- Extract signed Binary Coded Decimal (BCD) to R9:R8, float part .X ---
-push rax rax
-fbstp [rsp]
-pop r8 r9
+push rax rax  ; Make frame for stack variable, used for x87 write data
+fbstp [rsp]   ; Store BCD integer and pop, destination is 80 bit = 10 bytes
+pop r8 r9     ; R9:R8 = data from x87 write
 ;--- Extract signed Binary Coded Decimal (BCD) to R11:R10, integer part X. ---
-push rax rax
-fbstp [rsp]
-pop r10 r11
+push rax rax  ; Make frame for stack variable, used for x87 write data
+fbstp [rsp]   ; Store BCD integer and pop, destination is 80 bit = 10 bytes
+pop r10 r11     ; R11:R10 = data from x87 write
 ;--- Check sign of integer and float part --- 
-bt r11,15
-setc dl
-bt r9,15
-setc dh
+bt r11,15     ; R11 bit 15 is bit 79 of 80-bit x87 operand (integer part)
+setc dl       ; DL = Sign of integer part
+bt r9,15      ; R9 bit 15 is bit 79 of 80-bit x87 operand (floating part)
+setc dh       ; DH = Sign of floating part
 ;--- Go error if sign of integer and float part mismatch ---
 
-; BUG WHEN -1.0 "-" AND "+", CHECK IF SIGN SAVED ?
-
+;-
+; This comparision and error branching rejected 
+; because bug with -1.0 "-" AND "+", CHECK IF SIGN SAVED ?
 ; cmp dx,0100h
 ; je .Error
 ; cmp dx,0001h
 ; je .Error
+; Write "-" if one of signs "-".
+;-
 
 test dx,dx
-jz @f
+jz @f            ; Go skip write "-" if both integer/floating signs "+"
 
 ;--- Write "-" if negative value ---
 mov al,'-'
@@ -105,7 +108,7 @@ mov dl,1
 or al,30h
 stosb            ; Write current ASCII digit
 .L1:
-shld r11,r10,4   ; Positioning digits sequence
+shld r11,r10,4   ; Positioning digits sequence at R11:R10 pair
 shl r10,4
 loop .L3         ; Cycle for digits in the INTEGER part
 ;--- Write decimal point ---
@@ -124,7 +127,7 @@ mov al,r8l
 and al,0Fh
 or al,30h
 stosb
-shrd r8,r9,4
+shrd r8,r9,4         ; Positioning digits sequence at R9:R8 pair
 shr r9,4
 loop .L4             ; Cycle for digits in the FLOATING part
 pop rdi
