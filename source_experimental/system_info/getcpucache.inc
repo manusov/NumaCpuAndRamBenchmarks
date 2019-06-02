@@ -34,7 +34,7 @@ rep stosb
 ; Here EAX=0
 cpuid
 cmp eax,4
-jb NoMoreCaches
+jb NoMoreDeterministicCaches
 ; Execute CPUID#4, subfunctions sequence 
 xor esi,esi                    ; ESI = Subfunctions count
 CycleCache:
@@ -43,7 +43,7 @@ mov ecx,esi                    ; ECX = Subfunction
 cpuid
 ; Select handler = F(Type,Level)
 test al,01Fh                   ; AL.[7-5]=Level, AL.[4-0]=Type
-jz NoMoreCaches                ; Go exit if no more caches
+jz NoMoreDeterministicCaches   ; Go exit if no more caches
 mov dl,12-60                   ; DL = Offset for addressing output data
 cmp al,022h                    ; AL = Selector
 je StoreCache                  ; Go analyse if L1 instruction cache
@@ -64,8 +64,56 @@ NextCache:
 inc esi
 cmp esi,256                    ; This for hang prevent if failure	
 jb CycleCache
+
+; Special support for Intel Trace Cache
+NoMoreDeterministicCaches:
+xor eax,eax
+cpuid
+cmp eax,2
+jb DoneCaches
+mov eax,2       ; EAX = Function = 2 = Get Cache Descriptors
+xor ecx,ecx     ; ECX = Subfunction = 0
+cpuid
+cmp al,1        ; Leaf count must be 1, otherwise skip
+jne DoneCaches
+test eax,eax    ; If bit EAX.31 = 1, means EAX contain invalid data   
+jns @f          ; Go skip clear, if EAX data valid
+xor eax,eax
+@@:
+test ebx,ebx    ; If bit EBX.31 = 1, means EBX contain invalid data
+jns @f          ; Go skip clear, if EBX data valid
+xor ebx,ebx
+@@:
+test ecx,ecx    ; If bit ECX.31 = 1, means ECX contain invalid data
+jns @f          ; Go skip clear, if ECX data valid
+xor ecx,ecx
+@@:
+test edx,edx    ; If bit EDX.31 = 1, means EDX contain invalid data
+jns @f          ; Go skip clear, if EDX data valid
+xor edx,edx
+@@:
+mov r8d,15      ; 4 registers * 4 bytes - 1 unused (AL)
+.CacheDescriptors:
+shrd eax,ebx,8
+shrd ebx,ecx,8
+shrd ecx,edx,8
+shr edx,8
+lea rsi,[IntelTraceCaches]
+.CacheValues:
+cmp al,[rsi+0]
+jne @f
+movzx r9,byte [rsi+1]   ; R9 = Trace Cache size, KuOps
+shl r9,10               ; R9 = Trace Cache size, uOps
+mov [rdi-60],r9         ; Store Trace Cache size, uOps
+@@:
+add rsi,2
+cmp byte [rsi],0
+jne .CacheValues        ; Cycle for possible Cache types IDs  
+dec r8d
+jnz .CacheDescriptors   ; Cycle for Cache Descriptors array 
+
 ; Exit
-NoMoreCaches:
+DoneCaches:
 pop rsi rbx
 ret
 

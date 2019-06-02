@@ -1,5 +1,6 @@
 ;--- Set default state for options, called when Create Window 0 ----;
 ;    and when click "Defaults" button.                              ;
+;                                                                   ;
 ; INPUT:   RBX = Parent window handle                               ;
 ;          Sysinfo and Window 0 variables only                      ;
 ; OUTPUT:  None in the CPU registers,                               ; 

@@ -1,5 +1,6 @@
 ;--- Send message BM_GETCHECK, "BM" = Button Message ---------------;
 ; Use fact: BST_UNCHECKED=0, BST_CHECKED=1, BST_INDETERMINATE=2     ;
+;                                                                   ;
 ; INPUT:   RSI = Index of element handle                            ;
 ; OUTPUT:  RAX = Message status, f(message type)                    ;
 ;             for BM_GETCHECK:                                      ;

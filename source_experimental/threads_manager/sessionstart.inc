@@ -173,19 +173,28 @@ mov [rdi + IPB.MeasureRepeats],rax  ; Setup number of measurement repeats
 
 ; Setup measurement scenario as block sizes sequence,
 ; for "Run simple" mode required one block size only 
+; Detect L1 cache
 mov eax,[rdi + IPB.UpdatedTarget]
+xor edx,edx    ; Previous level for L1 is 0 , not exist
 mov rcx,[rbx + SYSPARMS.CpuCache + CPUCACHE.CpuidL1Data]
 cmp al,TARGET_L1
 je .L12 
+; Detect L2 cache
+mov rdx,rcx    ; Previous level for L2 is L1
 mov rcx,[rbx + SYSPARMS.CpuCache + CPUCACHE.CpuidL2Unified]
 cmp al,TARGET_L2
 je .L12 
+; Detect L3 cache
+mov rdx,rcx    ; Previous level for L3 is L2
 mov rcx,[rbx + SYSPARMS.CpuCache + CPUCACHE.CpuidL3Unified]
 cmp al,TARGET_L3
 je .L12 
+; Detect L4 cache
+mov rdx,rcx    ; Previous level for L4 is L3
 mov rcx,DEFAULT_DRAM_BLOCK
 cmp al,TARGET_L4               ; Note required add detect L4 cache here
 je .L12
+; Detect DRAM
 cmp al,TARGET_DRAM
 je .L9
 ; Support Custom block
@@ -206,9 +215,18 @@ mov rax,CUSTOM_BLOCK_MAX
 ; Restrictions done, set result at RCX
 xchg rcx,rax
 jmp .L9
+; Block size arithmetic for cache
 .L12:
-shr rcx,1        ; ( Size/2 - 512 ) for "Run simple", but   
-sub rcx,512      ; other logic required for "Run drawings" 
+shr rcx,1              ; ( Size/2 - 512 ) for "Run simple", but
+cmp rcx,rdx            ; other logic required for "Run drawings"
+ja .L16                ; Go skip correction if ( RCX = L(i)/2 ) > ( RDX = L(i-1) )
+;- lea rcx,[rcx*2+rdx] ; Support for exclusive cache L(i) / L(i-1) sizes ratio
+;- shr rcx,1
+add rcx,rdx
+;-
+.L16:
+sub rcx,512 
+; Done arithmetic, store block size
 .L9:
 mov [rdi + IPB.StartBlockSize],rcx  ; Setup Block Size
 
