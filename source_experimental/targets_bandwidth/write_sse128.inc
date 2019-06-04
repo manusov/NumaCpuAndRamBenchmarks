@@ -11,22 +11,22 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_Write_SSE128:
-xorpd xmm0,xmm0                 ; Clear XMM0-XMM15 for write data
-xorpd xmm1,xmm1
-xorpd xmm2,xmm2
-xorpd xmm3,xmm3
-xorpd xmm4,xmm4
-xorpd xmm5,xmm5
-xorpd xmm6,xmm6
-xorpd xmm7,xmm7
-xorpd xmm8,xmm8
-xorpd xmm9,xmm9
-xorpd xmm10,xmm10
-xorpd xmm11,xmm11
-xorpd xmm12,xmm12
-xorpd xmm13,xmm13
-xorpd xmm14,xmm14
-xorpd xmm15,xmm15
+xorps xmm0,xmm0                 ; Clear XMM0-XMM15 for write data
+xorps xmm1,xmm1
+xorps xmm2,xmm2
+xorps xmm3,xmm3
+xorps xmm4,xmm4
+xorps xmm5,xmm5
+xorps xmm6,xmm6
+xorps xmm7,xmm7
+xorps xmm8,xmm8
+xorps xmm9,xmm9
+xorps xmm10,xmm10
+xorps xmm11,xmm11
+xorps xmm12,xmm12
+xorps xmm13,xmm13
+xorps xmm14,xmm14
+xorps xmm15,xmm15
 
 Measurement_Write_SSE128:
 ; Prepare big cycle

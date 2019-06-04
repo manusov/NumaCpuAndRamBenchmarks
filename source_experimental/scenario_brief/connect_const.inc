@@ -57,7 +57,7 @@ VECNT  05+00 , 1      ; AVX512, predicates K[0-7]         , XCR0.5
 ;
 MACRO VECLK x1,x2,x3,x4,x5,x6,x7 
 {
-DB  x1          ; Pointer to measurement routine
+DB  x1          ; ID of measurement routine
 DB  x2          ; Instruction count per work cycle = per 4KB block, power of 2
 DB  x3          ; Measurement cycle count, required * REPEATS_SCALE
 VECPU  x4,x5    ; CPU (CPUID) check criteria to run this
@@ -86,22 +86,27 @@ ID_Sqrt_AVX512   EQU 80h + 2
 ID_Cos_X87       EQU 80h + 3     
 ID_SinCos_X87    EQU 80h + 4 
 
+; Note if parameter #7 = 0 , context support by XCR0 verification skipped,
+; this special case for CPU support SSE/SSE2 but not support XCR0/XGETBV,
+; or OS not support XCR0/XGETBV, but support SSE context management.
+; For AVX/AVX512 , context support by XCR0/XGETBV required always.  
+
 ; Instruction timings measurement control list
 InstructionTimingControl:
-VECLK  ID_Read_SSE128  , 8 , 160 , 26+00 , 1 , 01+00 , 0   
-VECLK  ID_Write_SSE128 , 8 , 160 , 26+00 , 1 , 01+00 , 0  
-VECLK  ID_Copy_SSE128  , 7 , 160 , 26+00 , 1 , 01+00 , 0 
-VECLK  ID_Read_AVX256  , 7 , 160 , 28+32 , 1 , 02+00 , 1
-VECLK  ID_Write_AVX256 , 7 , 160 , 28+32 , 1 , 02+00 , 1  
-VECLK  ID_Copy_AVX256  , 6 , 160 , 28+32 , 1 , 02+00 , 1  
-VECLK  ID_Read_AVX512  , 6 , 160 , 16+00 , 3 , 06+00 , 1 
-VECLK  ID_Write_AVX512 , 6 , 160 , 16+00 , 3 , 06+00 , 1  
-VECLK  ID_Copy_AVX512  , 5 , 160 , 16+00 , 3 , 06+00 , 1   
-VECLK  ID_Sqrt_SSE128  , 8 ,  40 , 26+00 , 1 , 01+00 , 0 
-VECLK  ID_Sqrt_AVX256  , 8 ,  40 , 28+32 , 1 , 02+00 , 1   
-VECLK  ID_Sqrt_AVX512  , 8 ,  40 , 16+00 , 3 , 06+00 , 1 
-VECLK  ID_Cos_X87      , 8 ,   4 , 00+00 , 1 , 00+00 , 0     
-VECLK  ID_SinCos_X87   , 8 ,   4 , 00+00 , 1 , 00+00 , 0 
+VECLK  ID_Read_SSE128  , 8 , 160 , 25+00 , 1 , 01+00 , 0  ; SSE   
+VECLK  ID_Write_SSE128 , 8 , 160 , 25+00 , 1 , 01+00 , 0  ; SSE  
+VECLK  ID_Copy_SSE128  , 7 , 160 , 25+00 , 1 , 01+00 , 0  ; SSE 
+VECLK  ID_Read_AVX256  , 7 , 160 , 28+32 , 1 , 02+00 , 1  ; AVX
+VECLK  ID_Write_AVX256 , 7 , 160 , 28+32 , 1 , 02+00 , 1  ; AVX  
+VECLK  ID_Copy_AVX256  , 6 , 160 , 28+32 , 1 , 02+00 , 1  ; AVX  
+VECLK  ID_Read_AVX512  , 6 , 160 , 16+00 , 3 , 06+00 , 1  ; AVX512 
+VECLK  ID_Write_AVX512 , 6 , 160 , 16+00 , 3 , 06+00 , 1  ; AVX512  
+VECLK  ID_Copy_AVX512  , 5 , 160 , 16+00 , 3 , 06+00 , 1  ; AVX512   
+VECLK  ID_Sqrt_SSE128  , 8 ,  40 , 26+00 , 1 , 01+00 , 0  ; SSE2 
+VECLK  ID_Sqrt_AVX256  , 8 ,  40 , 28+32 , 1 , 02+00 , 1  ; AVX   
+VECLK  ID_Sqrt_AVX512  , 8 ,  40 , 16+00 , 3 , 06+00 , 1  ; AVX512 
+VECLK  ID_Cos_X87      , 8 ,   4 , 00+00 , 1 , 00+00 , 0  ; x87     
+VECLK  ID_SinCos_X87   , 8 ,   4 , 00+00 , 1 , 00+00 , 0  ; x87  
 VEEND
 
 ; Example for instruction count per work cycle, means per 4KB block.
@@ -110,7 +115,10 @@ VEEND
 ; Instructions per block = 4096 / 16 = 256,
 ; because power of 2 compact encoding: 2^8 = 256, value = 8.    
 
-;--- Strings for vector brief test, with text result only ---
+
+;------------------------------------------------------------------------------;
+;        Strings for Vector Brief test, this test with text result only        ; 
+;------------------------------------------------------------------------------;
 
 ; Processor clock, this string after CPU name
 MsgResultBrief  DB  'TSC clock (MHz)',0
@@ -176,5 +184,4 @@ NsupOS          DB 'not supported by OS',0
 
 DivisorMHz  DQ  1000000.0
 DividendNs  DQ  1000000000.0
-
 
