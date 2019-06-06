@@ -94,10 +94,12 @@ movzx r9d,al
 call [CheckRadioButton]
 
 ; Options, Carefully mode (slow)
+; Updated for default method is careful adaptive
 mov rcx,rbx
 mov edx,HANDLE_BRIEF_MEASUREMENT             ; first at group, group to "0"
 mov r8d,HANDLE_CAREFUL_ADAPTIVE_MEASUREMENT  ; last at group, group to "0"
-mov r9d,HANDLE_CAREFUL_MEASUREMENT           ; selected at group, this to "1"
+;- mov r9d,HANDLE_CAREFUL_MEASUREMENT        ; selected at group, this to "1"
+mov r9d,HANDLE_CAREFUL_ADAPTIVE_MEASUREMENT  ; selected at group, this to "1"
 call [CheckRadioButton]
 
 ; Options, Approximation mode

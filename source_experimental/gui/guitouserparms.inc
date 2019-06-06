@@ -11,10 +11,16 @@
 ; All CPU registers can be corrupted                                           ;
 ;------------------------------------------------------------------------------;
 
+; Note for optimizing, use EBX = WS_DISABLED required conditions:
+;  1) RBX not used for other purposes at this subroutine.
+;  2) RBX can be destroyed by this subroutine, reloaded after it call.
+;  3) RBX not destroyed by called subroutine: SendMessageGetCheck.  
+
 GuiToUserParms:
 
-; Setup User Parameters Block (UPB) pointer
+; Setup User Parameters Block (UPB) pointer and data pattern for widgets check
 lea rdi,[UserParms]
+mov ebx,WS_DISABLED
 
 ; Setup run context for memory allocation multiplication mode control
 movzx eax,al
@@ -34,7 +40,7 @@ mov [rdi + UPB.OptionAsm],esi      ; Write method number = ESI
 
 ; Extract USE PARALLEL THREADS, for this option detect both GRAY and CHECKED 
 xor eax,eax                        ; PARALLEL_NOT_SUP
-test dword [PARALLEL_NUMA_PG_BASE + E_PARALLEL_THREADS],WS_DISABLED
+test dword [PARALLEL_NUMA_PG_BASE + E_PARALLEL_THREADS],ebx  ; EBX = WS_DISABLED
 jnz @f                             ; Go if toggler button disabled (gray)
 mov esi,HANDLE_PARALLEL_THREADS
 call SendMessageGetCheck           ; Result = ZF flag
@@ -46,7 +52,7 @@ mov [rdi + UPB.OptionParallel],eax  ; Write option state = EAX
 
 ; Extract USE HYPER THREADING, for this option detect both GRAY and CHECKED 
 xor eax,eax                        ; HT_NOT_SUPPORTED
-test dword [PARALLEL_NUMA_PG_BASE + E_HYPER_THREADING],WS_DISABLED
+test dword [PARALLEL_NUMA_PG_BASE + E_HYPER_THREADING],ebx  ; EBX = WS_DISABLED
 jnz @f                             ; Go if toggler button disabled (gray)
 mov esi,HANDLE_HYPER_THREADING
 call SendMessageGetCheck           ; Result = ZF flag
@@ -58,7 +64,7 @@ mov [rdi + UPB.OptionHT],eax       ; Write option state = EAX
 
 ; Extract USE PROCESSOR GROUPS, for this option detect both GRAY and CHECKED 
 xor eax,eax                        ; PG_NOT_SUPPORTED
-test dword [PARALLEL_NUMA_PG_BASE + E_PROCESSOR_GROUPS],WS_DISABLED
+test dword [PARALLEL_NUMA_PG_BASE + E_PROCESSOR_GROUPS],ebx  ; EBX = WS_DISABLED
 jnz @f                             ; Go if toggler button disabled (gray)
 mov esi,HANDLE_PROCESSOR_GROUPS
 call SendMessageGetCheck           ; Result = ZF flag
@@ -70,7 +76,7 @@ mov [rdi + UPB.OptionPG],eax       ; Write option state = EAX
 
 ; Extract NUMA CONTROL, for this option detect both GRAY and CHECKED
 xor esi,esi
-test dword [PARALLEL_NUMA_PG_BASE + NUMA_UNAWARE],WS_DISABLED
+test dword [PARALLEL_NUMA_PG_BASE + NUMA_UNAWARE],ebx  ; EBX = WS_DISABLED
 jnz .NumaOff                       ; Go skip if NUMA not sup. by platform, SI=0 
 mov esi,HANDLE_NUMA_UNAWARE
 @@:
@@ -80,9 +86,9 @@ inc esi
 cmp esi,HANDLE_NUMA_REMOTE         ; Compare with LAST handle
 jbe @b                             ; Cycle for radio buttons group
 @@:
-sub esi,HANDLE_NUMA_UNAWARE - 1    ; 0 = First toggle button
+sub esi,HANDLE_NUMA_UNAWARE - 1    ; 0 = Gray, 1 = First toggle button active
 .NumaOff:
-mov [rdi + UPB.OptionNUMA],esi     ; Note SIL means bits SI.[7-0]
+mov [rdi + UPB.OptionNUMA],esi     ; Old note SIL means bits SI.[7-0]
 
 ; Extract TARGET OBJECT (CACHE/DRAM), for this option detect CHECKED only
 mov esi,HANDLE_L1_CACHE
@@ -98,7 +104,7 @@ mov [rdi + UPB.OptionTarget],esi   ; Note SIL means bits SI.[7-0]
 
 ; Extract USE LARGE PAGES, for this option detect both GRAY and CHECKED 
 xor eax,eax                        ; LP_NOT_SUPPORTED
-test dword [LARGE_PAGES_BASE + E_LARGE_PAGES],WS_DISABLED
+test dword [LARGE_PAGES_BASE + E_LARGE_PAGES],ebx  ; EBX = WS_DISABLED
 jnz @f                             ; Go if toggler button disabled (gray)
 mov esi,HANDLE_LARGE_PAGES
 call SendMessageGetCheck           ; Result = ZF flag

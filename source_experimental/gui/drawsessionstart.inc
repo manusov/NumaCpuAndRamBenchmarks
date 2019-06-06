@@ -100,6 +100,18 @@ call DecimalPrint32
 .L19:
 pop rbx
 
+; Special strings for adaptive repeats modes
+lea rax,[Repeats_String]   ; Text string 'Repeats=' + numeric field
+cmp [rbx + IPB.UpdatedMeasure],MEASURE_CAREFUL
+jbe .L30                   ; Go if brief or careful, text string + numeric field
+lea rax,[Measure_D_02]
+cmp [rbx + IPB.UpdatedMeasure],MEASURE_B_ADAPTIVE
+je .L30                    ; Go if brief adaptive, text string only
+lea rax,[Measure_D_03]     ; otherwise careful adaptive, text string only
+.L30:
+sub rax,r15   ; calculate RSI.[15-0] = compact 16-bit offset
+mov [r14 + HANDLE_TEXT_REPEATS1*16 - 256 + 12],ax
+
 ; Down comments strings, normal or large pages
 lea rax,[NPages_String]
 cmp [rbx + IPB.UpdatedLP],LP_USED

@@ -88,6 +88,15 @@ call StringWrite_CRLF_Equal
 push rsi
 lea rsi,[Measure_00]
 mov eax,[r8+IPB.UpdatedMeasure]
+; Reject adaptive modes notation because this results for simple mode
+cmp al,MEASURE_B_ADAPTIVE
+jne @f
+mov al,MEASURE_BRIEF
+@@:
+cmp al,MEASURE_C_ADAPTIVE
+jne @f
+mov al,MEASURE_CAREFUL
+@@:
 mov ah,MEASURE_LIMIT
 call StringWriteSelected
 pop rsi

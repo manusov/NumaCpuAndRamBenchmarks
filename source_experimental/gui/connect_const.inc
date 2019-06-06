@@ -212,10 +212,10 @@ Target_D_05      DB  'Custom size (hex) =',0
 ; For dialogue, initial state of edit string
 Edit_Size        DB  '00000000',0
 ; Measurement iterations modes, for dialogue
-Measure_D_00     DB  'measure brief',0
-Measure_D_01     DB  'measure careful',0
-Measure_D_02     DB  'brief adaptive',0
-Measure_D_03     DB  'careful adaptive',0
+Measure_D_00     DB  'Measure brief',0
+Measure_D_01     DB  'Measure careful',0
+Measure_D_02     DB  'Brief adaptive',0
+Measure_D_03     DB  'Careful adaptive',0
 ; Measurement X-approximation modes, for dialogue
 Approx_D_00      DB  'No approximations',0
 Approx_D_01      DB  'Approximation X by 16',0

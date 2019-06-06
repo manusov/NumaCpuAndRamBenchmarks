@@ -152,6 +152,9 @@ mov [rdi + IPB.UpdatedLP],eax       ; Copy Large Pages option
 mov eax,[rsi + UPB.OptionMeasure]
 mov [rdi + IPB.UpdatedMeasure],eax
 lea rcx,[BenchmarksRepeats]  ; select measurements constants
+; Note for "Run simple" mode, no differentiation adaptive/non-adaptive,
+; see also gui\drawsessionstart.inc, gui\drawsessionthread.inc
+; for adaptive modes support
 cmp al,MEASURE_BRIEF
 je .L10                      ; Go with constants for fast (non precision) mode 
 cmp al,MEASURE_B_ADAPTIVE
