@@ -25,5 +25,3 @@ Application debug feature:  integrated to ncrb.asm, before create window 0
 Window debug feature:       integrated to windowmain\win0.inc, before handling events
 
 ----------------------------------------------------------------------------------------------
-
-
