@@ -105,4 +105,9 @@ Some optimizations at drawings window GUI.
 Some "TODO" fixed.
 Other "TODO" moved to separate document, for source readability.
 
+15.06.2019 (v1.02.30)
+Add branch for ia32 support.
+
+
+
 
