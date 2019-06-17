@@ -81,8 +81,7 @@ ret
 
 GetAcpiSrat:
 push ebx esi ebp
-push 0 0 0                    ; Variables, qword [esp] = port R8, dword [esp+8] = port R9D
-                              ; port R8 = domains bitmap, port R9D = wrong domain number flag
+
 ; Set ACPI table parameters
 mov edx,'SRAT'                ; EDX = ACPI table signature
 mov ecx,32                    ; ECX = Output buffer size, for SRAT mode
@@ -90,6 +89,10 @@ mov ecx,32                    ; ECX = Output buffer size, for SRAT mode
 ; Parse ACPI table header
 call HelperAcpiHeader
 jc AcpiNotAvailable           ; Go if error or this ACPI table not found 
+
+; Push local variables, qword [esp] = port R8, dword [esp+8] = port R9D
+; port R8 = domains bitmap, port R9D = wrong domain number flag
+push 0 0 0
 
 ; Pre-blank registers used as counters
 xor ecx,ecx                   ; ECX = Counter of CPUs (SRAT)
@@ -133,10 +136,10 @@ xor ecx,ecx
 bts ecx,eax
 test byte [esi + 02],00100000b 
 jnz .LHigh
-or [esp + 00 + 00],ecx
+or [esp + 00 + 04 + 00],ecx
 jmp .LDone
 .LHigh:
-or [esp + 00 + 04],ecx
+or [esp + 00 + 04 + 04],ecx
 .LDone:
 pop ecx
 

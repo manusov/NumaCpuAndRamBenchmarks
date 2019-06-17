@@ -28,59 +28,53 @@
 ;----------------------------------------------------------------------------;
 
 SessionProgress:
-
-IF 0
-
-; Stack alignment, required because OS API used, save number of threads
-mov rbp,rsp                    ; RBP = Save input RSP
-and rsp,0FFFFFFFFFFFFFFF0h     ; Align stack because WinAPI used
-sub rsp,32+16                  ; Build parameters shadow, 4 qwords
+push 0 0
 
 ; Setup pointers
-lea rsi,[InputParms]   ; RSI = Pointer to IPB, benchmarks scenario
-lea rdi,[OutputParms]  ; RDI = Pointer to OPB, benchmarks results
+lea esi,[InputParms]   ; ESI = Pointer to IPB, benchmarks scenario
+lea edi,[OutputParms]  ; EDI = Pointer to OPB, benchmarks results
 
 ; Pre-heat phase for result stabilization
 ; Note this pre-heat for simple only, not use this for drawings
-lea rcx,[ThreadsList]
-mov edx,[rsi + IPB.UpdatedThreads]
+lea ecx,[ThreadsList]
+mov edx,[esi + IPB.UpdatedThreads]
 call ThreadsReStart
 
 ; Replace fill pattern to walk pattern for latency mode
-lea rcx,[ThreadsList]
-cmp [rsi + IPB.UpdatedAsm],LATENCY_MODE
+lea ebx,[ThreadsList]
+cmp [esi + IPB.UpdatedAsm],LATENCY_MODE
 jb .L20                ; Go skip this update if not a LATENCY MEASUREMENT mode
-mov r8d,[rsi + IPB.UpdatedThreads]   ; R8D = Threads count
-mov r9,[rsi + IPB.WalkRoutine]       ; R9  = Pointer to pattern routine
+mov ecx,[esi + IPB.UpdatedThreads]   ; ECX = Threads count
+mov eax,[esi + IPB.WalkRoutine]      ; EAX  = Pointer to pattern routine
 call ThreadsUpdatePattern  ; replace list build pattern to list walk pattern
 .L20:
 
 ; Get start time point, by OS timer API (alternative of TSC)
-lea rcx,[rsp+32]  ; RCX = Pointer to updated variable, OS timer, 64-bit
+mov eax,esp        ; EAX = Pointer to updated variable, OS timer, 64-bit
+push eax           ; Parm#1 = Pointer to updated variable, OS timer, 64-bit 
 call [GetSystemTimeAsFileTime]
 
 ; Measurement pattern
-lea rcx,[ThreadsList]               ; RCX = Pointer to threads list
-mov edx,[rsi + IPB.UpdatedThreads]  ; EDX = number of threads
+lea ecx,[ThreadsList]               ; ECX = Pointer to threads list
+mov edx,[esi + IPB.UpdatedThreads]  ; EDX = number of threads
 call ThreadsReStart
 mov al,2  ; AL = error status, valid if CF=1 only
 jc .Exit
-mov [rdi + OPB.TSCtimerDelta],rax   ; Store delta-TSC, units = TSC clocks
+mov dword [edi + OPB.TSCtimerDelta + 0],eax   ; Store delta-TSC, units = TSC clocks
+mov dword [edi + OPB.TSCtimerDelta + 4],edx
 
 ; Get stop time point, by OS timer API (alternative of TSC)
-lea rcx,[rsp+40]  ; RCX = Pointer to updated variable, OS timer, 64-bit
+lea eax,[edi + OPB.OStimerDelta]  ; EAX = Pointer to updated variable, OS timer, 64-bit
+push eax                          ; Parm#1 = Pointer to updated variable, OS timer, 64-bit 
 call [GetSystemTimeAsFileTime]
-mov rax,[rsp+40]  ; RAX = Time at this point
-sub rax,[rsp+32]  ; Subtract time before target fragment execution
-mov [rdi + OPB.OStimerDelta],rax    ; Store delta-OS timer, units = 100 ns 
+mov eax,[esp + 0]  ; EDX:EAX = Time at this point
+mov edx,[esp + 4]
+sub dword [edi + OPB.OStimerDelta + 0],eax    ; Calculate delta-OS timer, units = 100 ns 
+sbb dword [edi + OPB.OStimerDelta + 4],edx
 
 ; Done
 clc            ; CF=0 means no errors
 .Exit:         ; Can go to this point if CF=1 when errors detected
-mov rsp,rbp
-
-
-END IF
-
+pop ecx ecx    ; Note POP for remove stack variable 
 ret
 

@@ -29,25 +29,21 @@
 ;----------------------------------------------------------------------------;
 
 SessionStop:
+lea edi,[InputParms]   ; RDI = Pointer to IPB (benchmark scenario)
 
-;
-;lea rdi,[InputParms]   ; RDI = Pointer to IPB (benchmark scenario)
-;
-;; Threads stop, release handles for Threads and Events
-;lea rcx,[ThreadsList]               ; RCX = Pointer to threads list
-;mov edx,[rdi + IPB.UpdatedThreads]  ; EDX = Threads count
-;call ReleaseThreadsList
-;mov al,1  ; AL = error status, valid if CF=1 only
-;jc .Exit  ; Go if error
-;
-;; NUMA-aware or unaware memory release
-;lea rcx,[NumaNodesList]             ; RCX = Pointer to NUMA nodes list
-;mov edx,[rdi + IPB.DomainsCount]    ; EDX = NUMA domains count
-;call MemReleaseNuma
-;mov al,1  ; AL = error status, valid if CF=1 only
-;
-;; Done, return CF=Error flag, AL=Error code (valid if CF=1)
-;.Exit:
-;
+; Threads stop, release handles for Threads and Events
+lea ecx,[ThreadsList]               ; ECX = Pointer to threads list
+mov edx,[edi + IPB.UpdatedThreads]  ; EDX = Threads count
+call ReleaseThreadsList
+mov al,1  ; AL = error status, valid if CF=1 only
+jc .Exit  ; Go if error
 
+; NUMA-aware or unaware memory release
+lea ebx,[NumaNodesList]             ; EBX = Pointer to NUMA nodes list
+mov edx,[edi + IPB.DomainsCount]    ; EDX = NUMA domains count
+call MemReleaseNuma
+mov al,1  ; AL = error status, valid if CF=1 only
+
+; Done, return CF=Error flag, AL=Error code (valid if CF=1)
+.Exit:
 ret

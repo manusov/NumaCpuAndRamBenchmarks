@@ -6,41 +6,44 @@
 ;------------------------------------------------------------------------------;
 
 ThreadRoutineSingleGroup:
-;and rsp,0FFFFFFFFFFFFFFF0h
-;sub rsp,32                    ; Build parameters shadow, 4 qwords
-;; Calculate thread control entry offset = f(thread id)
-;cmp ecx,MAX_THREADS_PER_GROUP
-;jb @f
-;xor ecx,ecx                   ; Force thread 0 if bad thread number
-;@@:
-;imul ecx,ecx,THCTRL_SIZE
-;lea r15,[ThreadsList + rcx]   ; R15 = Address for block for this thread
-;
-;; This point for restart thread
+; Calculate thread control entry offset = f(thread id)
+mov ecx,[esp + 4]              ; Read first parameter by IA32 convention
+cmp ecx,MAX_THREADS_PER_GROUP
+jb @f
+xor ecx,ecx                   ; Force thread 0 if bad thread number
+@@:
+imul ecx,ecx,THCTRL_SIZE
+lea ebx,[ThreadsList + ecx]   ; EBX = Address for block for this thread
+
+; This point for restart thread
 .ThreadRepeat:
-;mov rbx,r15
-;; Set affinity mask for this thread
-;mov rcx,[rbx + THCTRL.ThreadHandle]     ; Parm#1 = RCX = Thread handle
-;mov rdx,[rbx + THCTRL.ThreadAffinity]   ; Parm#2 = RDX = Thread Affinity mask
-;test rdx,rdx    ; Check for affinity mask = 0
-;jz @f           ; Skip set affinity mask if memory allocated without NUMA
-;call [_SetThreadAffinityMask]
-;@@:
-;
-;; Target memory performance operation
-;call RunTarget
-;
-;; Pre-clear thread run event
-;mov rcx,[r15 + THCTRL.EventStart]  ; RCX = Parm#1 = Handle for this thread
-;call [ResetEvent]                  ; Call WinAPI function
-;; Signaling thread terminated
-;mov rcx,[r15 + THCTRL.EventDone]   ; RCX = Parm#1 = Handle for this thread
-;call [SetEvent]                    ; Call WinAPI function
-;; Wait for thread re-run
-;mov rcx,[r15 + THCTRL.EventStart]  ; RCX = Parm#1 = Handle for this thread
-;mov edx,-1                         ; RDX = Parm#2 = Wait infinite, no timeout
-;call [WaitForSingleObject]
-;; Repeat measurement iteration in this thread
+
+; Set affinity mask for this thread
+mov eax,[ebx + THCTRL.ThreadAffinity]   ; EAX = Thread Affinity mask
+test eax,eax    ; Check for affinity mask = 0
+jz @f           ; Skip set affinity mask if memory allocated without NUMA
+push eax                                ; Parm#2 = Thread Affinity mask
+push [ebx + THCTRL.ThreadHandle]        ; Parm#1 = Thread handle
+call [_SetThreadAffinityMask]
+@@:
+
+; Target memory performance operation
+push ebx
+call RunTarget
+pop ebx
+
+; Pre-clear thread run event
+push [ebx + THCTRL.EventStart]     ; Parm#1 = Handle for this thread
+call [ResetEvent]                  ; Call WinAPI function
+; Signaling thread terminated
+push [ebx + THCTRL.EventDone]      ; Parm#1 = Handle for this thread
+call [SetEvent]                    ; Call WinAPI function
+; Wait for thread re-run
+push -1                            ; Parm#2 = Wait infinite, no timeout
+push [ebx + THCTRL.EventStart]     ; Parm#1 = Handle for this thread
+call [WaitForSingleObject]
+
+; Repeat measurement iteration in this thread
 jmp .ThreadRepeat
 
 ;---------- Thread routine, called by OS callback mechanism -------------------;
@@ -51,41 +54,45 @@ jmp .ThreadRepeat
 ;------------------------------------------------------------------------------;
 
 ThreadRoutineMultiGroup:
-;and rsp,0FFFFFFFFFFFFFFF0h
-;sub rsp,32                    ; Build parameters shadow, 4 qwords
-;; Calculate thread control entry offset = f(thread id)
-;cmp ecx,MAX_THREADS
-;jb @f
-;xor ecx,ecx                   ; Force thread 0 if bad thread number
-;@@:
-;imul ecx,ecx,THCTRL_SIZE
-;lea r15,[ThreadsList + rcx]   ; R15 = Address for block for this thread
-;
-;; This point for restart thread
+; Calculate thread control entry offset = f(thread id)
+mov ecx,[esp + 4]              ; Read first parameter by IA32 convention
+cmp ecx,MAX_THREADS_PER_GROUP
+jb @f
+xor ecx,ecx                   ; Force thread 0 if bad thread number
+@@:
+imul ecx,ecx,THCTRL_SIZE
+lea ebx,[ThreadsList + ecx]   ; EBX = Address for block for this thread
+
+; This point for restart thread
 .ThreadRepeat:
-;mov rbx,r15
-;; Set affinity mask for this thread
-;mov rcx,[rbx + THCTRL.ThreadHandle]     ; Parm#1 = RCX = Thread handle
-;lea rdx,[rbx + THCTRL.ThreadAffinity]   ; Parm#2 = RDX = Pointer to mask + group
-;lea r8,[rbx + THCTRL.OrigAffinity]      ; Parm#3 = R8 = Pointer to get original
-;cmp qword [rdx],0    ; Check for affinity mask = 0
-;je @f                ; Skip set affinity mask if memory allocated without NUMA
-;call [_SetThreadGroupAffinity]      ; This changed for Processor Groups
-;@@:
-;
-;; Target memory performance operation
-;call RunTarget
-;
-;; Pre-clear thread run event
-;mov rcx,[r15 + THCTRL.EventStart]  ; RCX = Parm#1 = Handle for this thread
-;call [ResetEvent]                  ; Call WinAPI function
-;; Signaling thread terminated
-;mov rcx,[r15 + THCTRL.EventDone]   ; RCX = Parm#1 = Handle for this thread
-;call [SetEvent]                    ; Call WinAPI function
-;; Wait for thread re-run
-;mov rcx,[r15 + THCTRL.EventStart]  ; RCX = Parm#1 = Handle for this thread
-;mov edx,-1                         ; RDX = Parm#2 = Wait infinite, no timeout
-;call [WaitForSingleObject]
-;; Repeat measurement iteration in this thread
+
+; Set affinity mask for this thread
+lea eax,[ebx + THCTRL.ThreadAffinity]    ; EAX = Pointer to thread affinity
+cmp dword [eax],0                        ; Check for affinity mask = 0
+je @f                 ; Skip set affinity mask if memory allocated without NUMA
+lea ecx,[ebx + THCTRL.OrigAffinity]
+push ecx                             ; Parm#3 = Pointer to get original 
+push eax                             ; Parm#2 = Pointer to mask + group
+push [ebx + THCTRL.ThreadHandle]     ; Parm#1 = Thread handle
+call [_SetThreadGroupAffinity]       ; This changed for Processor Groups
+@@:
+
+; Target memory performance operation
+push ebx
+call RunTarget
+pop ebx
+
+; Pre-clear thread run event
+push [ebx + THCTRL.EventStart]     ; Parm#1 = Handle for this thread
+call [ResetEvent]                  ; Call WinAPI function
+; Signaling thread terminated
+push [ebx + THCTRL.EventDone]      ; Parm#1 = Handle for this thread
+call [SetEvent]                    ; Call WinAPI function
+; Wait for thread re-run
+push -1                            ; Parm#2 = Wait infinite, no timeout
+push [ebx + THCTRL.EventStart]     ; Parm#1 = Handle for this thread
+call [WaitForSingleObject]
+
+; Repeat measurement iteration in this thread
 jmp .ThreadRepeat
 
