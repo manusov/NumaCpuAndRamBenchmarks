@@ -53,7 +53,9 @@ test eax,eax
 jz .NoLargePages      ; Go skip if large page size = 0
 stosd                 ; Store large page size, low 32 bit
 xor eax,eax           ; EAX = 0 , note this used at next step
-stosd                 ; Store large page size, high 32 bit = 0 
+
+;- stosd              ; Store large page size, high 32 bit = 0
+                      ; this rejected when ia32 porting 
 
 ; Check privileges control availability, check Win API functions pointers
 cmp [_OpenProcessToken],eax        ; check fnc. pointer after dynamical import
@@ -108,7 +110,7 @@ mov ebx,eax              ; EBX = Handle
 ; Probe operation: try memory allocation with large pages
 push PAGE_READWRITE                 ; Parm#5 = Page Attribute
 push MEM_COMMIT + MEM_LARGE_PAGES   ; Parm#4 = Allocation type
-push dword [edi-8]                  ; Parm#3 = Size for probe
+push dword [edi - 4]                ; Parm#3 = Size for probe
 push 0                              ; Parm#2 = Virtual address, 0=Auto select
 push ebx                            ; Parm#1 = Process Handle
 call [VirtualAllocEx]
@@ -139,7 +141,7 @@ ret
 
 .NoLargePages:
 stosd                 ; Large page size = 0  (qword)
-stosd
+;- stosd ; this rejected when ia32 porting
 .NoLargeRights:
 stosd                 ; Large pages availability status = 0  (dword)
 jmp .Exit

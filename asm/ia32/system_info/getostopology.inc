@@ -29,9 +29,9 @@
 ;---------- Information about WinAPI function output data ---------------;
 ; WinAPI function = GetLogicalProcessorInformation                       ;
 ;---                                                                     ; 
-; Entry format:                                                          ;
-; QWORD  ProcessorMask = Bitmap for select processors                    ;
-; QWORD  Relationship (byte used)                                        ;
+; Entry format ( note about changes when porting to IA32 ) :             ;
+; DWORD  ProcessorMask = Bitmap for select processors                    ;
+; DWORD  Relationship (byte used)                                        ;
 ; QWORD  Flags | Node Number | Cache Descriptor | Reserved               ;
 ; QWORD  continue if size > 8 bytes                                      ;
 ;---                                                                     ;
@@ -91,6 +91,7 @@ test edx,edx
 jnz .ErrorOsMpInfo   ; Go error if size not aligned by 24 bytes
 
 push edi
+xchg ecx,eax
 ; Scan WinAPI output data and build control structure
 ; ECX = Number of entries
 ; ESI = Pointer to source data for scan

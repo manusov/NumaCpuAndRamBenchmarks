@@ -36,6 +36,14 @@ _AdjustTokenPrivileges           DD  ?    ; added for Large Pages support
 HandleAdvapi32                   DD  ?
 
 ;------------------------------------------------------------------------------;
+; This function used for show warning when 32-bit NCRB runs under Win64,       ;
+; this is possible, but non-optimal configuration, can use NCRB x64            ;
+; for this platform.                                                           ;
+;------------------------------------------------------------------------------;
+FunctionPointerWoW64:
+_IsWow64Process                  DD  ?
+
+;------------------------------------------------------------------------------;
 ;     User settings, input parameters, output parameters structures            ;
 ;------------------------------------------------------------------------------;
 ; Test input and output operands located by alignment-optimal ordering

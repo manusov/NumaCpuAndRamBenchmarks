@@ -45,7 +45,7 @@ push edi                     ; Parm#1 = Output buffer address
 call [GetSystemInfo]
 
 ; Get pointer to Win API function, result of dynamical import
-add edi,48                   ; Sub buffer #1 size is 48 bytes
+add edi,36                   ; Sub buffer #1 size is 48 bytes for x64 , 36 bytes for IA32
 mov eax,[_GlobalMemoryStatusEx]
 test eax,eax
 jz .ErrorOsInfo              ; Go skip if function not declared by OS
@@ -62,7 +62,8 @@ stc                          ; CF=1(C) means error
 jz .ExitOsInfo               ; Go exit if error returned 
 
 ; Exit points
-add edi,64              ; Sub buffer #2 size is 64 bytes, also clear CF=0(NC)
+add edi,64                   ; Sub buffer #2 size is 64 both for x64 and IA32 
+clc
 .ExitOsInfo:
 pop ebp esi ebx
 ret

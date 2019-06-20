@@ -39,12 +39,35 @@ pop edi esi ebx
 .L9:
 ret
 
-; Local helper subroutine for check load functions,
-; subroutine required because 2 DLLs
-; INPUT:   ESI = Pointer to DLL functions names constants list
-;          EBX = Pointer to DLL functions entry points variables list
-; OUTPUT:  EBX = Advance by list check
-;          Other registers can be corrupted
+;--- Output warning messages box if some optional OS API functions not found --;
+; Note WoW means Windows-on-Windows, 32-bit application under Win64.           ;
+;                                                                              ;
+; INPUT:  CF flag = status: 0(NC) = WoW64 context not detected                 ;
+;                           1(C)  = WoW64 context detected,                    ; 
+;                                   need generating warning box                ;
+;                                                                              ;
+; OUTPUT: None                                                                 ;
+;         Registers save/destroy by Microsoft ia32 calling convention          ;
+;------------------------------------------------------------------------------;
+
+ShowWarningWoW64:
+jnc .L0
+push MB_ICONWARNING    ; Parm#4 = Message box icon type
+push PRODUCT_ID        ; Parm#3 = Pointer to caption
+push MsgWarnWoW        ; Parm#2 = Pointer to string
+push 0                 ; Parm#1 = Parent window handle or 0
+call [MessageBoxA]
+.L0:
+ret
+
+;---------------------------------------------------------------------------;
+; Local helper subroutine for check load functions,                         ;
+; subroutine required because 2 DLLs                                        ;
+; INPUT:   ESI = Pointer to DLL functions names constants list              ;
+;          EBX = Pointer to DLL functions entry points variables list       ;
+; OUTPUT:  EBX = Advance by list check                                      ;
+;          Other registers can be corrupted                                 ;
+;---------------------------------------------------------------------------;
 
 HelperCheckLibraries:
 .L0:

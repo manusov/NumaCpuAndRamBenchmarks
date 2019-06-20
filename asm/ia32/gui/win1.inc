@@ -118,10 +118,10 @@ push 16                          ; Parm#1 = Height
 call [CreateFont]
 mov [HandleFont],eax 
 ; Create and set timer, for benchmarks progress (but not for measure)
-push ebx                    ; Parm#1 = Parent window handle
-push 0                      ; Parm#2 = Event ID
-push TIMER_TICK             ; Parm#3 = Timer ticks period, ms
 push 0                      ; Parm#4 = Notify function pointer, not used here
+push TIMER_TICK             ; Parm#3 = Timer ticks period, ms
+push 0                      ; Parm#2 = Event ID
+push ebx                    ; Parm#1 = Parent window handle
 call [SetTimer]
 ; Wait thread started (1 of 2 waits)
 ; Wait for measurement thread run, this event at thread entry point
@@ -314,187 +314,209 @@ add ebx,GRIDBLANKX + 1
 ; Better use helpers subroutines for comparision and conditional update ?
 ; Use median ordering for min-max also.
 ; Remove finit from body of cycle ? 
+; Get current measurement, must be before ordering
+; at this point FPU x87 initialized
 
-; Load pointer, used for all statistics calculation
-;lea r11,[DrawThreadParms]
-;
-;; Get current measurement, must be before ordering
-;; at this point FPU x87 initialized
-;finit
-;fld qword [r14]
-;
-;; Calculate average CPI
-;push r13                          ; R13 = divisor for averaging
-;fld st0                           ; ST1 = ST0 = current measured value
-;fadd [r11 + DTHP.StatCpiSum]
-;fst [r11 + DTHP.StatCpiSum]
-;fidiv dword [rsp]                 ; this access to R13 in the stack
-;fst [r11 + DTHP.StatCpiAverage]   ; store average CPI
-;call HelperCPItoNSPI
-;fst [r11 + DTHP.StatNspiAverage]  ; store average nsPI = f (average CPI)
-;call HelperNSPItoMBPS
-;fadd [r11 + DTHP.StatMbpsSum]
-;fst [r11 + DTHP.StatMbpsSum]      ; store average MBPS, averaging separately
-;fidiv dword [rsp]                 ; this access to R13 in the stack
-;fstp [r11 + DTHP.StatMbpsAverage]
-;pop r13
-;
-;; Median ordering, also used for min/max, ordering by "bubble" method
-;; Note floating point values can be ordered by integer compare,
-;; because shifted exponent used at FP format
-;.L23:
-;lea rcx,[r13-1]
-;lea rdx,[r11 + DTHP.MeasureArray]
-;mov r9,rdx                            ; R9  = Pointer to array first element
-;lea r10,[rdx + rcx*8]                 ; R10 = Pointer to array last element
-;jrcxz .L21
-;xor eax,eax
-;.L20:
-;mov r8,[rdx + 0]
-;cmp r8,[rdx + 8]
-;jbe .L22
-;xchg r8,[rdx + 8]
-;mov [rdx + 0],r8
-;mov al,1
-;.L22:
-;add rdx,8
-;dec ecx
-;jnz .L20        ; DEC/JNZ faster then LOOP
-;test eax,eax
-;jnz .L23 
-;.L21:
-;
-;; Get minimum and maximum after median ordering
-;; minimum time - maximum bandwidth
-;fld qword [r9]                    ; ST0 = first element, minimum CPI
-;fst [r11 + DTHP.StatCpiMin]
-;call HelperCPItoNSPI
-;fst [r11 + DTHP.StatNspiMin]
-;call HelperNSPItoMBPS
-;fstp [r11 + DTHP.StatMbpsMax]
-;; maximum time - minimum bandwidth
-;fld qword [r10]                   ; ST0 = last element, maximum CPI
-;fst [r11 + DTHP.StatCpiMax]
-;call HelperCPItoNSPI
-;fst [r11 + DTHP.StatNspiMax]
-;call HelperNSPItoMBPS
-;fstp [r11 + DTHP.StatMbpsMin]
-;
-;; Get median CPI, nsPI after median ordering, note FPU already initialized 
-;lea rcx,[r13-1]
-;shr ecx,1                      ; This branch for median ODD-sized array
-;fld qword [r9 + rcx*8]         ; Get median
-;jnc .L30                       ; Go if median for ODD size
-;fadd qword [r9 + rcx*8 + 8]
-;fld1
-;fadd st0,st0
-;fdivp st1,st0
-;.L30:
-;fst [r11 + DTHP.StatCpiMedian]
-;call HelperCPItoNSPI
-;fstp [r11 + DTHP.StatNspiMedian]
-;
+finit
+fld qword [edi]          ; ST0 = Current measured Clocks per Instruction (CPI)
+
+; Calculate average CPI, nsPI, MBPS
+push esi                          ; ESI = divisor for averaging
+fld st0                           ; ST1 = ST0 = current measured value
+fadd [DrawThreadParms + DTHP.StatCpiSum]
+fst [DrawThreadParms + DTHP.StatCpiSum]
+fidiv dword [esp]                 ; this access to R13 in the stack
+fst [DrawThreadParms + DTHP.StatCpiAverage]   ; store average CPI
+call HelperCPItoNSPI
+fst [DrawThreadParms + DTHP.StatNspiAverage]  ; store average nsPI = f (average CPI)
+call HelperNSPItoMBPS
+fadd [DrawThreadParms + DTHP.StatMbpsSum]
+fst [DrawThreadParms + DTHP.StatMbpsSum]      ; store average MBPS, averaging separately
+fidiv dword [esp]                 ; this access to ESI in the stack
+fstp [DrawThreadParms + DTHP.StatMbpsAverage]
+pop esi
+
+; Median ordering, also used for min/max, ordering by "bubble" method
+; Note floating point values can be ordered by integer compare,
+; because shifted exponent used at FP format
+push ebx edi ebp
+
+.L23:
+lea ecx,[esi - 1]
+lea edx,[DrawThreadParms + DTHP.MeasureArray]
+mov ebx,edx                ; EBX  = Pointer to array first element, used later
+lea edi,[edx + ecx*8]      ; EDI = Pointer to array last element, used later
+jecxz .L21                 
+xor eax,eax
+
+.L20:
+mov ebp,[edx + 0 + 4]
+cmp ebp,[edx + 8 + 4]
+jb .L22
+ja .L24
+
+mov ebp,[edx + 0 + 0]
+cmp ebp,[edx + 8 + 0]
+jbe .L22
+
+.L24:
+mov ebp,[edx + 0 + 0]
+xchg ebp,[edx + 8 + 0]
+mov [edx + 0 + 0],ebp
+
+mov ebp,[edx + 0 + 4]
+xchg ebp,[edx + 8 + 4]
+mov [edx + 0 + 4],ebp
+
+mov al,1
+.L22:
+
+add edx,8
+dec ecx
+jnz .L20        ; DEC/JNZ faster then LOOP
+test eax,eax
+jnz .L23 
+.L21:
+
+; Get minimum and maximum after median ordering
+; minimum time - maximum bandwidth
+fld qword [ebx]                    ; ST0 = first element, minimum CPI
+fst [DrawThreadParms + DTHP.StatCpiMin]
+call HelperCPItoNSPI
+fst [DrawThreadParms + DTHP.StatNspiMin]
+call HelperNSPItoMBPS
+fstp [DrawThreadParms + DTHP.StatMbpsMax]
+; maximum time - minimum bandwidth
+fld qword [edi]                   ; ST0 = last element, maximum CPI
+fst [DrawThreadParms + DTHP.StatCpiMax]
+call HelperCPItoNSPI
+fst [DrawThreadParms + DTHP.StatNspiMax]
+call HelperNSPItoMBPS
+fstp [DrawThreadParms + DTHP.StatMbpsMin]
+
+; Get median CPI, nsPI after median ordering, note FPU already initialized 
+lea ecx,[esi - 1]
+shr ecx,1                     ; This branch for median ODD-sized array
+fld qword [ebx + ecx*8]       ; Get median
+jnc .L30                      ; Go if median for ODD size
+fadd qword [ebx + ecx*8 + 8]
+fld1
+fadd st0,st0
+fdivp st1,st0
+.L30:
+fst [DrawThreadParms + DTHP.StatCpiMedian]
+call HelperCPItoNSPI
+fstp [DrawThreadParms + DTHP.StatNspiMedian]
+
 ;; Get median MBPS, recalculate because reciprocal restrictions
-;lea rcx,[r13-1]
-;shr ecx,1                      ; This branch for median ODD-sized array
-;fld qword [r9 + rcx*8]         ; Get median
-;pushf
-;call HelperCPItoNSPI
-;call HelperNSPItoMBPS
-;popf
-;jnc .L31                       ; Go if median for ODD size
-;fld qword [r9 + rcx*8 + 8]
-;call HelperCPItoNSPI
-;call HelperNSPItoMBPS
-;faddp st1,st0
-;fld1
-;fadd st0,st0
-;fdivp st1,st0
-;.L31:
-;fstp [r11 + DTHP.StatMbpsMedian]
-;
-;; Start calculations for drawings Y = f( CPI ),
-;; ST0 = current value, loaded before re-ordering
-;call HelperCPItoNSPI
-;cmp [InputParms + IPB.UpdatedAsm],LATENCY_MODE
-;jae .L50
-;call HelperNSPItoMBPS
-;.L50:
-;fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
-;push rax
-;fistp dword [rsp]
-;pop rax
-;
-;; Setup coordinates for GUI,
-;; note at this point can set EAX=0 for draw horizontal line DEBUG.
-;add eax,SUBWINY-GRIDBLANKY - 1
-;lea rdx,[r12+1]
-;lea ecx,[eax+1]
-;; Work with Y-coordinate, adjust Y-coordinates for make solid line by Y
-;mov r8d,[DrawParms + DRPM.DrawPreviousY]   ; R8D = DrawPreviousY
-;test r8d,r8d
-;jz @f
-;mov ecx,r8d
-;@@:
-;mov [DrawParms + DRPM.DrawPreviousY],eax   ; Set DrawPreviousY
-;jnz @f
-;inc ecx
-;inc eax
-;@@:
-;cmp eax,ecx
-;jbe @f
-;xchg eax,ecx      ; Must be Down > Top
-;@@:
-;jne @f
-;inc ecx           ; Make Down+1 if Top=Down
-;@@:
-;mov r8d,ecx
-;sub r8d,eax
-;cmp r8d,1
-;jbe @f
-;inc ecx           ; Make down extra-pixel for vertical line  
-;@@:
-;
-;; Store coordinates for rectangle as part of line Y=F(X)
-;; Add support approximation modes
-;push r12
-;mov r8d,[InputParms.UpdatedApprox]
-;test r8d,r8d
-;jz .NoApproxMode
-;mov r9d,00001111b
-;cmp r8d,APPROX_X16
-;je .CheckApproxMode
-;mov r9d,00011111b
-;.CheckApproxMode:
-;test r13d,r9d
-;jnz .NoApproxMode
-;dec r12d
-;dec eax
-;add edx,2  
-;add ecx,2
-;.NoApproxMode:
-;mov [rdi+RECT.left],r12d
-;mov [rdi+RECT.top],eax
-;mov [rdi+RECT.right],edx
-;mov [rdi+RECT.bottom],ecx
-;pop r12
-;
-;; Draw current point Y=F(X)
-;mov rcx,rsi                    ; Parm#1 = RCX = Handle to a Device Context
-;mov rdx,rdi                    ; Parm#2 = RDX = Pointer to RECT strucnure
-;mov r8,[HandlesBrushes + 08]   ; Parm#3 = R8 = Handle to a color brush
-;call [FillRect]
-;
-;; Cycle with update parameters
-;add r14,8      ; R14 = Pointer to measurement results array
-;inc r13d       ; R13D = Divisor for averaging
-;inc r12d       ; R12D = X-coordinate offset by visualization position
-;dec ebp        ; EBP = Number of pixels per timer tick
-;jnz .DrawLine  ; This cycle for EBP points draw per one timer tick
+lea ecx,[esi - 1]
+shr ecx,1                      ; This branch for median ODD-sized array
+fld qword [ebx + ecx*8]        ; Get median
+pushf
+call HelperCPItoNSPI
+call HelperNSPItoMBPS
+popf
+jnc .L31                       ; Go if median for ODD size
+fld qword [ebx + ecx*8 + 8]
+call HelperCPItoNSPI
+call HelperNSPItoMBPS
+faddp st1,st0
+fld1
+fadd st0,st0
+fdivp st1,st0
+.L31:
+fstp [DrawThreadParms + DTHP.StatMbpsMedian]
+
+pop ebp edi ebx
+
+; Start calculations for drawings Y = f( CPI ),
+; ST0 = current value, loaded before re-ordering
+call HelperCPItoNSPI
+cmp [InputParms + IPB.UpdatedAsm],LATENCY_MODE
+jae .L50
+call HelperNSPItoMBPS
+.L50:
+fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative offset
+push eax
+fistp dword [esp]
+pop eax
+
+;- XOR EAX,EAX  ; DEBUG FOR HORIZONTAL LINE
+
+; Setup coordinates for GUI,
+; note at this point can set EAX=0 for draw horizontal line DEBUG.
+add eax,SUBWINY-GRIDBLANKY - 1
+lea edx,[ebx + 1]
+lea ecx,[eax + 1]
+; Work with Y-coordinate, adjust Y-coordinates for make solid line by Y
+push esi
+mov esi,[DrawParms + DRPM.DrawPreviousY]   ; ESI = DrawPreviousY
+test esi,esi
+jz @f
+mov ecx,esi
+@@:
+mov [DrawParms + DRPM.DrawPreviousY],eax   ; Set DrawPreviousY
+jnz @f
+inc ecx
+inc eax
+@@:
+cmp eax,ecx
+jbe @f
+xchg eax,ecx      ; Must be Down > Top
+@@:
+jne @f
+inc ecx           ; Make Down+1 if Top=Down
+@@:
+mov esi,ecx
+sub esi,eax
+cmp esi,1
+jbe @f
+inc ecx           ; Make down extra-pixel for vertical line  
+@@:
+pop esi
+
+; Store coordinates for rectangle as part of line Y=F(X)
+; Add support approximation modes
+push ebp edi
+mov ebp,[InputParms.UpdatedApprox]
+test ebp,ebp
+jz .NoApproxMode
+mov edi,00001111b
+cmp ebp,APPROX_X16
+je .CheckApproxMode
+mov edi,00011111b
+.CheckApproxMode:
+test esi,edi
+jnz .NoApproxMode
+dec ebx
+dec eax
+add edx,2  
+add ecx,2
+.NoApproxMode:
+pop edi ebp
+
+; Build RECT structure with rectangle points coordinates
+mov [GraphRect + RECT.left],ebx
+mov [GraphRect + RECT.top],eax
+mov [GraphRect + RECT.right],edx
+mov [GraphRect + RECT.bottom],ecx
+
+; Draw current point Y=F(X)
+push [HandlesBrushes + 04]   ; Parm#3 = Handle to a color brush
+push GraphRect               ; Parm#2 = Pointer to RECT strucnure
+push [HandleMemDC]           ; Parm#1 = Handle to a Device Context
+call [FillRect]
+
+; Cycle with update parameters
+add edi,8      ; EDI = Pointer to measurement results array
+inc esi        ; ESI = Divisor for averaging
+inc ebx        ; EBX = X-coordinate offset by visualization position
+dec ebp        ; EBP = Number of pixels per timer tick
+jnz .DrawLine  ; This cycle for EBP points draw per one timer tick
 .EndLine:
 jmp .RedrawTexts
-;
-;; This branch for first paint, draw statical elements, not changed when draw
+
+; This branch for first paint, draw statical elements, not changed when draw
 .FirstPaint:
 mov [Win1_Running],2
 mov [DrawParms + DRPM.TimerCount],0
@@ -939,7 +961,10 @@ jnz .L1
 test edx,edx
 jz .L0
 .L1:
+push edi
+lea edi,[BigTexts]
 call DoublePrint
+pop edi
 .L0:
 pop edx ecx ebx eax
 ; Draw text string

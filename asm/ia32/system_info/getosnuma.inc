@@ -63,7 +63,7 @@ dec dword [ebp]         ; Nodes counter -1
 jns .NumaScan           ; Stop cycle when make [ebp] = -1
 
 ; Exit points
-lea edi,[ebx + 516]     ; Output EDI must be valid, even if no NUMA
+lea edi,[ebx + 260]     ; Output EDI must be valid, even if no NUMA, note +516 for x64
 .Exit:
 pop eax ebp esi ebx
 ret

@@ -245,7 +245,7 @@ OsNodesTotal      dd  ?
 OsPackagesTotal   dd  ?
 ends
 
-;--- Memory info --
+;--- Memory info ( note about updates when porting to IA32 ) --
 ; dwLength                    dd ?
 ; dwMemoryLoad                dd ?
 ; ullTotalPhys                dq ?
@@ -317,20 +317,20 @@ CpuCache          CPUCACHE
 ; Dword [056-059] = Total NUMA nodes per platform
 ; Dword [060-063] = Total CPU packages per platform 
 OsCache           OSCACHE
-;--- Operating System Info (base) ---
+;--- Operating System Base Info ( note about updates when porting to IA32 ) ---
 ; wProcessorArchitecture      dw ?
 ; wReserved                   dw ?
 ; dwPageSize                  dd ?
-; lpMinimumApplicationAddress dq ?
-; lpMaximumApplicationAddress dq ?
-; dwActiveProcessorMask       dq ?
+; lpMinimumApplicationAddress dq ?   ; for IA32 reduced from DQ to DD
+; lpMaximumApplicationAddress dq ?   ; for IA32 reduced from DQ to DD
+; dwActiveProcessorMask       dq ?   ; for IA32 reduced from DQ to DD
 ; dwNumberOfProcessors	      dd ?
 ; dwProcessorType             dd ?
 ; dwAllocationGranularity     dd ?
 ; wProcessorLevel             dw ?
 ; wProcessorRevision          dw ?
 SystemInfo	      SYSTEM_INFO           ; Length = 48 bytes
-;--- Memory info --
+;--- Memory info ( note about updates when porting to IA32 ) --
 ; dwLength                    dd ?
 ; dwMemoryLoad                dd ?
 ; ullTotalPhys                dq ?

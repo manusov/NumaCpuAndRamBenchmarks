@@ -56,8 +56,8 @@ mov [rsi + UPB.OptionLP]         , OPTION_LARGE_PAGES
 mov [rsi + UPB.OptionTarget]     , OPTION_TARGET_OBJECT
 mov [rsi + UPB.OptionMeasure]    , OPTION_MEASUREMENT 
 mov [rsi + UPB.CustomBlockStart] , OPTION_CUSTOM_BLOCK_START
-mov [rsi + UPB.CustomBlockEnd]   , OPTION_CUSTOM_BLOCK_END
-mov [rsi + UPB.CustomBlockDelta] , OPTION_CUSTOM_BLOCK_DELTA
+; mov [rsi + UPB.CustomBlockEnd]   , OPTION_CUSTOM_BLOCK_END
+; mov [rsi + UPB.CustomBlockDelta] , OPTION_CUSTOM_BLOCK_DELTA
 ;-----------------------------------------;
 
 call SessionStart

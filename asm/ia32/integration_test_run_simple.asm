@@ -29,7 +29,7 @@ call GetSystemParameters
 
 
 ;-----------------------------------------;
-OPTION_ASM_METHOD          EQU  12                   ; { asm methods (routines) list }
+OPTION_ASM_METHOD          EQU  9 ; 12               ; { asm methods (routines) list }
 OPTION_TARGET_OBJECT       EQU  TARGET_L1            ; { L1, L2, L3, L4, DRAM, CUSTOM }
 OPTION_PARALLEL            EQU  PARALLEL_USED        ; { NOT_SUP, NOT_USED, USED }  
 OPTION_HYPER_THREADING     EQU  HT_NOT_SUPPORTED     ; { GRAY_NOT_SUP, DISABLED, ENABLED }

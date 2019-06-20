@@ -19,62 +19,54 @@
 
 DrawSessionStop:
 
-; DEBUG
-CLC
-RET
-
-IF 0
-
 call SessionStop    ; De-initializing, release events, threads, memory
 jc .Exit            ; Go if error returned, AL = Error code
 
-; Align stack and create parameters shadow, required for use WinAPI
-mov rbp,rsp
-and rsp,0FFFFFFFFFFFFFFF0h
-sub rsp,32
-
 ; Initializing pointer
-lea rsi,[DrawThreadParms]
+lea esi,[DrawThreadParms]
 cld
 
 ; Close handles, halt and remove thread with DrawSessionThread  subroutine
 ; Terminate threads
-mov rcx,[rsi + DTHP.ThreadHandle]   ; RCX = Parm#1 = THREAD handle
-jrcxz @f                            ; Skip if this entry not allocated
-xor edx,edx                         ; RDX = Parm#2 = Thread exit code
+mov ecx,[esi + DTHP.ThreadHandle]   ; ECX = THREAD handle
+jecxz @f                            ; Skip if this entry not allocated
+push 0                              ; Parm#2 = Thread exit code
+push ecx                            ; Parm#1 = THREAD handle 
 call [TerminateThread]              ; Call WinAPI function
-test rax,rax                        ; Status=0 means error
+test eax,eax                        ; Status=0 means error
 jz .Error                           ; Go exit if error
 @@:
 ; Close Start Events
-lodsq
-xchg rcx,rax                        ; RCX = Parm#1 = Load EVENT handle
-jrcxz @f                            ; Skip if this entry not allocated
+lodsd                               ; EAX = Load EVENT handle
+test eax,eax
+jz @f                               ; Skip if this entry not allocated
+push eax                            ; Parm#1 = EVENT handle
 call [CloseHandle]                  ; Call WinAPI function
-test rax,rax                        ; Status=0 means error
+test eax,eax                        ; Status=0 means error
 jz .Error                           ; Go exit if error 
 @@:
 ; Close Done Events
-lodsq
-xchg rcx,rax                        ; RCX = Parm#1 = Load EVENT handle
-jrcxz @f                            ; Skip if this entry not allocated
+lodsd                               ; EAX = Load EVENT handle
+test eax,eax
+jz @f                               ; Skip if this entry not allocated
+push eax                            ; Parm#1 = EVENT handle 
 call [CloseHandle]                  ; Call WinAPI function
-test rax,rax                        ; Status=0 means error
+test eax,eax                        ; Status=0 means error
 jz .Error                           ; Go exit if error 
 @@:
 ; Close Threads
-lodsq
-xchg rcx,rax                        ; RCX = Parm#1 = Load THREAD handle
-jrcxz @f                            ; Skip if this entry not allocated
+lodsd                               ; EAX = Load THREAD handle 
+test eax,eax
+jz @f                               ; Skip if this entry not allocated
+push eax                            ; Parm#1 = THREAD handle
 call [CloseHandle]                  ; Call WinAPI function
-test rax,rax                        ; Status=0 means error
+test eax,eax                        ; Status=0 means error
 jz .Error                           ; Go exit if error
 @@:
 
 ; Done, parallel thread with  DrawSessionThread  subroutine HALTED and REMOVED
 clc
 .L90:
-mov rsp,rbp
 .Exit:                 ; Note AL = error status must be valid at this point
 ret
 
@@ -83,5 +75,4 @@ ret
 stc
 jmp .L90
 
-END IF
 

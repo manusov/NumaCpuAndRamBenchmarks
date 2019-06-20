@@ -64,3 +64,12 @@ DB  'OpenProcessToken',0                  ; added for Large Pages support
 DB  'AdjustTokenPrivileges',0             ; added for Large Pages support
 DB  0                           ; List must be terminared by additional 00 byte
 
+;------------------------------------------------------------------------------;
+; This function used for show warning when 32-bit NCRB runs under Win64,       ;
+; this is possible, but non-optimal configuration, can use NCRB x64            ;
+; for this platform.                                                           ;
+;------------------------------------------------------------------------------;
+FunctionNameWoW64:
+DB  'IsWow64Process',0
+DB  0
+

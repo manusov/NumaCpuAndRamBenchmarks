@@ -37,6 +37,7 @@ loop @b                      ; ECX = threads entries counter
 clc             ; CF = 0 means no errors
 .L0:
 pop edi esi ebx
+ret
 .Error:
 stc             ; CF = 1 means error
 jmp .L0
@@ -67,7 +68,6 @@ ret
 ; INPUT:   EBX = Pointer to Threads Control List                           ;
 ;          EDX = Pointer to Input Parameters Block (IPB)                   ;
 ;          ECX = Number of threads                                         ;
-;          EAX = Block size, bytes                                         ; 
 ;                                                                          ;
 ; OUTPUT:  None                                                            ;
 ;--------------------------------------------------------------------------;

@@ -64,7 +64,6 @@ ret
 ; INPUT:   RCX = Pointer to Threads Control List                           ;
 ;          RDX = Pointer to Input Parameters Block (IPB)                   ;
 ;          R8D = Number of threads                                         ;
-;          R9  = Block size, bytes                                         ; 
 ;                                                                          ;
 ; OUTPUT:  None                                                            ;
 ;--------------------------------------------------------------------------;

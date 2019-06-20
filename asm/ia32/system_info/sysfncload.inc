@@ -16,20 +16,71 @@
 SystemFunctionsLoad:
 push ebx ebp esi edi
 cld
+
+; Load function for check run NCRB ia32 version under Win64, 
+; this required for show warning about non-optimal mode
+lea ecx,[NameKernel32]            ; ECX = Pointer to module name string
+lea esi,[FunctionNameWoW64]       ; ESI = Pointer to functions names list
+lea edi,[FunctionPointerWoW64]    ; EDI = Pointer to fncs. pointers list build 
+call HelperLoadLibraries
+
 ; Load functions of KERNEL32.DLL
 lea ecx,[NameKernel32]            ; ECX = Pointer to module name string
 lea esi,[FunctionsNamesKernel32]  ; ESI = Pointer to functions names list
 lea edi,[FunctionsPointersAll]    ; EDI = Pointer to fncs. pointers list build 
 xor ebp,ebp                       ; EBP = Error flag, pre-blank
 call HelperLoadLibraries 
+
 ; Load functions of ADVAPI32.DLL, 
 ; note this library must be pre-loaded when application starts
 lea ecx,[NameAdvapi32]
 lea esi,[FunctionsNamesAdvapi32]
 call HelperLoadLibraries
+
 ; Exit with CF=status
 shr ebp,1                    ; Move bit EBP.0 to CF
 pop edi esi ebp ebx
+ret
+
+
+;--- Check WoW64 mode -------------------------------------------------------;
+;    this required for show warning about non-optimal mode                   ;
+;                                                                            ;
+; INPUT: None                                                                ;
+;                                                                            ; 
+; OUTPUT: CF flag = status: 0(NC) = all functions detected                   ;
+;                           1(C)  = warning message required,                ;
+;                                   because WoW64 mode detected              ;
+;                                                                            ;
+;         Registers save/destroy by Microsoft ia32 calling convention        ;
+;----------------------------------------------------------------------------;
+CheckWoW64:
+push ebx
+; Check pointer to WoW64 detect function  
+mov ebx,[_IsWow64Process]
+test ebx,ebx
+jz .Done
+; Get process handle
+call [GetCurrentProcess]   ; Get handle of current process
+test eax,eax
+jz .Done
+; Reserve stack space for variable
+push 0
+; Call WoW64 detect function
+mov ecx,esp
+push ecx                   ; Parm#2 = Pointer to BOOL WoW64 Process
+push eax                   ; Parm#1 = hProcess handle 
+call ebx                   ; Call function: IsWow64Process 
+test eax,eax
+jz .Done
+; Check output variable
+pop eax
+test eax,eax
+jz .Done
+stc
+; Done
+.Done:
+pop ebx
 ret
 
 ;--- Local helper subroutine for load functions, ----------------------------;
