@@ -101,7 +101,7 @@ jz .L13
 lea edx,[ebx + VECTORBRIEF.AddFeatures]
 .L13:
 test al,00100000b
-jz .L40
+jnz .L40
 mov edx,[edx]
 jmp .L41
 .L40:
