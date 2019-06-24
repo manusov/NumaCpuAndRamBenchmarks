@@ -65,8 +65,9 @@ inc esi
 cmp esi,256                    ; This for hang prevent if failure	
 jb CycleCache
 
-; Special support for Intel Trace Cache
 NoMoreDeterministicCaches:
+
+; Special support for Intel Trace Cache
 xor eax,eax
 cpuid
 cmp eax,2
@@ -93,25 +94,61 @@ jns @f          ; Go skip clear, if EDX data valid
 xor edx,edx
 @@:
 mov ebp,15      ; 4 registers * 4 bytes - 1 unused (AL)
+
+;-
+; .CacheDescriptors:
+; shrd eax,ebx,8
+; shrd ebx,ecx,8
+; shrd ecx,edx,8
+; shr edx,8
+; lea esi,[IntelTraceCaches]
+; .CacheValues:
+; cmp al,[esi + 0]
+; jne @f
+; push eax
+; movzx eax,byte [esi + 1]        ; EAX = Trace Cache size, KuOps
+; shl eax,10                      ; EAX = Trace Cache size, uOps
+; mov dword [edi - 60 + 0],eax    ; Store Trace Cache size, uOps
+; mov dword [edi - 60 + 4],0 
+; pop eax
+; @@:
+; add esi,2
+; cmp byte [esi],0
+; jne .CacheValues        ; Cycle for possible Cache types IDs  
+; dec ebp
+; jnz .CacheDescriptors   ; Cycle for Cache Descriptors array 
+;-
+
 .CacheDescriptors:
 shrd eax,ebx,8
 shrd ebx,ecx,8
 shrd ecx,edx,8
 shr edx,8
-lea esi,[IntelTraceCaches]
+lea esi,[CacheDescriptorsDecoder]
+push ecx
+
 .CacheValues:
-cmp al,[esi + 0]
-jne @f
-push eax
-movzx eax,byte [esi + 1]        ; EAX = Trace Cache size, KuOps
-shl eax,10                      ; EAX = Trace Cache size, uOps
-mov dword [edi - 60 + 0],eax    ; Store Trace Cache size, uOps
-mov dword [edi - 60 + 4],0 
-pop eax
-@@:
-add esi,2
-cmp byte [esi],0
-jne .CacheValues        ; Cycle for possible Cache types IDs  
+movzx ecx,byte [esi]  ; ECX = Cache type tag by NCRB List, or 0 = Terminator
+jecxz .ListDone 
+cmp al,[esi + 1]      ; AL = Descriptor byte, compare with ID by INTEL
+jne .DescMismatch
+
+push eax ecx
+movzx eax,word [esi + 2]       ; EAX = This Cache size, Trace=KuOps, Other=KB
+shl eax,10                     ; EAX = Trace Cache size, uOps or Bytes
+dec ecx
+imul ecx,ecx,12 
+.CacheStore:
+mov dword [edi - 60 + ecx + 0],eax   ; Store Cache size, uOps or Bytes
+mov dword [edi - 60 + ecx + 4],0 
+pop ecx eax
+
+.DescMismatch:
+add esi,4
+jmp .CacheValues        ; Cycle for possible Cache types IDs  
+
+.ListDone:
+pop ecx
 dec ebp
 jnz .CacheDescriptors   ; Cycle for Cache Descriptors array 
 
