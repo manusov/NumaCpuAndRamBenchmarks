@@ -21,6 +21,11 @@ mov edi,edx                    ; EDI = Number of used Threads
 ; Set nodes list limit
 mov ebx,MAX_THREADS            ; EBX = Maximum number of Threads
 
+; Terminate threads routines
+call ThreadsReStartBreak
+; Delay for return from thread routine
+call DelayThreadReturn
+
 ; Cycle for release threads
 .ReleaseThreads:
 ; Terminate threads

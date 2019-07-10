@@ -12,7 +12,14 @@
 ; Can destroy registers, volatile by Microsoft ia32 calling convention.        ;
 ;------------------------------------------------------------------------------;
 
-ThreadsReStart:
+ThreadsReStartBreak:       ; This entry point for return from thread subroutine
+mov [PrimaryChildsBreak],1
+jmp EntryThreadsReStart 
+
+ThreadsReStart:            ; This entry point for measure
+mov [PrimaryChildsBreak],0
+
+EntryThreadsReStart:
 cld
 push ebx esi edi ebp
 

@@ -145,6 +145,8 @@ mov [DrawThreadParms + DTHP.MeasureBreak],1
 push THREAD_TIME_LIMIT                    ; Parm#2 = Time limit
 push [DrawThreadParms + DTHP.EventDone]   ; Parm#1 = Handle for done event
 call [WaitForSingleObject]
+; Delay for return from thread routine
+call DelayThreadReturn
 ; Note status after [WaitForSingleObject] ignored, better check it
 ; De-Initialize graphics context
 push [HandleMemDC]
@@ -206,6 +208,8 @@ mov [DrawThreadParms + DTHP.MeasureBreak],1
 push THREAD_TIME_LIMIT                    ; Parm#2 = Time limit
 push [DrawThreadParms + DTHP.EventDone]   ; Parm#1 = Handle for done event
 call [WaitForSingleObject]
+; Delay for return from thread routine
+call DelayThreadReturn
 ; Note status after [WaitForSingleObject] ignored, better check it
 ; Remove thread and associated handles, note can corrupt pointers
 call DrawSessionStop

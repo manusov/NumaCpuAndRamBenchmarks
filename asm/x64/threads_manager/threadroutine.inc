@@ -6,8 +6,12 @@
 ;------------------------------------------------------------------------------;
 
 ThreadRoutineSingleGroup:
+push rbx rsi rdi rbp r12 r13 r14 r15
+mov rax,rsp
 and rsp,0FFFFFFFFFFFFFFF0h
-sub rsp,32                    ; Build parameters shadow, 4 qwords
+push rax
+sub rsp,32 + 8                ; Build parameters shadow, 4 qwords + alignment
+
 ; Calculate thread control entry offset = f(thread id)
 cmp ecx,MAX_THREADS_PER_GROUP
 jb @f
@@ -40,8 +44,24 @@ call [SetEvent]                    ; Call WinAPI function
 mov rcx,[r15 + THCTRL.EventStart]  ; RCX = Parm#1 = Handle for this thread
 mov edx,-1                         ; RDX = Parm#2 = Wait infinite, no timeout
 call [WaitForSingleObject]
+
 ; Repeat measurement iteration in this thread
-jmp .ThreadRepeat
+;- jmp .ThreadRepeat
+cmp [PrimaryChildsBreak],0
+je .ThreadRepeat
+
+; Signaling thread terminated
+mov rcx,[r15 + THCTRL.EventDone]   ; RCX = Parm#1 = Handle for this thread
+call [SetEvent]                    ; Call WinAPI function
+
+; Return from thread to OS caller
+add rsp,32 + 8
+pop rax
+mov rsp,rax
+pop r15 r14 r13 r12 rbp rdi rsi rbx
+xor eax,eax
+ret
+
 
 ;---------- Thread routine, called by OS callback mechanism -------------------;
 ; Variant with support Processor Groups, systems with >64 logical CPUs         ;
@@ -51,8 +71,12 @@ jmp .ThreadRepeat
 ;------------------------------------------------------------------------------;
 
 ThreadRoutineMultiGroup:
+push rbx rsi rdi rbp r12 r13 r14 r15
+mov rax,rsp
 and rsp,0FFFFFFFFFFFFFFF0h
-sub rsp,32                    ; Build parameters shadow, 4 qwords
+push rax
+sub rsp,32 + 8                ; Build parameters shadow, 4 qwords + alignment
+
 ; Calculate thread control entry offset = f(thread id)
 cmp ecx,MAX_THREADS
 jb @f
@@ -86,6 +110,22 @@ call [SetEvent]                    ; Call WinAPI function
 mov rcx,[r15 + THCTRL.EventStart]  ; RCX = Parm#1 = Handle for this thread
 mov edx,-1                         ; RDX = Parm#2 = Wait infinite, no timeout
 call [WaitForSingleObject]
+
 ; Repeat measurement iteration in this thread
-jmp .ThreadRepeat
+;- jmp .ThreadRepeat
+cmp [PrimaryChildsBreak],0
+je .ThreadRepeat
+
+; Signaling thread terminated
+mov rcx,[r15 + THCTRL.EventDone]   ; RCX = Parm#1 = Handle for this thread
+call [SetEvent]                    ; Call WinAPI function
+
+; Return from thread to OS caller
+add rsp,32 + 8
+pop rax
+mov rsp,rax
+pop r15 r14 r13 r12 rbp rdi rsi rbx
+xor eax,eax
+ret
+
 

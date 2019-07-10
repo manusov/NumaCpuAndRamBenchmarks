@@ -16,3 +16,8 @@ StartEventsList  DB  EVENTS_LIST_SIZE  DUP (?)
 DoneEventsList   DB  EVENTS_LIST_SIZE  DUP (?)
 NumaNodesList    DB  NUMA_LIST_SIZE    DUP (?)
 
+;------------------------------------------------------------------------------;
+;                   Flag for child thread termination.                         ;
+;------------------------------------------------------------------------------;
+
+PrimaryChildsBreak  DB  ?

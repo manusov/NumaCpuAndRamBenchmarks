@@ -112,7 +112,13 @@ Change directories names.
 20.06.2019 (v1.02.31)
 Experimental start ia32 support.
 
-
-
+10.07.2019 (v1.02.34 versions for ia32 and x64).
+Fix thread routine return bug, terminate thread only after routine return.
+Add delays after termination primary measurement threads and
+after termination GUI scenario secondary measurement thread:
+for primary termination (1), for drawing window exit (2) and resize (3).
+3 points with added software-controlled delay.
+This bug was detected at ASUS P5KPL-VM with Pentium Dual E2160
+as hang when press "Resize" button at drawing window.
 
 
