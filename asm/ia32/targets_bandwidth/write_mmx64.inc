@@ -10,6 +10,14 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_Write_MMX64:
+pxor mm0,mm0                 ; Clear MM0-MM7 (MMX registers) for write data
+pxor mm1,mm1
+pxor mm2,mm2
+pxor mm3,mm3
+pxor mm4,mm4
+pxor mm5,mm5
+pxor mm6,mm6
+pxor mm7,mm7
 push ebx                     ; EBX = High 32 bits of measurement repeats count
 mov eax,128
 

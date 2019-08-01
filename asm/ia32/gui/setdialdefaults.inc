@@ -45,11 +45,24 @@ call [CheckRadioButton]
 @@:
 
 ; Options, set "Use Hyper-Threading" button = off, unconditionally
+test [esi+E_HYPER_THREADING],edi
+jnz @f                           ; Go skip if checkbox disabled
 push 0                           ; Selected=0 for clear to "0"
 push HANDLE_HYPER_THREADING
 push HANDLE_HYPER_THREADING
 push ebx
 call [CheckRadioButton]
+@@:
+
+; Options, set "Use Processor Groups" button = off, unconditionally
+test [esi+E_PROCESSOR_GROUPS],edi
+jnz @f                           ; Go skip if checkbox disabled
+push 0                           ; Selected=0 for clear to "0"
+push HANDLE_PROCESSOR_GROUPS
+push HANDLE_PROCESSOR_GROUPS
+push ebx
+call [CheckRadioButton]
+@@:
 
 ; Options, set "Use Large Pages" button = off, if enabled
 test [esi+E_LARGE_PAGES],edi

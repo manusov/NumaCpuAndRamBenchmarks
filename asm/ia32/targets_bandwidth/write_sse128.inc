@@ -10,6 +10,14 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_Write_SSE128:
+xorps xmm0,xmm0              ; Clear XMM0-XMM7 for write data
+xorps xmm1,xmm1
+xorps xmm2,xmm2
+xorps xmm3,xmm3
+xorps xmm4,xmm4
+xorps xmm5,xmm5
+xorps xmm6,xmm6
+xorps xmm7,xmm7
 push ebx                     ; EBX = High 32 bits of measurement repeats count
 
 Measurement_Write_SSE128:

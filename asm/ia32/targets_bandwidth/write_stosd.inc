@@ -12,6 +12,8 @@
 Pattern_Write_STOSD:
 
 mov edx,ecx                   ; EDX = Save block size , received ESI = Destination block base
+xor eax,eax                   ; EAX = Write data = 0
+
 Measurement_Write_STOSD:
 mov edi,esi                   ; EDI = Restore destination block base , restore - because measurement cycle
 mov ecx,edx                   ; ECX = Restore block size , units = hardware cycle iterations
@@ -22,8 +24,8 @@ DumpStop_Write_STOSD:
 ; Measurement cycle
 sub ebp,1                     ; EBX:EBP = Measurement cycle counter
 sbb ebx,0
-mov eax,ebp
-or eax,ebx
+mov ecx,ebp                   ; ECX = Temporary disjunction result, must be re-loaded for each repeat
+or ecx,ebx
 jnz Measurement_Write_STOSD   ; Measurement cycle
 
 ret

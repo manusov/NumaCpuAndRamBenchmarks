@@ -46,12 +46,25 @@ xor r9d,r9d                      ; Selected=0 for clear to "0"
 call [CheckRadioButton]
 @@:
 
-; Options, set "Use Hyper-Threading" button = off, unconditionally
+; Options, set "Use Hyper-Threading" button = off, if enabled
+test [rsi+E_HYPER_THREADING],edi
+jnz @f                           ; Go skip if checkbox disabled
 mov rcx,rbx
 mov edx,HANDLE_HYPER_THREADING
 mov r8d,edx
 xor r9d,r9d                      ; Selected=0 for clear to "0"
 call [CheckRadioButton]
+@@:
+
+; Options, set "Use Processor Groups" button = off, if enabled
+test [rsi+E_PROCESSOR_GROUPS],edi
+jnz @f                           ; Go skip if checkbox disabled
+mov rcx,rbx
+mov edx,HANDLE_PROCESSOR_GROUPS
+mov r8d,edx                                 
+xor r9d,r9d                      ; Selected=0 for clear to "0" 
+call [CheckRadioButton]
+@@:
 
 ; Options, set "Use Large Pages" button = off, if enabled
 test [rsi+E_LARGE_PAGES],edi

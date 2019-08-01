@@ -10,6 +10,7 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_Write_MOV32:
+xor eax,eax                  ; EAX = Data pattern for write = 0
 push ebx                     ; EBX = High 32 bits of measurement repeats count
 
 Measurement_Write_MOV32:
@@ -57,8 +58,8 @@ jnz Tail_Write_MOV32         ; Cycle for tail data transfer, DEC/JNZ is faster t
 Measure_Write_MOV32:
 sub ebp,1
 sbb dword [esp],0
-mov eax,ebp
-or eax,[esp]
+mov edx,ebp                   ; EDX = Temporary disjunction result, must be re-loaded for each repeat
+or edx,[esp]
 jnz Measurement_Write_MOV32   ; Cycle for measurement, repeat same operation
 
 pop ebx

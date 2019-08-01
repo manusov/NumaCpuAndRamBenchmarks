@@ -1,116 +1,10 @@
-v0.96
-Fix RAM Read benchmark error if SSE4.1 not supported,
-cause: SSE4.1 and non-temporal read feature detection bug.
 
-v0.97
-Improve code comments.
+01.08.2019 (v1.02.35 versions for ia32 and x64).
+Bug fix: Use processor groups checkbox not clear when set defaults.
+Bug fix: Unpredictable write data value at some ia32 write methods
+implementations. This important for data-sensitive performance,
+for example if platform use pack at data path.
 
-v0.98.0
-Threads management redesign.
-Under debug. 
-Multi-Socket NUMA-optimization yet locked at this debug version.
-
-v0.98.1
-Non-temporal read optimization for DRAM benchmarks.
-Use PREFETCHNTA if MOVNTDQA not supported,
-actual for AM2 CPUs.
-
-v0.98.2
-Improve assembler method details visualization,
-for simple text window and for drawings speed=f(size).
-
-v0.98.3
-Large pages support.
-
-v0.98.4
-Add visual number of threads and large page modes
-for drawings window, speed=f(size).
-
-v0.98.5
-Fix Y-approximation bug at drawings speed=f(size).
-
-v0.99.0
-Disable branches with MOVNTDQA/VMOVNTDQA instructions.
-Always use PREFETCHNTA non-temporal hint for DRAM read.
-
-v1.00.00
-Improve code comments.
-Add Vector Brief test.
-
-v1.01.00
-Experimental unlock numa-aware support.
-
-v1.01.05
-Improve code comments.
-Internal changes for support Processor Groups
-and platform with above 64 logical processors.
-This feature yet locked.
-Some code optimization, remove unused performance
-patterns.
-
-v1.01.06
-Restrict threads affinitization if Hyper-Threading or SMT
-supported by platform but not enabled by test option settings.
-
-v1.01.07
-Optimize SSE tests code size:
-use MOVAPS instead MOVAPD,
-use MOVNTPS instead MOVNTPD.
-
-v1.01.08
-Update FMA tests:
-FMA256 optimizing horizontal additions phase.
-FMA512 bug fix and optimizing horizontal additions phase.
-Main "hot cycle" not changed.
-
-v1.01.09
-Update affinitization restrictions for single thread.
-Some code locked, under debug.
-
-v1.01.10
-Fix bug: large pages mode flag can be corrupted at
-NUMA memory allocation branch.
-Some internal optimizations.
-Improve comments.
-
-v1.01.11
-Fix parameters shadow bug.
-
-v1.01.13
-Integrate debug features:
-Template debug, Application debug, Window debug.
-
-v1.01.14
-Fix NUMA highest node detection bug:
-check WinAPI-updated QWORD variable instead DWORD variable.
-
-v1.01.15
-Fix wrong input parameter:
-Parm#2 = RDX = Pointer to PAINTSTRUCT structure
-before WinAPI call:
-call [EndPaint]
-
-
-Generation 2, tagged "experimental".
-
-v1.02.00 - v1.02.24
-Redesign.
-GUI changes.
-Add latency measurement.
-Add MMX instructions support.
-Add approximation and adaptive modes.
-
-v1.02.25 - v1.02.27
-Some optimizations at drawings window GUI.
-Some "TODO" fixed.
-Other "TODO" moved to separate document, for source readability.
-
-15.06.2019 (v1.02.30)
-Add branch for ia32 support.
-Change directories names.
-
-20.06.2019 (v1.02.31)
-Experimental start ia32 support.
 
 10.07.2019 (v1.02.34 versions for ia32 and x64).
 Fix thread routine return bug, terminate thread only after routine return.
@@ -121,4 +15,140 @@ for primary termination (1), for drawing window exit (2) and resize (3).
 This bug was detected at ASUS P5KPL-VM with Pentium Dual E2160
 as hang when press "Resize" button at drawing window.
 
+
+20.06.2019 (v1.02.31)
+Experimental start ia32 support.
+
+
+15.06.2019 (v1.02.30)
+Add branch for ia32 support.
+Change directories names.
+
+
+v1.02.25 - v1.02.27
+Some optimizations at drawings window GUI.
+Some "TODO" fixed.
+Other "TODO" moved to separate document, for source readability.
+
+
+v1.02.00 - v1.02.24
+Start generation 2, tagged "experimental".
+Redesign.
+GUI changes.
+Add latency measurement.
+Add MMX instructions support.
+Add approximation and adaptive modes.
+
+
+v1.01.15
+Fix wrong input parameter:
+Parm#2 = RDX = Pointer to PAINTSTRUCT structure
+before WinAPI call:
+call [EndPaint]
+
+
+v1.01.14
+Fix NUMA highest node detection bug:
+check WinAPI-updated QWORD variable instead DWORD variable.
+
+
+v1.01.13
+Integrate debug features:
+Template debug, Application debug, Window debug.
+
+
+v1.01.11
+Fix parameters shadow bug.
+
+
+v1.01.10
+Fix bug: large pages mode flag can be corrupted at
+NUMA memory allocation branch.
+Some internal optimizations.
+Improve comments.
+
+
+v1.01.09
+Update affinitization restrictions for single thread.
+Some code locked, under debug.
+
+
+v1.01.08
+Update FMA tests:
+FMA256 optimizing horizontal additions phase.
+FMA512 bug fix and optimizing horizontal additions phase.
+Main "hot cycle" not changed.
+
+
+v1.01.07
+Optimize SSE tests code size:
+use MOVAPS instead MOVAPD,
+use MOVNTPS instead MOVNTPD.
+
+
+v1.01.06
+Restrict threads affinitization if Hyper-Threading or SMT
+supported by platform but not enabled by test option settings.
+
+
+v1.01.05
+Improve code comments.
+Internal changes for support Processor Groups
+and platform with above 64 logical processors.
+This feature yet locked.
+Some code optimization, remove unused performance
+patterns.
+
+
+v1.01.00
+Experimental unlock numa-aware support.
+
+
+v1.00.00
+Improve code comments.
+Add Vector Brief test.
+
+
+v0.99.0
+Disable branches with MOVNTDQA/VMOVNTDQA instructions.
+Always use PREFETCHNTA non-temporal hint for DRAM read.
+
+
+v0.98.5
+Fix Y-approximation bug at drawings speed=f(size).
+
+
+v0.98.4
+Add visual number of threads and large page modes
+for drawings window, speed=f(size).
+
+
+v0.98.3
+Large pages support.
+
+
+v0.98.2
+Improve assembler method details visualization,
+for simple text window and for drawings speed=f(size).
+
+
+v0.98.1
+Non-temporal read optimization for DRAM benchmarks.
+Use PREFETCHNTA if MOVNTDQA not supported,
+actual for AM2 CPUs.
+
+
+v0.98.0
+Threads management redesign.
+Under debug. 
+Multi-Socket NUMA-optimization yet locked at this debug version.
+
+
+v0.97
+Improve code comments.
+
+
+v0.96
+Fix RAM Read benchmark error if SSE4.1 not supported,
+cause: SSE4.1 and non-temporal read feature detection bug.
 

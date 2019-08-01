@@ -10,6 +10,7 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_NtWrite_AVX512:
+vzeroall                     ; Clear ZMM0-ZMM7 (ZMM31) for write data
 push ebx                     ; EBX = High 32 bits of measurement repeats count
 
 Measurement_NtWrite_AVX512:
@@ -45,11 +46,11 @@ Tail_NtWrite_AVX512:
 vmovntpd [eax+64*00],zmm0
 add eax,ebx                  ; Modify address, addend=register (not constant) for optimization!
 dec edx
-jnz Tail_NtWrite_AVX512        ; Cycle for tail data transfer, DEC/JNZ is faster than LOOP!
+jnz Tail_NtWrite_AVX512      ; Cycle for tail data transfer, DEC/JNZ is faster than LOOP!
 
 ; Measurement cycle
 Measure_NtWrite_AVX512:
-sub ebp,1                    ; EBX:EBP = Measurement cycle counter
+sub ebp,1                       ; EBX:EBP = Measurement cycle counter
 sbb dword [esp],0
 mov eax,ebp
 or eax,[esp]
