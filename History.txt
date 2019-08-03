@@ -21,7 +21,7 @@ fix context save-restore and output parameters bugs at thread callback routines.
    bt edx,25
    this detects SSE support.
 8) Clear output status (EAX/RAX=0) required for both ia32 and x64.
-   threads_manager\threadroutine.inc,  
+   gui\drawsessionthread.inc.
 
 01.08.2019 (v1.02.35 versions for ia32 and x64).
 Bug fix: Use processor groups checkbox not clear when set defaults.
