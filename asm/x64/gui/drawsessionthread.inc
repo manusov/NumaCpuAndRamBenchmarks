@@ -3,9 +3,8 @@
 ;                                                                              ;
 ; INPUT:   None at CPU registers                                               ;
 ;                                                                              ;
-; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;
-;          STATUS RETURN RESERVED, NOT USED YET,                               ; 
-;          BECAUSE THIS IS SEPARATE THREAD                                     ;  
+; OUTPUT:  RAX = Return code = 0                                               ;
+;          Non-volatile regs. unchanged for Microsoft x64  calling convention  ;
 ;                                                                              ;
 ; CPU registers volatile / non volatile by Microsoft x64 calling convention,   ;
 ; note about this subroutine is object for OS callback.                        ;
@@ -180,4 +179,5 @@ add rsp,32+8
 pop rbp
 mov rsp,rbp
 pop r15 r14 r13 r12 rbp rdi rsi rbx
+xor eax,eax                       ; RAX = 0, return code = 0
 ret

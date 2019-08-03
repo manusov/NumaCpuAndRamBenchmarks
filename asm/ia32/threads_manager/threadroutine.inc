@@ -4,6 +4,8 @@
 ; INPUT:   [esp + 04] = Parm#1 = Thread ID, 0-63                               ;
 ; OUTPUT:  EAX = Return code = 0                                               ;
 ;          Non-volatile regs. unchanged for Microsoft ia32 calling convention  ;
+;                                                                              ;
+; This subroutine must be compliant Microsoft ia32 calling convention.         ;
 ;------------------------------------------------------------------------------;
 
 ThreadRoutineSingleGroup:
@@ -58,7 +60,7 @@ call [SetEvent]                    ; Call WinAPI function
 
 ; Return from thread to OS caller
 pop ebp edi esi ebx
-xor eax,eax
+xor eax,eax                        ; EAX = 0, return code = 0
 ret 4 
 
 ;---------- Thread routine, called by OS callback mechanism -------------------;
@@ -67,6 +69,8 @@ ret 4
 ; INPUT:   [esp + 04] = Parm#1 = Thread ID, 0-255                              ;
 ; OUTPUT:  EAX = Return code = 0                                               ;
 ;          Non-volatile regs. unchanged for Microsoft ia32 calling convention  ;
+;                                                                              ;
+; This subroutine must be compliant Microsoft ia32 calling convention.         ;
 ;------------------------------------------------------------------------------;
 
 ThreadRoutineMultiGroup:
@@ -123,7 +127,7 @@ call [SetEvent]                    ; Call WinAPI function
 
 ; Return from thread to OS caller
 pop ebp edi esi ebx
-xor eax,eax
+xor eax,eax                        ; EAX = 0, return code = 0
 ret 4 
 
 

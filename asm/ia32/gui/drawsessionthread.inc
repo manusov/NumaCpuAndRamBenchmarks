@@ -4,9 +4,8 @@
 ; INPUT:   None at CPU registers                                               ;
 ;          But reserve space for one DWORD parameter in the stack              ;
 ;                                                                              ;
-; OUTPUT:  CF = status flag, 0(NC)=No errors, 1(C)=Error                       ;
-;          STATUS RETURN RESERVED, NOT USED YET,                               ; 
-;          BECAUSE THIS IS SEPARATE THREAD                                     ;  
+; OUTPUT:  EAX = Return code = 0                                               ;
+;          Non-volatile regs. unchanged for Microsoft ia32  calling convention ;
 ;                                                                              ;
 ; CPU registers volatile / non volatile by Microsoft ia32 calling convention,  ;
 ; note about this subroutine is object for OS callback.                        ;
@@ -180,4 +179,5 @@ call [SetEvent]                            ; Call WinAPI function
 
 ; Exit point
 pop ebp edi esi ebx
+xor eax,eax                                ; EAX = 0, return code = 0
 ret 4

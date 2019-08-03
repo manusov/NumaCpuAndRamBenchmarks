@@ -1,4 +1,28 @@
 
+03.08.2019 (v1.02.36 versions for ia32 and x64).
+Make thread callback routines compliant to Microsoft calling conventions,
+fix context save-restore and output parameters bugs at thread callback routines.
+1) Save XMM6-XMM15 is not required for ia32, by ia32 calling convention.
+2) Save XMM6-XMM15 is required for x64, by x64 calling convention.
+3) Save XMM6-XMM15 is required for primary thread routine
+   threads_manager\threadroutine.inc, 
+   because SSE registers used and changed after call RunTarget subroutine.
+4) Save XMM6-XMM15 is not required for secondary thread routine
+   gui\drawsessionthread.inc,
+   because SSE registers saved by primary routine and no additional usages.
+5) Make this both for No Processor Groups and Processor Groups branches.
+6) If validated by SSE flag (not AVX) 
+   use SSE instructions only for context save-restore:
+   MOVAPS possible
+   MOVAPD not possible, because SSE2
+   VMOVAPD not possible, because AVX.
+7) SSE absence can be modeling for validation by:
+   system_info\getcpufeatures.inc, Line 77
+   bt edx,25
+   this detects SSE support.
+8) Clear output status (EAX/RAX=0) required for both ia32 and x64.
+   threads_manager\threadroutine.inc,  
+
 01.08.2019 (v1.02.35 versions for ia32 and x64).
 Bug fix: Use processor groups checkbox not clear when set defaults.
 Bug fix: Unpredictable write data value at some ia32 write methods
