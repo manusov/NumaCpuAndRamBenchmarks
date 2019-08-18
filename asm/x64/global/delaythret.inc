@@ -4,7 +4,7 @@
 ;--------------------------------------------------------------;
 DelayThreadReturn:
 push rcx
-mov ecx,100000h
+mov ecx,1400000h  ; old = 100000h, debug version v1.02.38
 loop $
 pop rcx
 ret
