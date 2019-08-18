@@ -102,6 +102,10 @@ xor eax,eax                      ; EAX = write data = 0
 rep stosd                        ; Blank entry
 mov rax,[SystemParameters.SystemInfo.dwActiveProcessorMask]  ; RAX = mask 
 mov [rbx + NUMACTRL.NodeAffinity],rax  ; set affinity mask = all system mask
-mov al,1               ; Set return nodes count = 1, this branch without NUMA
+
+; Bug fix with return NUMA domains count XXXXXX01h instead 00000001h
+; mov al,1              ; Set return nodes count = 1, this branch without NUMA
+mov eax,1
+
 jmp .DoneNumaBuild
 
