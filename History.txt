@@ -1,4 +1,18 @@
 
+19.08.2019 (v1.02.39 versions for ia32 and x64).
+Thread termination delay at subroutine DelayThreadReturn
+changed UNDER DEBUG.
+
+ia32 version, old value ECX = 100000h, 
+not changed, still one delay subroutine.
+
+x64 version,  old value ECX = 1400000h,
+new values for 2 delay subroutines
+ECX = 100000h for window close/destroy and window resize (win1.inc).
+ECX = 1400000h for target routines thread (releasethreadlist.inc)
+
+
+
 18.08.2019 (v1.02.38 versions for ia32 and x64).
 Thread termination delay at subroutine DelayThreadReturn
 changed UNDER DEBUG.

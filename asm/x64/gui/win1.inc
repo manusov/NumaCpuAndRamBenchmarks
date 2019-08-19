@@ -149,8 +149,11 @@ mov [DrawThreadParms + DTHP.MeasureBreak],1
 mov rcx,[DrawThreadParms + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done event
 mov edx,THREAD_TIME_LIMIT                    ; RDX = Parm#2 = Time limit
 call [WaitForSingleObject]
+
 ; Delay for return from thread routine
-call DelayThreadReturn
+; call DelayThreadReturn
+call DelayThreadSmall
+
 ; Note status after [WaitForSingleObject] ignored, better check it
 ; De-Initialize graphics context
 mov rcx,[HandleMemDC]
@@ -215,8 +218,11 @@ mov [DrawThreadParms + DTHP.MeasureBreak],1
 mov rcx,[DrawThreadParms + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done event
 mov edx,THREAD_TIME_LIMIT                    ; RDX = Parm#2 = Time limit
 call [WaitForSingleObject]
+
 ; Delay for return from thread routine
-call DelayThreadReturn
+; call DelayThreadReturn
+call DelayThreadSmall
+
 ; Note status after [WaitForSingleObject] ignored, better check it
 ; Remove thread and associated handles, note can corrupt pointers
 call DrawSessionStop

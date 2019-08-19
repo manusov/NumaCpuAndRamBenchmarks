@@ -23,8 +23,10 @@ mov ebx,MAX_THREADS            ; EBX = Maximum number of Threads
 
 ; Terminate threads routines
 call ThreadsReStartBreak
+
 ; Delay for return from thread routine
-call DelayThreadReturn
+; call DelayThreadReturn
+call DelayThreadBig
 
 ; Cycle for release threads
 .ReleaseThreads:
