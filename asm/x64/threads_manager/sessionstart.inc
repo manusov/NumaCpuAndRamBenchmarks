@@ -320,9 +320,31 @@ jne .L30                         ; Go if not a single NUMA domain mode
 mov [rdi + IPB.DomainsCount],1
 cmp [rdi + IPB.UpdatedThreads],1
 jbe .L30                         ; Go if not a multi-thread mode
-mov eax,[SystemParameters.SystemInfo.dwNumberOfProcessors]  ; Change required: Get this from system or from one domain ?
+
+; Changed: Get this from system or from one domain
+; mov eax,[SystemParameters.SystemInfo.dwNumberOfProcessors]
+
+; INT3
+
+;--- This code executed only for NUMA Option = single domain 
+xor eax,eax                 ; Pre-blank logical CPU count = 0
+mov rdx,qword [NumaNodesList + NUMACTRL.NodeAffinity]  ; Node 0 affinity mask
+.L34:
+shr rdx,1
+jnc .L35
+inc eax                     ; This counts "1" bits at node 0 affinity mask 
+.L35:
+test rdx,rdx
+jnz .L34                    ; Cycle exit when all "1" shifted
+cmp [rsi + UPB.OptionHT],HT_NOT_USED
+jne .L36                    ; Skip "Threads count / 2" if no HT rejection case
+cmp eax,1
+je .L36                     ; Skip "Threads count / 2" if Threads count = 1
+shr eax,1                   ; Threads count / 2  if required HT rejection
+.L36:
 mov [rdi + IPB.UpdatedThreads],eax  ; Update number of threads = f ( NUMA mode )
 .L30:
+;--- End of conditionally executed code only for NUMA Option = single domain
 
 ; Swap affinity masks for NUMA Non Optimal scenario, force remote access
 cmp [rdi + IPB.UpdatedNUMA],NUMA_NON_OPTIMAL
@@ -349,8 +371,17 @@ mov [r8],rax    ; write mask to last NUMA domain entry
 ; after NUMA nodes list build and optionally swapped
 mov rax,[rdi + IPB.MemoryTotal]
 mov r8d,[rdi + IPB.DomainsCount]  ; R8 = Number of nodes
+
+; INT3
+
+;--- Skip division buffer size by nodes count if threads count = 1 
+cmp [rdi + IPB.UpdatedThreads],1
+je .L33          ; Skip if threads = 1 and all memory allocated at node 0
 xor edx,edx
-div r8
+div r8           ; Divide  allocated memory / node count  for multi-thread 
+.L33:
+;---
+
 lea rcx,[NumaNodesList]           ; RCX = Base address of NUMA nodes list
 mov rdx,rax                       ; RDX = Memory allocation size per one node
 mov r9d,[rdi + IPB.UpdatedLP]     ; R9D = Large Pages option

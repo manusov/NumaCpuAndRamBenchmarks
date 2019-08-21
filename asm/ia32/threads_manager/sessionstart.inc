@@ -321,9 +321,31 @@ jne .L30                         ; Go if not a single NUMA domain mode
 mov [edi + IPB.DomainsCount],1
 cmp [edi + IPB.UpdatedThreads],1
 jbe .L30                         ; Go if not a multi-thread mode
-mov eax,[SystemParameters.SystemInfo.dwNumberOfProcessors]  ; Change required: Get this from system or from one domain ?
+
+; Changed: Get this from system or from one domain
+; mov eax,[SystemParameters.SystemInfo.dwNumberOfProcessors]
+
+; INT3
+
+;--- This code executed only for NUMA Option = single domain 
+xor eax,eax                 ; Pre-blank logical CPU count = 0
+mov edx,dword [NumaNodesList + NUMACTRL.NodeAffinity]  ; Node 0 affinity mask
+.L34:
+shr edx,1
+jnc .L35
+inc eax                     ; This counts "1" bits at node 0 affinity mask 
+.L35:
+test edx,edx
+jnz .L34                    ; Cycle exit when all "1" shifted
+cmp [esi + UPB.OptionHT],HT_NOT_USED
+jne .L36                    ; Skip "Threads count / 2" if no HT rejection case
+cmp eax,1
+je .L36                     ; Skip "Threads count / 2" if Threads count = 1
+shr eax,1                   ; Threads count / 2  if required HT rejection
+.L36:
 mov [edi + IPB.UpdatedThreads],eax  ; Update number of threads = f ( NUMA mode )
 .L30:
+;--- End of conditionally executed code only for NUMA Option = single domain
 
 ; Swap affinity masks for NUMA Non Optimal scenario, force remote access
 cmp [edi + IPB.UpdatedNUMA],NUMA_NON_OPTIMAL
@@ -351,8 +373,17 @@ mov [esi],eax   ; write mask to last NUMA domain entry
 ; after NUMA nodes list build and optionally swapped
 mov eax,[edi + IPB.MemoryTotal]   ; EAX = Total memory allocated 
 mov ecx,[edi + IPB.DomainsCount]  ; ECX = Number of NUMA nodes
+
+; INT3
+
+;--- Skip division buffer size by nodes count if threads count = 1 
+cmp [edi + IPB.UpdatedThreads],1
+je .L33          ; Skip if threads = 1 and all memory allocated at node 0
 xor edx,edx
-div ecx
+div ecx          ; Divide  allocated memory / node count  for multi-thread 
+.L33:
+;---
+
 lea ebx,[NumaNodesList]           ; EBX = Base address of NUMA nodes list
 mov edx,ecx                       ; EDX = Number of NUMA nodes 
 xchg ecx,eax                      ; ECX = Memory allocation size per one node
