@@ -125,7 +125,7 @@ mov [r14 + HANDLE_LARGE_PAGES1*16 - 256 + 12],ax
 lea rsi,[NumaOff_String]
 mov ecx,[rbx + IPB.UpdatedNUMA]
 cmp ecx,NUMA_LIMIT
-jae .L16 
+ja .L16             ; old bug = jae .L16  
 jrcxz .L16
 .L17:
 lodsb

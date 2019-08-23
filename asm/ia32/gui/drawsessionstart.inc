@@ -123,7 +123,7 @@ mov [DialogueContent_Win1 + HANDLE_LARGE_PAGES1*16 - 256 + 12],ax
 lea esi,[NumaOff_String]
 mov ecx,[ebx + IPB.UpdatedNUMA]
 cmp ecx,NUMA_LIMIT
-jae .L16 
+ja .L16             ; old bug = jae .L16  
 jecxz .L16
 .L17:
 lodsb
