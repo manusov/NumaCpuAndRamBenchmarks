@@ -150,9 +150,17 @@ mov rcx,[DrawThreadParms + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done ev
 mov edx,THREAD_TIME_LIMIT                    ; RDX = Parm#2 = Time limit
 call [WaitForSingleObject]
 
+;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
+
 ; Delay for return from thread routine
-; call DelayThreadReturn
-call DelayThreadSmall
+;- call DelayThreadReturn
+;- call DelayThreadSmall
+
+mov rcx,[DrawThreadParms + DTHP.ThreadHandle]  ; RCX = Parm#1 = Thread handle
+mov edx,THREAD_TIME_LIMIT                      ; RDX = Parm#2 = Time limit
+call [WaitForSingleObject]
+
+;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
 
 ; Note status after [WaitForSingleObject] ignored, better check it
 ; De-Initialize graphics context
@@ -219,9 +227,17 @@ mov rcx,[DrawThreadParms + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done ev
 mov edx,THREAD_TIME_LIMIT                    ; RDX = Parm#2 = Time limit
 call [WaitForSingleObject]
 
+;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
+
 ; Delay for return from thread routine
-; call DelayThreadReturn
-call DelayThreadSmall
+;- call DelayThreadReturn
+;- call DelayThreadSmall
+
+mov rcx,[DrawThreadParms + DTHP.ThreadHandle]  ; RCX = Parm#1 = Thread handle
+mov edx,THREAD_TIME_LIMIT                      ; RDX = Parm#2 = Time limit
+call [WaitForSingleObject]
+
+;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
 
 ; Note status after [WaitForSingleObject] ignored, better check it
 ; Remove thread and associated handles, note can corrupt pointers

@@ -12,14 +12,17 @@
 ; Can destroy registers, volatile by Microsoft x64 calling convention.         ;
 ;------------------------------------------------------------------------------;
 
-ThreadsStartBreak:         ; This entry point for return from thread subroutine
-mov [PrimaryChildsBreak],1
-jmp EntryThreadsStart 
+; RESERVED UNUSED ENTRY POINT.
+
+;- ThreadsStartBreak:         ; This entry point for return from thread subroutine
+;- mov [PrimaryChildsBreak],1
+;- jmp EntryThreadsStart 
 
 ThreadsStart:              ; This entry point for measure
 mov [PrimaryChildsBreak],0
 
-EntryThreadsStart:
+;- EntryThreadsStart:
+
 cld
 push rbx rsi rdi rbp r12 r13
 

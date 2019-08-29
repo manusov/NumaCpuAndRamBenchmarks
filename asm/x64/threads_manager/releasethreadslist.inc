@@ -24,12 +24,26 @@ mov ebx,MAX_THREADS            ; EBX = Maximum number of Threads
 ; Terminate threads routines
 call ThreadsReStartBreak
 
+;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
+
 ; Delay for return from thread routine
-; call DelayThreadReturn
-call DelayThreadBig
+;- call DelayThreadReturn
+;- call DelayThreadBig
 
 ; Cycle for release threads
 .ReleaseThreads:
+
+; Wait threads termination by threads handle, in the cycle for all threads
+mov rcx,[rsi + THCTRL.ThreadHandle]  ; RCX = Parm#1 = THREAD handle
+jrcxz @f                             ; Skip if this entry not allocated
+mov edx,THREAD_TIME_LIMIT            ; RDX = Parm#2 = Time Limit
+call [WaitForSingleObject]
+test rax,rax                         ; Status=0 means wait OK, special encoding
+jnz .ReleaseError                    ; Go exit if error 
+@@:
+
+;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
+
 ; Terminate threads
 mov rcx,[rsi + THCTRL.ThreadHandle]  ; RCX = Parm#1 = THREAD handle
 jrcxz @f                             ; Skip if this entry not allocated
