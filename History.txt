@@ -1,3 +1,14 @@
+31.08.2019 (v1.04.01 version, updated ia32 only).
+1) NUMA nodes affinity masks visualized as 64-bit values,
+fix mismatch bug with 32-bit loads for list of 64-bit values.
+Updated source file:
+sysparmstobuffer.inc , see lines 187, 193 (ia32 branch only).
+2) Fix NUMA-aware memory allocation bug, correct stack
+variables addressing at threads per node counter.
+Updated source file:
+buildthreadslist.inc , see lines 150, 151 (ia32 branch only).
+
+
 29.08.2019 (v1.04.00 versions for ia32 and x64).
 1) Thread termination constant delay replaced to
 wait thread termination with thread handle.

@@ -183,11 +183,19 @@ mov ax,'  '
 stosw
 stosw
 @@:                          ; Cycle for print first 4 NUMA nodes bitmap
-lodsd
-;- xchg edx,eax
+
 ;- lodsd
-;- xchg edx,eax
-call HexPrint32  ; 64
+;- ;- xchg edx,eax
+;- ;- lodsd
+;- ;- xchg edx,eax
+;- call HexPrint32  ; 64
+
+lodsd
+xchg edx,eax
+lodsd
+xchg edx,eax
+call HexPrint64        ; NUMA nodes affinity masks visualized as 64-bit values
+                       ; even for ia32 version
 mov al,'h'
 stosb
 dec ecx

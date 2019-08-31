@@ -146,7 +146,10 @@ mov dword [esi + THCTRL.Repeats + 04],eax
 dec dword [esp + 08]     ; [esp + 08] = Threads per NUMA node ratio
 jnz .AfterCountNode      ; Go skip reload if continue threads per this node
 mov eax,[esp + 12]       ; Reload threads per this node
-mov [esp + 12],eax
+
+;- mov [esp + 12],eax    ; variable addressing bug fixed
+mov [esp + 08],eax
+
 mov dword [esp + 16],0   ; Blank block offset because next NUMA node
 add ebx,NUMACTRL_SIZE    ; EBX = NUMA nodes entries pointer
 .AfterCountNode:
