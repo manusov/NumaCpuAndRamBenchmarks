@@ -16,6 +16,10 @@ ALL_PROCESSOR_GROUPS  EQU  0000FFFFh
 ; Required 48 Kilobytes miscellaneous buffer
 TEMP_BUFFER_SIZE      EQU  48 * 1024
 
+; 10000 milliseconds = 10 seconds, events wait time for
+; communication with child thread
+THREAD_TIME_LIMIT     EQU  10000  
+
 ; Thread control entry, or entire benchmark control if single thread
 ; Note keep 64 bytes per entry, see ThreadEntry, can be non parametrized coding
 ; Note keep all pairs: Affinity Mask + Affinity Group as 2 sequental qwords,

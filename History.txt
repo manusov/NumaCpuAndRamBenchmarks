@@ -1,3 +1,9 @@
+06.09.2019 (v1.04.02 versions for ia32 and x64).
+Change GUI logic: main window operational when work child window.
+Remove disable and re-enable for entire main window.
+Make disable and re-enable for main window buttons only.
+
+
 31.08.2019 (v1.04.01 version, updated ia32 only).
 1) NUMA nodes affinity masks visualized as 64-bit values,
 fix mismatch bug with 32-bit loads for list of 64-bit values.

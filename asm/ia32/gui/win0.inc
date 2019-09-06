@@ -185,9 +185,12 @@ jmp .WinDefaultProc                   ; Otherwise default OS handler
 
 .ButtonHandlerAbout:
 ; Disable parent window when daughter window work
-push 0                     ; Parm#2 = 0, means DISABLE
-push ebx                   ; Parm#1 = Handle
-call [EnableWindow]
+;- push 0                     ; Parm#2 = 0, means DISABLE
+;- push ebx                   ; Parm#1 = Handle
+;- call [EnableWindow]
+call HelperButtonsDisable
+;-
+
 ; Message box and wait user input
 push MB_ICONINFORMATION    ; Parm#4 = Message box icon type = Info
 push ABOUT_CAP             ; Parm#3 = Pointer to caption
@@ -197,14 +200,16 @@ call [MessageBoxA]
 
 ; Enable and activate parent window
 .ReturnParentWindow:
-push 1                     ; Parm#2 = 1, means ENABLE
-push ebx                   ; Parm#1 = Handle
-call [EnableWindow]
-push 0                     ; Parm#4 = 0 , not used
-push WA_CLICKACTIVE        ; Parm#3 = Activation method
-push WM_ACTIVATE           ; Parm#2 = Message
-push ebx                   ; Parm#1 = Handle
-call [SendMessage]
+;- push 1                      ; Parm#2 = 1, means ENABLE
+;- push ebx                    ; Parm#1 = Handle
+;- call [EnableWindow]
+;- push 0                      ; Parm#4 = 0 , not used
+;- push WA_CLICKACTIVE         ; Parm#3 = Activation method
+;- push WM_ACTIVATE            ; Parm#2 = Message
+;- push ebx                    ; Parm#1 = Handle
+;- call [SendMessage]
+call HelperButtonsEnable
+;-
 
 ; Exit after drawings works
 jmp .WinFinish
@@ -213,10 +218,12 @@ jmp .WinFinish
 ;-------------------- Button handler: Vector Brief ----------------------------;
 
 .ButtonHandlerVectorBrief:
-;; Disable parent window when daughter window work
-push 0                 ; Parm#2 = 0, means DISABLE
-push ebx               ; Parm#1 = Handle
-call [EnableWindow]
+; Disable parent window when daughter window work
+;- push 0                 ; Parm#2 = 0, means DISABLE
+;- push ebx               ; Parm#1 = Handle
+;- call [EnableWindow]
+call HelperButtonsDisable
+;-
 push ebx               ; save handle for restore parent window activity
 call RunVectorBrief
 jc .VectorBriefError
@@ -240,9 +247,11 @@ jmp .ReturnParentWindow
 
 .ButtonHandlerRunSimple:
 ; Disable parent window when daughter window work
-push 0                 ; Parm#2 = 0, means DISABLE
-push ebx               ; Parm#1 = Handle
-call [EnableWindow]
+;- push 0                 ; Parm#2 = 0, means DISABLE
+;- push ebx               ; Parm#1 = Handle
+;- call [EnableWindow]
+call HelperButtonsDisable
+;-
 push ebx               ; save handle for restore parent window activity
 ; Extract settings from GUI widgets
 mov al,0  ; Run context = simple, without memory allocation multiplication
@@ -277,9 +286,11 @@ jmp .ReturnParentWindow
 
 .ButtonHandlerRunDrawings:
 ; Disable parent window when daughter window work
-push 0                 ; Parm#2 = 0, means DISABLE
-push ebx               ; Parm#1 = Handle
-call [EnableWindow]
+;- push 0                 ; Parm#2 = 0, means DISABLE
+;- push ebx               ; Parm#1 = Handle
+;- call [EnableWindow]
+call HelperButtonsDisable
+;-
 push ebx               ; save handle for restore parent window activity
 ; At this point, parallel thread with DrawSessionThread subroutine STARTED.
 call DrawSessionStart 
@@ -321,4 +332,46 @@ jmp .WinFinish
 
 .ButtonHandlerCancel:
 jmp .WinDestroy
+
+;------------------- Helpers for buttons disable and enable -------------------;
+
+; Note about stack re-alignment when subroutines call
+
+;--- Disable all buttons, used before open child window box ---;
+; INPUT:   None                                                ;
+; OUTPUT:  None                                                ;
+; Registers volatile/non volatile by ia32 calling convention   ;
+;--------------------------------------------------------------;
+HelperButtonsDisable:
+mov al,0
+jmp HelperButtonsState 
+
+;--- Enable all buttons, used after close child window box ----;
+; INPUT:   None                                                ;
+; OUTPUT:  None                                                ;
+; Registers volatile/non volatile by ia32 calling convention   ;
+;--------------------------------------------------------------;
+HelperButtonsEnable:
+mov al,1
+; No ret, continue at next subroutine
+
+;--- Set state: Disable or Enable for all buttons -------------;
+; INPUT:   AL = State, 0 = Disabled, 1 = Enabled               ;
+; OUTPUT:  None                                                ;
+; Registers volatile/non volatile by ia32 calling convention   ;
+;--------------------------------------------------------------;
+HelperButtonsState:
+push ebx esi edi
+movzx ebx,al
+mov esi,HANDLE_ALL_BUTTONS_BASE
+mov edi,HANDLE_ALL_BUTTONS_COUNT
+@@:
+push ebx                              ; Parm#2 = Enable flag, 0/1
+push dword [SubHandles - 64 + esi*4]  ; Parm#1 = Button handle
+call [EnableWindow]
+inc esi
+dec edi
+jnz @b                                ; Cycle for all buttons
+pop edi esi ebx
+ret
 

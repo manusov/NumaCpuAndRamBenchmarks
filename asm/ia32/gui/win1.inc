@@ -16,11 +16,7 @@
 ; nanoseconds per instruction (nsPI) to Megabytes per Second (MBPS)
 ; Decimal megabyte = 1000000 bytes (not binary 1048576)
 ; Second = 1000000000 nanoseconds
-NSPI_TO_MBPS       EQU  1000
-
-; 10000 milliseconds = 10 seconds, events wait time for
-; communication with child thread
-THREAD_TIME_LIMIT  EQU  10000  
+NSPI_TO_MBPS  EQU  1000
 
 ; Entry point
 WindowProc_Win1:

@@ -186,25 +186,31 @@ jmp .WinDefaultProc                   ; Otherwise default OS handler
 
 .ButtonHandlerAbout:
 ; Disable parent window when daughter window work
-mov rcx,rbx                   ; RCX = Parm#1 = Handle
-xor edx,edx                   ; RDX = Parm#2 = 0, means DISABLE
-call [EnableWindow]
+;- mov rcx,rbx                   ; RCX = Parm#1 = Handle
+;- xor edx,edx                   ; RDX = Parm#2 = 0, means DISABLE
+;- call [EnableWindow]
+call HelperButtonsDisable
+;-
 ; Message box and wait user input
 xor ecx,ecx	                  ; RCX = Parm#1 = Parent window handle or 0
 lea rdx,[ABOUT_ID]            ; RDX = Parm#2 = Pointer to "About" string
 lea r8,[ABOUT_CAP]            ; R8  = Parm#3 = Pointer to caption
 mov r9d,MB_ICONINFORMATION    ; R9  = Parm#4 = Message box icon type = Info
 call [MessageBoxA]
+
 ; Enable and activate parent window
 .ReturnParentWindow:
-mov rcx,rbx                   ; RCX = Parm#1 = Handle
-mov edx,1                     ; RDX = Parm#2 = 1, means ENABLE
-call [EnableWindow]
-mov rcx,rbx                   ; RCX = Parm#1 = Handle
-mov edx,WM_ACTIVATE           ; RDX = Parm#2 = Message
-mov r8d,WA_CLICKACTIVE        ; R8  = Parm#3 = Activation method
-xor r9d,r9d                   ; R9  = Parm#4 = 0 , not used
-call [SendMessage]
+;- mov rcx,rbx                   ; RCX = Parm#1 = Handle
+;- mov edx,1                     ; RDX = Parm#2 = 1, means ENABLE
+;- call [EnableWindow]
+;- mov rcx,rbx                   ; RCX = Parm#1 = Handle
+;- mov edx,WM_ACTIVATE           ; RDX = Parm#2 = Message
+;- mov r8d,WA_CLICKACTIVE        ; R8  = Parm#3 = Activation method
+;- xor r9d,r9d                   ; R9  = Parm#4 = 0 , not used
+;- call [SendMessage]
+call HelperButtonsEnable
+;-
+
 ; Exit after drawings works
 jmp .WinFinish
 
@@ -213,9 +219,11 @@ jmp .WinFinish
 
 .ButtonHandlerVectorBrief:
 ; Disable parent window when daughter window work
-mov rcx,rbx            ; RCX = Parm#1 = Handle
-xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
-call [EnableWindow]
+;- mov rcx,rbx            ; RCX = Parm#1 = Handle
+;- xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
+;- call [EnableWindow]
+call HelperButtonsDisable
+;-
 push rbx               ; save handle for restore parent window activity
 call RunVectorBrief
 jc .VectorBriefError
@@ -241,9 +249,11 @@ jmp .ReturnParentWindow
 
 .ButtonHandlerRunSimple:
 ; Disable parent window when daughter window work
-mov rcx,rbx            ; RCX = Parm#1 = Handle
-xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
-call [EnableWindow]
+;- mov rcx,rbx            ; RCX = Parm#1 = Handle
+;- xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
+;- call [EnableWindow]
+call HelperButtonsDisable
+;-
 push rbx               ; save handle for restore parent window activity
 ; Extract settings from GUI widgets
 mov al,0  ; Run context = simple, without memory allocation multiplication
@@ -280,9 +290,11 @@ jmp .ReturnParentWindow
 
 .ButtonHandlerRunDrawings:
 ; Disable parent window when daughter window work
-mov rcx,rbx            ; RCX = Parm#1 = Handle
-xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
-call [EnableWindow]
+;- mov rcx,rbx            ; RCX = Parm#1 = Handle
+;- xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
+;- call [EnableWindow]
+call HelperButtonsDisable 
+;-
 push rbx               ; save handle for restore parent window activity
 ; At this point, parallel thread with DrawSessionThread subroutine STARTED.
 call DrawSessionStart 
@@ -327,4 +339,56 @@ jmp .WinFinish
 
 .ButtonHandlerCancel:
 jmp .WinDestroy
+
+;------------------- Helpers for buttons disable and enable -------------------;
+
+; Note about stack re-alignment when subroutines call
+
+;--- Disable all buttons, used before open child window box ---;
+; INPUT:   None                                                ;
+; OUTPUT:  None                                                ;
+; Registers volatile/non volatile by ia32 calling convention   ;
+;--------------------------------------------------------------;
+HelperButtonsDisable:
+mov al,0
+jmp HelperButtonsState 
+
+;--- Enable all buttons, used after close child window box ----;
+; INPUT:   None                                                ;
+; OUTPUT:  None                                                ;
+; Registers volatile/non volatile by ia32 calling convention   ;
+;--------------------------------------------------------------;
+HelperButtonsEnable:
+mov al,1
+; No ret, continue at next subroutine
+
+;--- Set state: Disable or Enable for all buttons -------------;
+; INPUT:   AL = State, 0 = Disabled, 1 = Enabled               ;
+; OUTPUT:  None                                                ;
+; Registers volatile/non volatile by ia32 calling convention   ;
+;--------------------------------------------------------------;
+HelperButtonsState:
+push rbx rsi rdi rbp
+mov rbp,rsp
+and rsp,0FFFFFFFFFFFFFFF0h
+push rbp
+sub rsp,32+8            ; Parameters shadow for call API + alignment
+
+movzx ebx,al
+mov esi,HANDLE_ALL_BUTTONS_BASE
+mov edi,HANDLE_ALL_BUTTONS_COUNT
+@@:
+mov rcx,[SubHandles - 128 + rsi*8]    ; Parm#1 = RCX = Button handle
+mov rdx,rbx                           ; Parm#2 = RDX = Enable flag, 0/1
+call [EnableWindow]
+inc esi
+dec edi
+jnz @b                                ; Cycle for all buttons
+
+add rsp,32+8  ; Remove parameters shadow + alignment
+pop rbp       ; Can directly use POP RSP ?
+mov rsp,rbp
+pop rbp rdi rsi rbx
+ret
+
 

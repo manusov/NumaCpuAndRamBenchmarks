@@ -197,6 +197,9 @@ HANDLE_BUTTON_RUN_SIMPLE   = 76
 HANDLE_BUTTON_RUN_DRAWINGS = 77
 HANDLE_BUTTON_DEFAULTS     = 78
 HANDLE_BUTTON_CANCEL       = 79
+; Definitions for addressing all buttons
+HANDLE_ALL_BUTTONS_BASE    = 74
+HANDLE_ALL_BUTTONS_COUNT   = 6
 ; Buttons
 DIALELEMENT  ClassButton , TextAbout       , 0058 , 0533 , 0110 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 74 = About (note CMP/JA limit at event handler)
 DIALELEMENT  ClassButton , TextBrief       , 0176 , 0533 , 0110 , 0024 , WS_VISIBLE+WS_CHILD+BS_PUSHBUTTON   ; 75 = Vector brief
