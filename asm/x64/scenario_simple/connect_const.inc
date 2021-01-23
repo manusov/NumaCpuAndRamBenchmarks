@@ -16,6 +16,7 @@ MsgResultSimple   DB  'Simple mode benchmarks, options settings:',0
                   DB  'NUMA profile',0
                   DB  'processor group profile',0
                   DB  'target object profile',0
+                  DB  'prefetch distance',0
                   DB  'operation block size per thread',0
                   DB  'measurement profile',0
                   DB  'measurement repeats',0                  

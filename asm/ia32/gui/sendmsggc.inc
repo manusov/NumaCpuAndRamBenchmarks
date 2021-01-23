@@ -16,6 +16,5 @@ push BM_GETCHECK                      ; Parm#2 = Message
 push dword [SubHandles - 64 + esi*4]  ; Parm#1 = Handle, Input
 call [SendMessage]
 cmp eax,1                             ; BST_CHECKED=1, set ZF=1 if this
-; Done
 ret
 

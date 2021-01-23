@@ -90,8 +90,7 @@ movaps xmm11,[rsp + 16*5]
 movaps xmm12,[rsp + 16*6]
 movaps xmm13,[rsp + 16*7]
 movaps xmm14,[rsp + 16*8]
-movaps xmm15,[rsp + 16*9]
-;- sub rsp,10*16              ; 10 128-bit SSE registers XMM6-XMM15 must be
+movaps xmm15,[rsp + 16*9]     ; 10 128-bit SSE registers XMM6-XMM15 must be
 @@:                           ; non-volatile by convention, note ALIGN16
 
 mov rsp,rax
@@ -170,7 +169,6 @@ mov edx,-1                         ; RDX = Parm#2 = Wait infinite, no timeout
 call [WaitForSingleObject]
 
 ; Repeat measurement iteration in this thread
-;- jmp .ThreadRepeat
 cmp [PrimaryChildsBreak],0
 je .ThreadRepeat
 
@@ -193,8 +191,7 @@ movaps xmm11,[rsp + 16*5]
 movaps xmm12,[rsp + 16*6]
 movaps xmm13,[rsp + 16*7]
 movaps xmm14,[rsp + 16*8]
-movaps xmm15,[rsp + 16*9]
-;- sub rsp,10*16              ; 10 128-bit SSE registers XMM6-XMM15 must be
+movaps xmm15,[rsp + 16*9]     ; 10 128-bit SSE registers XMM6-XMM15 must be
 @@:                           ; non-volatile by convention, note ALIGN16
 
 mov rsp,rax

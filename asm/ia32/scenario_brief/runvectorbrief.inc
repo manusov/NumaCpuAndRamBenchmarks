@@ -156,14 +156,12 @@ mov [edi + THCTRL.Base1],eax
 add eax,VECTOR_BRIEF_DATA_SIZE / 2
 mov [edi + THCTRL.Base2],eax
 
-;- lea esi,[MathData]  ; FIX THIS, USE Base3
 ; If this run for math. pattern, Base1 used for load numeric constants vector,
 ; not for block 1 base.
 test byte [esi+0],80h
 jz @f
 mov [edi + THCTRL.Base1],MathData
 @@:
-;-
 
 mov ebx,edi         ; Note can remove this if Get...Pattern return in EAX 
 call RunTarget      ; Return RAX = dTSC per pattern

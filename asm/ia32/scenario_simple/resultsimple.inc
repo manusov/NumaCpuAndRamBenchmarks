@@ -25,7 +25,7 @@ push esi
 lea esi,[AM_Strings_Prefix]             ; ESI = Pointer to strings sequence
 mov eax,[InputParms + IPB.UpdatedAsm]   ; AL = Selector
 inc al              
-mov ah,ASM_LIMIT
+mov ah,ASM_RESULT_LIMIT
 call StringWriteSelected        ; Write string selected by AL from pool [esi]
 pop esi
 ; (2) Operand width, bits
@@ -77,13 +77,21 @@ mov eax,[InputParms + IPB.UpdatedTarget]
 mov ah,TARGET_LIMIT
 call StringWriteSelected
 pop esi
-; (9) Operation block size per thread
+; (9) Prefetch distance
+call StringWrite_CRLF_Equal
+push esi
+lea esi,[PD_00]
+mov eax,[InputParms + IPB.UpdatedDistance]
+mov ah,PD_LIMIT
+call StringWriteSelected
+pop esi
+; (10) Operation block size per thread
 call StringWrite_CRLF_Equal
 mov eax,[InputParms + IPB.StartBlockSize]
 xor edx,edx
 mov bl,1             ; BL = Units select for size print, old = 0FFh = auto
 call SizePrint64     ; Note pssible adaptive, but "15.5K" is optimal, yet "K" fixed
-; (10) Measurement profile, brief/careful/brief adaptive/careful adaptive
+; (11) Measurement profile, brief/careful/brief adaptive/careful adaptive
 call StringWrite_CRLF_Equal
 push esi
 lea esi,[Measure_00]
@@ -100,7 +108,7 @@ mov al,MEASURE_CAREFUL
 mov ah,MEASURE_LIMIT
 call StringWriteSelected
 pop esi
-; (11) Measurement repeats, num. of same operation repeats for precision
+; (12) Measurement repeats, num. of same operation repeats for precision
 call StringWrite_CRLF_Equal
 mov eax,dword [InputParms + IPB.MeasureRepeats]  ; Note required support overflows, RAX>4GB, actual for adaptive modes
 mov bl,0                                         ; BL = Template (chars) for decimal print, 0 = no template

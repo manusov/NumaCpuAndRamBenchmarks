@@ -2,10 +2,10 @@
 ;                                                                        ;
 ; INPUT:   EDI = Destination pointer for save destination info           ;
 ;                                                                        ;
-; OUTPUT:  EDI = Input EDI + 9 , buffer size fixed = 9 bytes             ;
+; OUTPUT:  EDI = Input EDI + 8 , buffer size fixed = 8 bytes             ;
 ;          Destination memory at [input EDI] = Results, 0=Not detected	 ;
-;          Qword [000-007] = Large page size (minimum if some variants)  ;
-;          Dword [008-011] = Availability flag:                          ; 
+;          Dword [000-003] = Large page size (minimum if some variants)  ;
+;          Dword [004-007] = Availability flag:                          ; 
 ;                            0=n/a , 1=large pages mappings useable      ;
 ;                                                                        ;
 ; Can destroy registers, volatile by Microsoft ia32 calling convention.  ; 
@@ -53,9 +53,6 @@ test eax,eax
 jz .NoLargePages      ; Go skip if large page size = 0
 stosd                 ; Store large page size, low 32 bit
 xor eax,eax           ; EAX = 0 , note this used at next step
-
-;- stosd              ; Store large page size, high 32 bit = 0
-                      ; this rejected when ia32 porting 
 
 ; Check privileges control availability, check Win API functions pointers
 cmp [_OpenProcessToken],eax        ; check fnc. pointer after dynamical import
@@ -141,7 +138,6 @@ ret
 
 .NoLargePages:
 stosd                 ; Large page size = 0  (qword)
-;- stosd ; this rejected when ia32 porting
 .NoLargeRights:
 stosd                 ; Large pages availability status = 0  (dword)
 jmp .Exit

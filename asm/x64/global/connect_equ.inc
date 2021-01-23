@@ -80,6 +80,7 @@ NUMA_LIST_SIZE         EQU  MAX_NODES * NUMACTRL_SIZE
 ; Test USER parameters layout declaration
 struct UPB
 OptionAsm         dd  ?    ; Select test ASM method, one of procedures
+OptionDistance    dd  ?    ; Prefetch distance for non-temporal read: 0=default, 1=medium, 2=long
 OptionTarget      dd  ?    ; Objects { L1, L2, L3, L4, DRAM, CUSTOM }
 OptionParallel    dd  ?    ; Parallel { GRAY_NOT_SUP, DISABLED, ENABLED }
 OptionHT          dd  ?    ; HT { GRAY_NOT_SUP, DISABLED, ENABLED }
@@ -99,6 +100,7 @@ ends
 struct IPB
 ; First 8 items of IPB associated with first 8 items of UPB
 UpdatedAsm        dd  ?    ; Routine selector, set after detect features
+UpdatedDistance   dd  ?    ; Prefetch distance for non-temporal read: 0=default, 1=medium, 2=long
 UpdatedTarget     dd  ?    ; Objects { L1, L2, L3, L4, DRAM, CUSTOM }
 UpdatedThreads    dd  ?    ; Number of threads, set after detect features
 UpdatedHT         dd  ?    ; 0=Not sup. by platform, 1=sup. but not used, 2=used
@@ -145,11 +147,15 @@ ends
 
 ; Assembler Methods (AM) option values count and Bandwidth/Latency criteria
 AM_BYTE_COUNT       EQU  22     ; 22 bytes per methods primary list
-LATENCY_MODE        EQU  35     ; modes ID = 35, 36 for latency measurement
+LATENCY_MODE        EQU  41     ; modes ID = 41, 42 for latency measurement
+READ_SSE_MODE       EQU  9      ; for add information about prefetch distance
+READ_AVX_MODE       EQU  12     ; for add information about prefetch distance
 
 ; Options limits and values
-; 36 names for assembler methods
-ASM_LIMIT           EQU  36+1
+; 36 codes of assembler option, argument for AM_Selector translation
+ASM_ARGUMENT_LIMIT  EQU  AM_BYTE_COUNT - 1
+; 42 names for assembler methods, result of AM_Selector translation
+ASM_RESULT_LIMIT    EQU  42 + 1
 
 ; Parallel threads option
 PARALLEL_LIMIT      EQU  2
@@ -164,6 +170,12 @@ TARGET_L3           EQU  2
 TARGET_L4           EQU  3
 TARGET_DRAM         EQU  4
 TARGET_CUSTOM       EQU  5
+; PD = Prefetch distance
+PD_LIMIT            EQU  3
+PD_DEFAULT          EQU  0
+PD_MEDIUM           EQU  1
+PD_LONG             EQU  2
+PD_NOT_USED         EQU  3
 ; HT = Hyper Threading
 HT_LIMIT            EQU  2
 HT_NOT_SUPPORTED    EQU  0

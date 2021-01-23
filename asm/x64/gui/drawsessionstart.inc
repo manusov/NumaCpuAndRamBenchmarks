@@ -38,7 +38,7 @@ lea r15,[BasePointGui]
 ; Down comments strings, assembler method
 lea rsi,[AM_Strings_Prefix]
 mov ecx,[rbx + IPB.UpdatedAsm]
-cmp ecx,ASM_LIMIT
+cmp ecx,ASM_RESULT_LIMIT
 jae .L10 
 lea rsi,[AM_Strings_Values]
 jrcxz .L10
@@ -50,6 +50,22 @@ loop .L11     ; find string indexed by RCX
 .L10:
 sub rsi,r15   ; calculate RSI.[15-0] = compact 16-bit offset
 mov [r14 + HANDLE_TEXT_METHOD1*16 - 256 + 12],si
+
+; Down comments strings, prefetch distance (default, medium, long, N/A)
+lea rsi,[PdUnknown_String]
+mov ecx,[rbx + IPB.UpdatedDistance]
+cmp ecx,PD_LIMIT
+ja .L40 
+lea rsi,[PdDefault_String]
+jrcxz .L40
+.L41:
+lodsb
+cmp al,0
+jne .L41
+loop .L41                ; find string indexed by ECX
+.L40:
+sub rsi,r15   ; calculate RSI.[15-0] = compact 16-bit offset
+mov [r14 + HANDLE_TEXT_DISTANCE1*16 - 256 + 12],si
 
 ; Down comments strings, target object (Cache, DRAM, Custom block)
 lea rsi,[Unknown_Object]

@@ -186,31 +186,16 @@ jmp .WinDefaultProc                   ; Otherwise default OS handler
 
 .ButtonHandlerAbout:
 ; Disable parent window when daughter window work
-;- mov rcx,rbx                   ; RCX = Parm#1 = Handle
-;- xor edx,edx                   ; RDX = Parm#2 = 0, means DISABLE
-;- call [EnableWindow]
 call HelperButtonsDisable
-;-
 ; Message box and wait user input
 xor ecx,ecx	                  ; RCX = Parm#1 = Parent window handle or 0
 lea rdx,[ABOUT_ID]            ; RDX = Parm#2 = Pointer to "About" string
 lea r8,[ABOUT_CAP]            ; R8  = Parm#3 = Pointer to caption
 mov r9d,MB_ICONINFORMATION    ; R9  = Parm#4 = Message box icon type = Info
 call [MessageBoxA]
-
 ; Enable and activate parent window
 .ReturnParentWindow:
-;- mov rcx,rbx                   ; RCX = Parm#1 = Handle
-;- mov edx,1                     ; RDX = Parm#2 = 1, means ENABLE
-;- call [EnableWindow]
-;- mov rcx,rbx                   ; RCX = Parm#1 = Handle
-;- mov edx,WM_ACTIVATE           ; RDX = Parm#2 = Message
-;- mov r8d,WA_CLICKACTIVE        ; R8  = Parm#3 = Activation method
-;- xor r9d,r9d                   ; R9  = Parm#4 = 0 , not used
-;- call [SendMessage]
 call HelperButtonsEnable
-;-
-
 ; Exit after drawings works
 jmp .WinFinish
 
@@ -219,11 +204,7 @@ jmp .WinFinish
 
 .ButtonHandlerVectorBrief:
 ; Disable parent window when daughter window work
-;- mov rcx,rbx            ; RCX = Parm#1 = Handle
-;- xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
-;- call [EnableWindow]
 call HelperButtonsDisable
-;-
 push rbx               ; save handle for restore parent window activity
 call RunVectorBrief
 jc .VectorBriefError
@@ -249,11 +230,7 @@ jmp .ReturnParentWindow
 
 .ButtonHandlerRunSimple:
 ; Disable parent window when daughter window work
-;- mov rcx,rbx            ; RCX = Parm#1 = Handle
-;- xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
-;- call [EnableWindow]
 call HelperButtonsDisable
-;-
 push rbx               ; save handle for restore parent window activity
 ; Extract settings from GUI widgets
 mov al,0  ; Run context = simple, without memory allocation multiplication
@@ -290,11 +267,7 @@ jmp .ReturnParentWindow
 
 .ButtonHandlerRunDrawings:
 ; Disable parent window when daughter window work
-;- mov rcx,rbx            ; RCX = Parm#1 = Handle
-;- xor edx,edx            ; RDX = Parm#2 = 0, means DISABLE
-;- call [EnableWindow]
 call HelperButtonsDisable 
-;-
 push rbx               ; save handle for restore parent window activity
 ; At this point, parallel thread with DrawSessionThread subroutine STARTED.
 call DrawSessionStart 
@@ -312,6 +285,7 @@ mov r14d,WIN1_YSIZE           ; R14 = Window Y-size
 mov ax,0101h                  ; AH  = 1 , Means parent=RBX
 xchg al,[Win1_Init]           ; AL  = 1 , if window 1 already initialized
 call CreateApplicationWindow  ; RBX = Parent Handle
+mov [Handle_Win1],rax         ; Store RAX = Window handle, drawings window
 ; Wait events for Window 1
 lea rdi,[DialogueMsg_Win1]	  ; RDI = MSG structure
 call WaitEvent                ; Window 1 work as callbacks inside this

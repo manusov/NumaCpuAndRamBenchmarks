@@ -19,6 +19,16 @@ and rsp,0FFFFFFFFFFFFFFF0h
 push rbp
 sub rsp,32+8
 
+; Drawings window invalidation for silent mode: show at drawings start 
+cmp [SilentMode],0
+je .SkipSilent
+mov rcx,[Handle_Win1]  ; RCX = Parm#1 = Window handle
+jrcxz .SkipSilent
+xor edx,edx            ; RDX = Parm#2 = Pointer to invalidated region, 0=All window
+xor r8d,r8d            ; R8  = Parm#3 = Background erase flag, 0=Background unchanged
+call [InvalidateRect]  ; This cause callback WM_PAINT operation
+.SkipSilent:
+
 ; Load pointer to thread control structure
 lea r15,[DrawThreadParms]
 
@@ -37,7 +47,8 @@ jc .BackgroundSkip  ; Go skip operations if error, note this is separate thread
 .BackgroundProcess:
 
 cmp [r15 + DTHP.MeasureCounter],DRAW_POINTS_COUNT
-jae .BackgroundSkip    ; Can replace this to wait with minimum utilization ?
+je .SilentBranch
+ja .BackgroundSkip    ; Can replace this to wait with minimum utilization ?
 
 lea rsi,[InputParms]
 lea rdi,[OutputParms]
@@ -56,10 +67,6 @@ mov rdx,rsi
 mov r8d,[rsi + IPB.UpdatedThreads]
 call ThreadsUpdateAdaptive
 .NoAdaptive:
-
-; Get start time point
-; lea rcx,[rsp+32]
-; call [GetSystemTimeAsFileTime]
 
 ; Select Bandwidth or Latency measurement mode
 cmp [rsi + IPB.UpdatedAsm],LATENCY_MODE
@@ -97,25 +104,6 @@ call ThreadsReStart
 jc .BackgroundSkip  ; Go skip operations if error, note this is separate thread
 
 .DoneBandwidthOrLatency:
-
-; mov [rdi + OPB.TSCtimerDelta],rax   ; Store delta-TSC, units = TSC clocks
-; ; Get stop time point
-; lea rcx,[rsp+40]
-; call [GetSystemTimeAsFileTime]
-; mov rax,[rsp+40]
-; sub rax,[rsp+32]
-; mov [rdi + OPB.OStimerDelta],rax    ; Store delta-OS timer, units = 100 ns 
-
-;
-;mov edx,[r15 + DTHP.MeasureCounter]
-;shl edx,4
-;lea rdi,[r15 + DTHP.MeasureArray + rdx]
-;stosq  ; Store delta TSC, clocks
-;mov rax,[rsi + IPB.StartBlockSize]   ; Block size, units = bytes
-;mov rdx,[rsi + IPB.MeasureRepeats]
-;mul rdx                              ; Multiply by measurement repeats
-;stosq  ; Store full length, bytes
-;
 
 ; Calculte and store CPI = Clocks per Instruction,
 ; CPI = f ( Delta TSC, Instructions count )
@@ -167,8 +155,6 @@ loop .YesApproxMode    ; approximation duplication cycle
 .BackgroundSkip:
 cmp [r15 + DTHP.MeasureBreak],0
 je .BackgroundProcess
- 
-.BackgroundBreak: 
 
 ; Signaling thread STOP
 mov rcx,[r15 + DTHP.EventDone]    ; RCX = Parm#1 = Handle for thread done event
@@ -181,3 +167,16 @@ mov rsp,rbp
 pop r15 r14 r13 r12 rbp rdi rsi rbx
 xor eax,eax                       ; RAX = 0, return code = 0
 ret
+
+; Drawings window invalidation for silent mode: show at drawings end
+.SilentBranch:
+mov al,0
+xchg [SilentMode],al
+cmp al,0
+je .BackgroundSkip
+mov rcx,[Handle_Win1]  ; Parm#1 = Window handle
+jrcxz .BackgroundSkip
+xor edx,edx            ; RDX = Parm#2 = Pointer to invalidated region, 0=All window
+xor r8d,r8d            ; R8  = Parm#3 = Background erase flag, 0=Background unchanged
+call [InvalidateRect]  ; This cause callback WM_PAINT operation
+jmp .BackgroundSkip 

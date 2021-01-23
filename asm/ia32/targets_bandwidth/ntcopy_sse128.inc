@@ -24,7 +24,7 @@ jz Small_NtCopy_SSE128         ; Go if Length < 16 instructions
 ; Big cycle
 DumpStart_NtCopy_SSE128:
 Block_NtCopy_SSE128:
-; patch v0.98.1
+; Prefetch, except last 1 iteration
 cmp edx,1
 je @f
 prefetchnta [eax-16*08+256]
@@ -32,7 +32,7 @@ prefetchnta [eax-16*04+256]
 prefetchnta [eax+16*00+256]
 prefetchnta [eax+16*04+256]
 @@:
-; end of patch v0.98.1
+; Read
 movaps xmm0,[eax-16*08]
 movntps [ebx-16*08],xmm0
 movaps xmm1,[eax-16*07]

@@ -20,7 +20,6 @@ xor r8d,r8d                     ; R8  = Parm#3 = Not used = 0
 xor r9d,r9d                     ; R9  = Parm#4 = Not used = 0
 call [SendMessage]
 cmp rax,1                       ; BST_CHECKED=1, set ZF=1 if this
-; Done
 mov rsp,rbp
 ret
 

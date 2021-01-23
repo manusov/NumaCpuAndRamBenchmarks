@@ -26,7 +26,7 @@ push rsi
 lea rsi,[AM_Strings_Prefix]     ; RSI = Pointer to strings sequence
 mov eax,[r8+IPB.UpdatedAsm]     ; AL = Selector
 inc al
-mov ah,ASM_LIMIT
+mov ah,ASM_RESULT_LIMIT
 call StringWriteSelected        ; Write string selected by AL from pool [rsi]
 pop rsi
 ; (2) Operand width, bits
@@ -78,12 +78,20 @@ mov eax,[r8+IPB.UpdatedTarget]
 mov ah,TARGET_LIMIT
 call StringWriteSelected
 pop rsi
-; (9) Operation block size per thread
+; (9) Prefetch distance
+call StringWrite_CRLF_Equal
+push rsi
+lea rsi,[PD_00]
+mov eax,[r8+IPB.UpdatedDistance]
+mov ah,PD_LIMIT
+call StringWriteSelected
+pop rsi
+; (10) Operation block size per thread
 call StringWrite_CRLF_Equal
 mov rax,[r8+IPB.StartBlockSize]
 mov bl,1             ; BL = Units select for size print, old = 0FFh = auto
 call SizePrint64     ; Note pssible adaptive, but "15.5K" is optimal, yet "K" fixed
-; (10) Measurement profile, brief/careful/brief adaptive/careful adaptive
+; (11) Measurement profile, brief/careful/brief adaptive/careful adaptive
 call StringWrite_CRLF_Equal
 push rsi
 lea rsi,[Measure_00]

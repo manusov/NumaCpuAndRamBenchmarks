@@ -36,6 +36,7 @@ start:
 lea ebx,[InputParms]
 
 mov [ebx+IPB.UpdatedAsm],34  ; 35  ; 12
+mov [ebx+IPB.UpdatedDistance],2
 mov [ebx+IPB.OperandWidth],256
 mov [ebx+IPB.UpdatedThreads],1
 mov [ebx+IPB.UpdatedHT],1
@@ -106,6 +107,6 @@ include 'scenario_simple\connect_var.inc'
 section '.idata' import data readable writeable
 library user32, 'USER32.DLL', kernel32, 'KERNEL32.DLL', gdi32, 'GDI32.DLL'
 include 'api\user32.inc'    ; Win API, user interface
-include 'api\gdi32.inc'     ; Win API, graphice 
+include 'api\gdi32.inc'     ; Win API, graphics 
 include 'api\kernel32.inc'  ; Win API, OS standard kernel functions
 

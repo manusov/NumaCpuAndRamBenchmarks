@@ -73,4 +73,11 @@ include 'ntrcopy_avx512.inc'   ; Copy by VMOVNTDQA + VMOVNTPD (512 bit)
 ; Non-temporal (non-cacheable read-by-prefetch and write) mode
 include 'ntpread_sse128.inc'   ; Read by PREFETCHNTA + MOVAPS (128 bit)
 include 'ntpread_avx256.inc'   ; Read by PREFETCHNTA + VMOVAPD (256 bit)
+; Non-temporal read mode with extended prefetch distance options
+include 'ntpread_medium_sse128.inc'   ; Same read with prefetch distance + 512
+include 'ntpread_medium_avx256.inc'   ; Same read with prefetch distance + 512
+include 'ntpread_long_sse128.inc'     ; Same read with prefetch distance + 2048
+include 'ntpread_long_avx256.inc'     ; Same read with prefetch distance + 2048
 
+
+ 

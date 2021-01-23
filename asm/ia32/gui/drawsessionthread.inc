@@ -16,6 +16,18 @@ DrawSessionThread:
 ; Entry point, must be compliant Microsoft x64 calling convention.
 push ebx esi edi ebp
 
+; Drawings window invalidation for silent mode: show at drawings start 
+cmp [SilentMode],0
+je .SkipSilent
+mov eax,[Handle_Win1]
+test eax,eax
+jz .SkipSilent
+push 0                 ; Parm#3 = Background erase flag, 0=Background unchanged
+push 0                 ; Parm#2 = Pointer to invalidated region, 0=All window
+push eax               ; Parm#1 = Window handle
+call [InvalidateRect]  ; This cause callback WM_PAINT operation
+.SkipSilent:
+
 ; Signaling thread START
 push [DrawThreadParms + DTHP.EventStart]   ; Parm#1 = Handle for thread start event
 call [SetEvent]                            ; Call WinAPI function
@@ -31,7 +43,8 @@ jc .BackgroundSkip  ; Go skip operations if error, note this is separate thread
 .BackgroundProcess:
 
 cmp [DrawThreadParms + DTHP.MeasureCounter],DRAW_POINTS_COUNT
-jae .BackgroundSkip    ; Can replace this to wait with minimum utilization ?
+je .SilentBranch
+ja .BackgroundSkip     ; Can replace this to wait with minimum utilization ?
 
 lea esi,[InputParms]       ; ESI = Pointer to Input Parameters Block (IPB)
 lea edi,[OutputParms]      ; EDI = Pointer to Output Parameters Block (OPB)
@@ -50,10 +63,6 @@ mov edx,esi                          ; EDX = Pointer to IPB
 mov ecx,[esi + IPB.UpdatedThreads]   ; ECX = Number of threads 
 call ThreadsUpdateAdaptive
 .NoAdaptive:
-
-;- Get start time point
-;- lea rcx,[rsp+32]
-;- call [GetSystemTimeAsFileTime]
 
 ; Select Bandwidth or Latency measurement mode
 cmp [esi + IPB.UpdatedAsm],LATENCY_MODE
@@ -92,24 +101,6 @@ jc .BackgroundSkip  ; Go skip operations if error, note this is separate thread
 
 .DoneBandwidthOrLatency:
 
-;- mov [rdi + OPB.TSCtimerDelta],rax   ; Store delta-TSC, units = TSC clocks
-;- ; Get stop time point
-;- lea rcx,[rsp+40]
-;- call [GetSystemTimeAsFileTime]
-;- mov rax,[rsp+40]
-;- sub rax,[rsp+32]
-;- mov [rdi + OPB.OStimerDelta],rax    ; Store delta-OS timer, units = 100 ns 
-;
-;- mov edx,[r15 + DTHP.MeasureCounter]
-;- shl edx,4
-;- lea rdi,[r15 + DTHP.MeasureArray + rdx]
-;- stosq  ; Store delta TSC, clocks
-;- mov rax,[rsi + IPB.StartBlockSize]   ; Block size, units = bytes
-;- mov rdx,[rsi + IPB.MeasureRepeats]
-;- mul rdx                              ; Multiply by measurement repeats
-;- stosq  ; Store full length, bytes
-;
-
 ; Calculte and store CPI = Clocks per Instruction,
 ; CPI = f ( Delta TSC, Instructions count )
 mov ecx,[DrawThreadParms + DTHP.MeasureCounter]
@@ -119,13 +110,6 @@ lea edi,[DrawThreadParms + DTHP.MeasureArray + ecx]
 push edx eax   ; EDX:EAX = Delta TSC per target operation, integer 64-bit
 finit
 fild qword [esp]
-;- mov eax,[esi + IPB.StartBlockSize]  ; Block size, units = bytes
-;- mul [esi + IPB.MeasureRepeats]      ; Multiply by total bytes per measurement cycle
-;- mov ecx,[esi + IPB.OperandWidth]    ; RCX = bits per instruction
-;- shr ecx,3                           ; RCX = bytes per instruction
-;- div ecx                             ; Note can use x87 to prevent exception 0
-;- mov [esp],eax
-;- fild dword [esp]  ; ST0 = Instruction cound, ST1 = Delta TSC
 fild [esi + IPB.MeasureRepeats]   ; Multiply by total bytes per measurement cycle
 fimul [esi + IPB.StartBlockSize]  ; Block size, units = bytes 
 mov eax,[esi + IPB.OperandWidth]  ; EAX = bits per instruction
@@ -170,8 +154,6 @@ loop .YesApproxMode    ; approximation duplication cycle
 .BackgroundSkip:
 cmp [DrawThreadParms + DTHP.MeasureBreak],0
 je .BackgroundProcess
- 
-.BackgroundBreak: 
 
 ; Signaling thread STOP
 push [DrawThreadParms + DTHP.EventDone]    ; Parm#1 = Handle for thread done event
@@ -181,3 +163,18 @@ call [SetEvent]                            ; Call WinAPI function
 pop ebp edi esi ebx
 xor eax,eax                                ; EAX = 0, return code = 0
 ret 4
+
+; Drawings window invalidation for silent mode: show at drawings end
+.SilentBranch:
+mov al,0
+xchg [SilentMode],al
+cmp al,0
+je .BackgroundSkip
+mov eax,[Handle_Win1]
+test eax,eax
+jz .BackgroundSkip
+push 0                 ; Parm#3 = Background erase flag, 0=Background unchanged
+push 0                 ; Parm#2 = Pointer to invalidated region, 0=All window
+push eax               ; Parm#1 = Window handle
+call [InvalidateRect]  ; This cause callback WM_PAINT operation
+jmp .BackgroundSkip 

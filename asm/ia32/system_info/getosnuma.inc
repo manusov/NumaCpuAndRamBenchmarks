@@ -3,6 +3,7 @@
 ; INPUT:   EDI = Destination pointer for save OS NUMA info               ;
 ;                                                                        ;
 ; OUTPUT:  EDI = Input EDI + 516 , buffer size fixed = 516 bytes         ;
+;                Input EDI + 260 for ia32                                ;
 ;          Destination memory at [input EDI] = Results, 0=Not detected	 ;
 ;          Dword [000-003] = Number of NUMA Domains, 0=Not detected      ;
 ;          Qword [004-011] = Domain (Node) #0 Affinity Mask              ;
@@ -18,8 +19,8 @@ push ebx esi ebp 0      ; Note push 0 for create local variable
 mov ebp,esp             ; EBP = Pointer to local variable
 
 ; Blank results
-mov ebx,edi             ; RBX = Backup output region address
-mov ecx,516
+mov ebx,edi             ; EBX = Backup output region address
+mov ecx,516             ; Extra size cleared (516 instead 260) for ia32
 mov al,0
 rep stosb
 
@@ -63,7 +64,7 @@ dec dword [ebp]         ; Nodes counter -1
 jns .NumaScan           ; Stop cycle when make [ebp] = -1
 
 ; Exit points
-lea edi,[ebx + 260]     ; Output EDI must be valid, even if no NUMA, note +516 for x64
+lea edi,[ebx + 260]     ; Output EDI must be valid, even if no NUMA, note +260 for ia32
 .Exit:
 pop eax ebp esi ebx
 ret

@@ -49,8 +49,6 @@ push [ebx + THCTRL.EventStart]     ; Parm#1 = Handle for this thread
 call [WaitForSingleObject]
 
 ; Repeat measurement iteration in this thread
-;- jmp .ThreadRepeat
-
 cmp [PrimaryChildsBreak],0
 je .ThreadRepeat
 
@@ -116,8 +114,6 @@ push [ebx + THCTRL.EventStart]     ; Parm#1 = Handle for this thread
 call [WaitForSingleObject]
 
 ; Repeat measurement iteration in this thread
-;- jmp .ThreadRepeat
-
 cmp [PrimaryChildsBreak],0
 je .ThreadRepeat
 

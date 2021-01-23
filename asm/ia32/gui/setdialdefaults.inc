@@ -33,6 +33,16 @@ push HANDLE_X86_READ             ; Parm#2 = First radiobutton or checkbox
 push ebx                         ; Parm#1 = Parent handle
 call [CheckRadioButton]          ; Set radio button
 
+; Options, set "Default prefetch distance" if SSE supported
+test [esi+SSE128_METHOD_1],edi
+jnz @f
+push HANDLE_DISTANCE_DEFAULT     ; Parm#4 = Selected radiobutton or checkbox 
+push HANDLE_DISTANCE_LONG        ; Parm#3 = Last radiobutton or checkbox
+push HANDLE_DISTANCE_DEFAULT     ; Parm#2 = First radiobutton or checkbox
+push ebx                         ; Parm#1 = Parent handle
+call [CheckRadioButton]          ; Set radio button
+@@:
+
 ; Options, set "Use Parallel Threads" button = off, if enabled
 lea esi,[PARALLEL_NUMA_PG_BASE]
 test [esi+E_PARALLEL_THREADS],edi
@@ -122,7 +132,6 @@ push ebx
 call [CheckRadioButton]
 
 ; Options, Editable field for custom block size
-
 push Edit_Size            ; Parm#4 = Source buffer
 push 0                    ; Parm#3 = Don't used
 push WM_SETTEXT           ; Parm#2 = Command, "WM" means Window Message
@@ -151,6 +160,7 @@ test edx,edx
 jz .PrintBlock            ; Go print if valid, if Size < 4GB (high bits = 0)
 @@:
 mov eax,00010000h         ; Set default size = 64KB if all invalid
+
 ; Print block size  
 .PrintBlock:
 lea edi,[Edit_Size]

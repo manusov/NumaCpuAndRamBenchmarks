@@ -24,7 +24,7 @@ mov ebx,256                  ; EBX = Addend
 ; Big cycle                  ; 256 bytes per cycle with 16 128-bit SSE registers
 DumpStart_NtpRead_SSE128:
 Block_NtpRead_SSE128:
-; patch v0.98.1
+; Prefetch, except last 1 iteration
 cmp edx,1
 je @f
 prefetchnta [eax-16*08+ebx]
@@ -32,7 +32,7 @@ prefetchnta [eax-16*04+ebx]
 prefetchnta [eax+16*00+ebx]
 prefetchnta [eax+16*04+ebx]
 @@:
-; end of patch v0.98.1
+; Read
 movaps xmm0,[eax-16*08]
 movaps xmm1,[eax-16*07]
 movaps xmm2,[eax-16*06]

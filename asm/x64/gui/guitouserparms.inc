@@ -38,6 +38,18 @@ jbe @b                             ; Cycle for radio buttons group
 sub esi,HANDLE_X86_READ            ; 0 = First method toggler
 mov [rdi + UPB.OptionAsm],esi      ; Write method number = ESI 
 
+; Extract PREFETCH DISTANCE, for this option detect CHECKED only
+mov esi,HANDLE_DISTANCE_DEFAULT    ; Compare pattern = FIRST handle
+@@:
+call SendMessageGetCheck
+jz @f                              ; Go if BST_CHECKED (button state checked)
+inc esi
+cmp esi,HANDLE_DISTANCE_LONG       ; Compare with LAST handle
+jbe @b                             ; Cycle for radio buttons group
+@@:
+sub esi,HANDLE_DISTANCE_DEFAULT    ; 0 = First method toggler, ... , 3 = not used
+mov [rdi + UPB.OptionDistance],esi ; Write option state = ESI 
+
 ; Extract USE PARALLEL THREADS, for this option detect both GRAY and CHECKED 
 xor eax,eax                        ; PARALLEL_NOT_SUP
 test dword [PARALLEL_NUMA_PG_BASE + E_PARALLEL_THREADS],ebx  ; EBX = WS_DISABLED

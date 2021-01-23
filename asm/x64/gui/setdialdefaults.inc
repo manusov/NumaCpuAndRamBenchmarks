@@ -35,6 +35,16 @@ mov r8d,HANDLE_LAST_METHOD    ; R8  = Parm#3 = Last radiobutton or checkbox
 movzx r9d,al                  ; R9  = Parm#4 = Selected radiobutton or checkbox 
 call [CheckRadioButton]       ; Set radio button
 
+; Options, set "Default prefetch distance" if SSE supported
+test [rsi+SSE128_METHOD_1],edi
+jnz @f
+mov rcx,rbx                      ; RCX = Parm#1 = Parent handle
+mov edx,HANDLE_DISTANCE_DEFAULT  ; RDX = Parm#2 = First radiobutton or checkbox          
+mov r8d,HANDLE_DISTANCE_LONG     ; R8  = Parm#3 = Last radiobutton or checkbox
+mov r9d,HANDLE_DISTANCE_DEFAULT  ; R9  = Parm#4 = Selected radiobutton or checkbox 
+call [CheckRadioButton]          ; Set radio button
+@@:
+
 ; Options, set "Use Parallel Threads" button = off, if enabled
 lea rsi,[PARALLEL_NUMA_PG_BASE]
 test [rsi+E_PARALLEL_THREADS],edi
@@ -167,6 +177,9 @@ xor r8d,r8d             ; R8  = Parm#3 = Select: 0=Disable, R13 from previous st
 xor r9d,r9d             ; R9  = Parm#4 = Not used
 call [SendMessage]                  
 
-; Done
-jmp DoneCreateWindow    ; Go to registers restore and return, R8-R11 because API, volatile
+; Done, registers restore and return, R8-R11 because API, volatile
+mov rsp,rbp
+pop rax r11 r10 r9 r8 rbp rsi rax rdx rcx rbx    ; R8-R11 because API, volatile
+ret
+
 

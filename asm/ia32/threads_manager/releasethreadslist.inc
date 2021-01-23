@@ -17,14 +17,8 @@ mov esi,ecx                    ; ESI = Pointer to Threads list
 mov edi,edx                    ; EDI = Number of used Threads
 ; Set nodes list limit
 mov ebx,MAX_THREADS            ; EBX = Maximum number of Threads
-
 ; Terminate threads routines
 call ThreadsReStartBreak
-
-;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
-
-; Delay for return from thread routine
-;- call DelayThreadReturn
 
 ; Cycle for release threads
 .ReleaseThreads:
@@ -38,8 +32,6 @@ call [WaitForSingleObject]
 test eax,eax                         ; Status=0 means wait OK, special encoding
 jnz .ReleaseError                    ; Go exit if error 
 @@:
-
-;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
 
 ; Terminate threads
 mov ecx,[esi + THCTRL.ThreadHandle]  ; ECX = THREAD handle

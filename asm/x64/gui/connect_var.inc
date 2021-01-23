@@ -10,6 +10,13 @@
 BlockSizeEdit     DQ  ?    ; CUSTOM for selection: L1/L2/L3/L4/Custom
 
 ;------------------------------------------------------------------------------;
+;     Support silent draw mode: GUI windows handles and silent mode flag.      ;
+;------------------------------------------------------------------------------;
+Handle_Win0       DQ  ?    ; Handle for main window, yet not used
+Handle_Win1       DQ  ?    ; Handle for drawings window, used for revisual
+SilentMode        DB  ?    ; Silent mode flag, 1 = Slow screen refresh
+
+;------------------------------------------------------------------------------;
 ;               MSG message descriptor structure (for Win64).                  ;
 ;------------------------------------------------------------------------------;
 

@@ -13,6 +13,7 @@
 ; drawing cycle.                                                              ;
 ; Can destroy registers, volatile by Microsoft ia32 calling convention.       ;
 ;-----------------------------------------------------------------------------;
+
 ThreadsUpdateBlockSize:
 push ebx esi edi
 
@@ -56,7 +57,7 @@ jmp .L0
 ThreadsUpdatePattern:
 @@:
 mov [ebx + THCTRL.EntryPoint],eax   ; EAX = pointer to pattern routine
-; Cycle
+; Cycle for all threads
 add ebx,THCTRL_SIZE                 ; EBX = threads entries pointer
 loop @b                             ; ECX = threads entries counter
 ret

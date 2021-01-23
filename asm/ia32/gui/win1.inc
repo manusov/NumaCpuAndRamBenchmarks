@@ -59,6 +59,8 @@ jmp .WinFinish
 ;------------------ Handler for system event: window create -------------------;
 
 .WinCreate:
+; Pre-disable silent mode
+mov [SilentMode],0
 ; Initializing drawing context
 mov [DrawParms + DRPM.DrawPreviousY],0
 ; Build buttons
@@ -115,7 +117,7 @@ call [CreateFont]
 mov [HandleFont],eax 
 ; Create and set timer, for benchmarks progress (but not for measure)
 push 0                      ; Parm#4 = Notify function pointer, not used here
-push TIMER_TICK             ; Parm#3 = Timer ticks period, ms
+push TIMER_TICK_SHOW        ; Parm#3 = Timer ticks period, ms
 push 0                      ; Parm#2 = Event ID
 push ebx                    ; Parm#1 = Parent window handle
 call [SetTimer]
@@ -141,18 +143,10 @@ mov [DrawThreadParms + DTHP.MeasureBreak],1
 push THREAD_TIME_LIMIT                    ; Parm#2 = Time limit
 push [DrawThreadParms + DTHP.EventDone]   ; Parm#1 = Handle for done event
 call [WaitForSingleObject]
-
-;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
-
-; Delay for return from thread routine
-;- call DelayThreadReturn
-
+; Wait thread terminated by thread handle
 push THREAD_TIME_LIMIT                      ; Parm#2 = Time limit
 push [DrawThreadParms + DTHP.ThreadHandle]  ; Parm#1 = Thread handle
 call [WaitForSingleObject]
-
-;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
-
 ; Note status after [WaitForSingleObject] ignored, better check it
 ; De-Initialize graphics context
 push [HandleMemDC]
@@ -193,7 +187,6 @@ xor eax,eax
 jmp .WinFinish
 
 
-
 ;----------------- Handler for user event: buttons input ----------------------;
 
 .WinCommand:
@@ -203,30 +196,45 @@ jne .WinDefaultProc   ; Run default OS handler if Window 1 not initialized yet
 ;--- Detecting buttons ---
 cmp ebp,HANDLE_BUTTON_CANCEL1
 je .WinDestroy                        ; Go if "Cancel" button
-cmp ebp,HANDLE_BUTTON_RUN1
-jne .WinDefaultProc                   ; Go if not "Resize" button
+cmp ebp,HANDLE_BUTTON_RESIZE1
+je .WinResize                         ; Go if "Resize" button
+cmp ebp,HANDLE_BUTTON_SILENT1
+jne .WinDefaultProc                   ; Go if not "Silent" button
+
+;------------------------ "Silent" button handler -----------------------------;
+
+mov eax,TIMER_TICK_SILENT   ; Period (ms) for screen refresh frequency = low 
+mov cl,1                    ; Silent Mode = 1
+jmp .WinResizeEntry
 
 ;------------------------ "Resize" button handler -----------------------------; 
 
-; Set thread break flag
+.WinResize:
+mov eax,TIMER_TICK_SHOW     ; Period (ms) for screen refresh frequency = high
+mov cl,0                    ; Silent Mode = 0
+; Entry point for silent mode branch
+.WinResizeEntry:
+push ecx
+; Start parameters frame here
+push 0                      ; Parm#4 = Notify function pointer, not used here
+push eax                    ; Parm#3 = Timer ticks period, ms
+push 0                      ; Parm#2 = Event ID
+push ebx                    ; Parm#1 = Parent window handle
+call [SetTimer]
+; Set thread break flag, cause measurement thread termination 
 mov [DrawThreadParms + DTHP.MeasureBreak],1
 ; Wait for measurement thread done, this event at thread exit point
 push THREAD_TIME_LIMIT                    ; Parm#2 = Time limit
 push [DrawThreadParms + DTHP.EventDone]   ; Parm#1 = Handle for done event
 call [WaitForSingleObject]
-
-;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
-
-; Delay for return from thread routine
-;- call DelayThreadReturn
-
+; Wait measurement thread terminated by thread handle
 push THREAD_TIME_LIMIT                      ; Parm#2 = Time limit
 push [DrawThreadParms + DTHP.ThreadHandle]  ; Parm#1 = Thread handle
 call [WaitForSingleObject]
-
-;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
-
 ; Note status after [WaitForSingleObject] ignored, better check it
+; When previous thread terminated, can set [SilentMode]
+pop ecx
+mov [SilentMode],cl 
 ; Remove thread and associated handles, note can corrupt pointers
 call DrawSessionStop
 ; Clear drawings variables 
@@ -428,7 +436,7 @@ fst [DrawThreadParms + DTHP.StatCpiMedian]
 call HelperCPItoNSPI
 fstp [DrawThreadParms + DTHP.StatNspiMedian]
 
-;; Get median MBPS, recalculate because reciprocal restrictions
+; Get median MBPS, recalculate because reciprocal restrictions
 lea ecx,[esi - 1]
 shr ecx,1                      ; This branch for median ODD-sized array
 fld qword [ebx + ecx*8]        ; Get median
@@ -460,9 +468,6 @@ fmul [DrawParms + DRPM.Ymultiplier]  ; ST0 = Pixel offset from BaseY=0, negative
 push eax
 fistp dword [esp]
 pop eax
-
-;- XOR EAX,EAX  ; DEBUG FOR HORIZONTAL LINE
-
 ; Setup coordinates for GUI,
 ; note at this point can set EAX=0 for draw horizontal line DEBUG.
 add eax,SUBWINY-GRIDBLANKY - 1
@@ -579,7 +584,7 @@ add esi,GRIDSTEPX           ; Add X grid step
 dec edi                     ; Cycle for X-grid vertical lines
 jnz .XVgrid
 
-;; Coordinate Y-grid, horizontal lines
+; Coordinate Y-grid, horizontal lines
 mov esi,SUBWINY-GRIDBLANKY  ; ESI = Base point, Y
 mov edi,GRIDY               ; EDI = Number of lines
 .YHgrid:
@@ -1009,7 +1014,7 @@ ret
 ;          RSI, EBP is non volatile for this subroutine              ;
 ;--------------------------------------------------------------------;      
 
-; Entry point for Y fixed (R8D, EAX pre-defined)
+; Entry point for Y fixed (ECX, EAX pre-defined)
 HelperWriteStatisticsYconst:
 mov ecx,24 + 23
 mov eax,42 + 23

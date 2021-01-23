@@ -24,7 +24,7 @@ mov ebx,512                  ; EBX = Addend
 ; Big cycle
 DumpStart_NtpRead_AVX256:
 Block_NtpRead_AVX256:
-; important addition at v0.99.0
+; Prefetch, except last 2 iterations
 cmp edx,2
 jbe @f
 prefetchnta [eax-32*08+ebx*2]
@@ -36,7 +36,7 @@ prefetchnta [eax+32*02+ebx*2]
 prefetchnta [eax+32*04+ebx*2]
 prefetchnta [eax+32*06+ebx*2]
 @@:
-; end of addition v0.99.0
+; Read
 vmovapd ymm0,[eax-32*08]
 vmovapd ymm1,[eax-32*07]
 vmovapd ymm2,[eax-32*06]

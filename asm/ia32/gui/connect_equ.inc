@@ -106,13 +106,9 @@ Y_DIV = 10
 DEFAULT_Y_MBPS_PER_GRID = Y_RANGE_MAX_BANDWIDTH / Y_DIV  ; Default units per grid Y , megabytes per second
 DEFAULT_Y_NS_PER_GRID = Y_RANGE_MAX_LATENCY / Y_DIV      ; Default units per grid Y , nanoseconds
 
-; Benchmarks measurement and visualization timings parameters
-; Unused timer constants disabled.
-;- TIMER_MEASURE = 15     ; Milliseconds per tick, measurement constant interval  
-;- TIMER_VISUAL  = 50     ; Milliseconds per tick, benchmarks progress visual
-
 ; Benchmarks visualization timings parameters
-TIMER_TICK       = 50     ; Milliseconds per tick, benchmarks progress timer
+TIMER_TICK_SHOW    = 50     ; Milliseconds per tick, benchmarks progress timer
+TIMER_TICK_SILENT  = 60000  ; 1 revisual per 1 minute, for silent mode
 
 ; Draw parameters layout declaration
 ; Note optimal layout is qwords alignment 8

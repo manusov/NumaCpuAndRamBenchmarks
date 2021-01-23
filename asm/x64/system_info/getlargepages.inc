@@ -2,7 +2,7 @@
 ;                                                                        ;
 ; INPUT:   RDI = Destination pointer for save destination info           ;
 ;                                                                        ;
-; OUTPUT:  RDI = Input RDI + 9 , buffer size fixed = 9 bytes             ;
+; OUTPUT:  RDI = Input RDI + 12 , buffer size fixed = 12 bytes           ;
 ;          Destination memory at [input RDI] = Results, 0=Not detected	 ;
 ;          Qword [000-007] = Large page size (minimum if some variants)  ;
 ;          Dword [008-011] = Availability flag:                          ; 

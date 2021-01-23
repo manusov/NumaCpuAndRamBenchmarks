@@ -1,11 +1,11 @@
 ;==============================================================================;
 ;                                                                              ;
-;               NCRB (NUMA CPU&RAM Benchmarks). Win32 Edition.                 ;
-;                           (C)2019 IC Book Labs.                              ;
+;               NCRB (NUMA CPU&RAM Benchmarks). Win64 Edition.                 ;
+;                           (C)2021 IC Book Labs.                              ;
 ;                                                                              ;
 ;  This file is main module: translation object, interconnecting all modules.  ;
 ;                                                                              ;
-;         Translation by Flat Assembler version 1.73.16 (Aug 04, 2019)         ;
+;         Translation by Flat Assembler version 1.73.25 (Aug 20, 2020)         ;
 ;                         http://flatassembler.net/                            ;
 ;                                                                              ;
 ;       Edit by FASM Editor 2.0, use this editor for correct tabulations.      ;
@@ -15,8 +15,8 @@
 
 
 ;------------------------------ DEFINITIONS -----------------------------------;
-; FASM definitions for Win32
-include 'win32a.inc'
+; FASM definitions for Win64
+include 'win64a.inc'
 ; NCRB definitions
 include 'global\connect_equ.inc'             ; Global library and data
 include 'gui\connect_equ.inc'                ; GUI library and data
@@ -31,10 +31,13 @@ include 'threads_manager\connect_equ.inc'    ; Threads and memory management
 
 
 ;------------------------------- CODE secion ----------------------------------;
-format PE GUI 4.0
+format PE64 GUI
 entry start
 section '.text' code readable executable
 start:
+
+; Allocate stack space and alignment
+sub rsp,8*5
 
 ; Pre-load library ADVAPI32.DLL, next step uses GetModuleHandle, GetProcAddress
 ; for detect functions entry points. Returned handle and status stored but 
@@ -42,20 +45,15 @@ start:
 ; detected at next step: at subroutine SystemFunctionsLoad
 ; Note pre-load KERNEL32.DLL not required because static import used.
 ; Load this library (ADVAPI32.DLL), because it not loaded by static import
-push NameAdvapi32
+lea rcx,[NameAdvapi32]
 call [LoadLibrary]
-mov [HandleAdvapi32],eax       ; Store EAX = Library handle
+mov [HandleAdvapi32],rax       ; Store RAX = Library handle
 
 ; Load optional system functions, dynamical import used
 ; For this functions cannot use static import,
 ; because required Win XP (x64) compatibility
 call SystemFunctionsLoad       ; This subroutine output CF=1 if error
-call ShowWarningAPI            ; This subroutine input CF as warning flag
-
-; Show warning if NCRB ia32 version runs under Win64, note this is possible
-; but non-optimal, can use NCRB x64 version for this platform.
-call CheckWoW64                ; This subroutine output CF=1 if WoW64 detected
-call ShowWarningWoW64          ; This subroutine input CF as warning flag
+call ShowWarningAPI            ; This subroutine input CF as error flag
 
 ; Get system information
 call GetSystemParameters       ; Get system information into fixed buffer
@@ -64,10 +62,19 @@ call SysParmsToBuffer          ; Extract sys. info text strings
 call SysParmsToGui             ; Update GUI widgets by sys. info results
 
 ; Create (Open) parent window = Window 0, terminology notes: WS = Window Style
-lea ebx,[Create_Win0] 
-call CreateApplicationWindow    ; AL  = 0 , means first call
-lea eax,[MessageBadWindow]      ; EAX = Pointer to error string, used if abort
-jz .Exit                        ; Go if error returned
+lea rsi,[PRODUCT_ID]           ; RSI = Window name string pointer
+lea rdi,[Dialogue_Win0]        ; RDI = Dialogue descriptor pointer
+mov r10d,WS_VISIBLE+WS_DLGFRAME+WS_SYSMENU ; R10 = Window Style
+mov r11d,WIN0_XBASE            ; R11 = Window X-base
+mov r12d,WIN0_YBASE            ; R12 = Window Y-base
+mov r13d,WIN0_XSIZE            ; R13 = Window X-size
+mov r14d,WIN0_YSIZE            ; R14 = Window Y-size
+xor ebx,ebx                    ; RBX = 0, means no parent handle
+xor eax,eax                    ; AH  = 0 , means parent = Application
+call CreateApplicationWindow   ; AL  = 0 , means first call
+mov [Handle_Win0],rax          ; Store RAX = Window handle, main window
+lea r15,[MessageBadWindow]     ; R14 = Error string, used if abort
+jz .Error                      ; Go if error returned
 
 ; Get messages with wait user events for window from OS
 ; GetMessage subroutine parameters
@@ -79,39 +86,38 @@ jz .Exit                        ; Go if error returned
 ; 0, means returned WM_QUIT, returned when window subroutine
 ;    call PostQuitMessage subroutine, means quit
 ; 1, means process event
-mov byte [Win0_Init],1         ; Enable commands handling by callback routine
-lea edi,[DialogueMsg_Win0]     ; EDI = MSG structure
-call WaitEvent                 ; Window 1 work as callbacks inside this
+mov byte [Win0_Init],1           ; Enable commands handling by callback routine
+lea rdi,[DialogueMsg_Win0]       ; RDI = MSG structure
+call WaitEvent                   ; Window 1 work as callbacks inside this
 
 ; Exit application with unload dynamical import
 .Exit:
 
 ; Unload dynamical import
-mov ecx,[HandleAdvapi32]         ; ECX = Library ADVAPI32.DLL handle
-jecxz @f                         ; Go skip unload if handle = null
-push ecx                         ; Parm#1 = Library ADVAPI32.DLL handle
+mov rcx,[HandleAdvapi32]         ; RCX = Library ADVAPI32.DLL handle
+jrcxz @f                         ; Go skip unload if handle = null
 call [FreeLibrary]               ; Unload ADVAPI32.DLL
 @@:
 
 ; Exit application
-push 0                           ; Parm#1 = Exit code for this application
+xor ecx,ecx                      ; RCX = Exit code for this application
 call [ExitProcess]               ; Exit application, NO RETURN from this call
 
 ; Exit point for error exit, terminology note: MB = Message Box
 ; Error handling: display OS message box, return button ID (not used)
-; Parm#1 = Parent window handle
-; Parm#2 = Pointer to message string must be valid at this point,
-;	         value get from transit storage: EBP
-; Parm#3 = Caption=0 means error message, otherwise pointer to caption
-; Parm#4 = Message Box Icon Error = MB_ICNERROR
-; Output = EAX = Pressed button ID, not used at this call
+; Parm#1 = RCX = Parent window handle
+; Parm#2 = RDX = Pointer to message string must be valid at this point,
+;	         value get from transit storage: R15
+; Parm#3 = R8  = Caption=0 means error message, otherwise pointer to caption
+; Parm#4 = R9  = Message Box Icon Error = MB_ICNERROR
+; Output = RAX = Pressed button ID, not used at this call
 ; Note INVOKE replaced to instructions for code size optimization!
 ; invoke MessageBoxA,0,r14,0,MB_ICONERROR
 .Error:
-push MB_ICONERROR   ; Parm#4
-push 0              ; Parm#3
-push ebp            ; Parm#2
-push 0              ; Parm#1
+xor ecx,ecx	          ; Parm#1, this clear entire RCX by x64 architecture rules
+mov rdx,r15	          ; Parm#2
+xor r8d,r8d	          ; Parm#3
+mov r9d,MB_ICONERROR  ; Parm#4
 call [MessageBoxA]
 jmp .Exit             ; Go exit with dynamical imported library unload
 
@@ -162,6 +168,6 @@ include 'threads_manager\connect_var.inc'      ; Threads management variables
 section '.idata' import data readable writeable
 library user32, 'USER32.DLL', kernel32, 'KERNEL32.DLL', gdi32, 'GDI32.DLL'
 include 'api\user32.inc'    ; Win API, user interface
-include 'api\gdi32.inc'     ; Win API, graphice 
+include 'api\gdi32.inc'     ; Win API, graphics 
 include 'api\kernel32.inc'  ; Win API, OS standard kernel functions
 

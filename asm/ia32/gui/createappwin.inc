@@ -7,6 +7,7 @@
 ;                see WINDESC macro at gui\connect_equ.inc           ;
 ;                                                                   ;
 ; OUTPUT:  ZF flag = Status: 0(NZ)=OK, 1(Z)=Error                   ;
+;          EAX = Created window handle or 0 if error, valid if NZ   ;
 ;          Variables state                                          ;
 ;-------------------------------------------------------------------;
 
@@ -63,7 +64,7 @@ jz .DoneCreateWindow                 ; Go if error returned
 xor eax,eax                            ; This for compact push zeroes
 push eax                               ; Parm#12 = 0
 push [edi + WNDCLASSEX.hInstance]      ; Parm#11 = Handle
-push eax	                             ; Parm#10 = 0
+push eax                               ; Parm#10 = 0
 push eax                               ; Parm#9  = 0 or Parent
 movzx ecx,word [ebx + 24]
 push ecx                               ; Parm#8  = Ysize
@@ -78,7 +79,9 @@ push dword [ebx + 00]                  ; Parm#3  = Name
 push [edi + WNDCLASSEX.lpszClassName]  ; Parm#2  = Class
 push eax                               ; Parm#1  = Style
 call [CreateWindowEx]                  ; Call Win API function
-test eax,eax                           ; EAX = Status, 0 if error
+; Must return EAX and ZF
+mov [esp + 28],eax
+test eax,eax                           ; EAX = Handle / Status, 0 if error
 ; Done
 .DoneCreateWindow:
 popad

@@ -57,6 +57,8 @@ jmp .WinFinish
 ;------------------ Handler for system event: window create -------------------;
 
 .WinCreate:
+; Pre-disable silent mode
+mov [SilentMode],0
 ; Initializing drawing context
 mov [DrawParms + DRPM.DrawPreviousY],0
 ; Build buttons
@@ -118,7 +120,7 @@ mov [HandleFont],rax
 ; Create and set timer, for benchmarks progress (but not for measure)
 mov rcx,rbx                            ; Parm#1 = RCX = Parent window handle
 xor edx,edx                            ; Parm#2 = RDX = Event ID
-mov r8d,TIMER_TICK                     ; Parm#3 = R8 = Timer ticks period, ms
+mov r8d,TIMER_TICK_SHOW                ; Parm#3 = R8 = Timer ticks period, ms
 xor r9d,r9d                            ; Parm#4 = R9 = Notify function pointer, not used here
 call [SetTimer]
 ; Wait thread started (1 of 2 waits)
@@ -145,19 +147,10 @@ mov [DrawThreadParms + DTHP.MeasureBreak],1
 mov rcx,[DrawThreadParms + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done event
 mov edx,THREAD_TIME_LIMIT                    ; RDX = Parm#2 = Time limit
 call [WaitForSingleObject]
-
-;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
-
-; Delay for return from thread routine
-;- call DelayThreadReturn
-;- call DelayThreadSmall
-
+; Wait thread terminated by thread handle
 mov rcx,[DrawThreadParms + DTHP.ThreadHandle]  ; RCX = Parm#1 = Thread handle
 mov edx,THREAD_TIME_LIMIT                      ; RDX = Parm#2 = Time limit
 call [WaitForSingleObject]
-
-;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
-
 ; Note status after [WaitForSingleObject] ignored, better check it
 ; De-Initialize graphics context
 mov rcx,[HandleMemDC]
@@ -177,7 +170,7 @@ jnz @b
 ; Delete font
 mov rcx,[HandleFont]
 call [DeleteObject]
-;--- Delete timer ---
+; Delete timer
 mov rcx,rbx                            ; Parm#1 = RCX = Parent window handle
 xor rdx,rdx                            ; Set same as for SetTimer function
 call [KillTimer]
@@ -211,31 +204,41 @@ jne .WinDefaultProc   ; Run default OS handler if Window 1 not initialized yet
 ;--- Detecting buttons ---
 cmp r8,HANDLE_BUTTON_CANCEL1
 je .WinDestroy                        ; Go if "Cancel" button
-cmp r8,HANDLE_BUTTON_RUN1
-jne .WinDefaultProc                   ; Go if not "Resize" button
+cmp r8,HANDLE_BUTTON_RESIZE1
+je .WinResize                         ; Go if "Resize" button
+cmp r8,HANDLE_BUTTON_SILENT1
+jne .WinDefaultProc                   ; Go if not "Silent" button
+
+;------------------------ "Silent" button handler -----------------------------;
+
+mov r8d,TIMER_TICK_SILENT   ; Timer period (ms), screen refresh low frequency
+mov edi,1                   ; Silent Mode = 1
+jmp .WinResizeEntry
 
 ;------------------------ "Resize" button handler -----------------------------; 
 
+.WinResize:
+mov r8d,TIMER_TICK_SHOW     ; Timer period (ms), screen refresh high frequency
+xor edi,edi                 ; Silent Mode = 0
+; Entry point for silent mode branch
+.WinResizeEntry:    ; R8  = Parm#3 = Timer ticks period, ms
+mov rcx,rbx         ; RCX = Parm#1 = Parent window handle
+xor edx,edx         ; RDX = Parm#2 = Event ID
+xor r9d,r9d         ; R9  = Parm#4 = Notify function pointer, not used here
+call [SetTimer]
 ; Set thread break flag
 mov [DrawThreadParms + DTHP.MeasureBreak],1
 ; Wait for measurement thread done, this event at thread exit point
 mov rcx,[DrawThreadParms + DTHP.EventDone]   ; RCX = Parm#1 = Handle for done event
 mov edx,THREAD_TIME_LIMIT                    ; RDX = Parm#2 = Time limit
 call [WaitForSingleObject]
-
-;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
-
-; Delay for return from thread routine
-;- call DelayThreadReturn
-;- call DelayThreadSmall
-
+; Wait thread terminated by thread handle
 mov rcx,[DrawThreadParms + DTHP.ThreadHandle]  ; RCX = Parm#1 = Thread handle
 mov edx,THREAD_TIME_LIMIT                      ; RDX = Parm#2 = Time limit
 call [WaitForSingleObject]
-
-;--- CONSTANT DELAY REPLACED TO WAIT THREAD TERMINATION ---
-
 ; Note status after [WaitForSingleObject] ignored, better check it
+; When previous thread terminated, can set [SilentMode]
+mov [SilentMode],dil
 ; Remove thread and associated handles, note can corrupt pointers
 call DrawSessionStop
 ; Clear drawings variables 

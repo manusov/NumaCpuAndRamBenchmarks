@@ -12,21 +12,6 @@
 
 SysParmsToBuffer:
 
-;=== DEBUG SYSTEM PARAMETERS ADDRESSING ===
-; INT3
-; MOV EAX,[SystemParameters.LargePageSize]
-; MOV EDX,[SystemParameters.LargePageFlag]
-; MOV EAX,[SystemParameters.SystemInfo.dwNumberOfProcessors]
-; MOV EAX,DWORD [SystemParameters.MemoryInfo.ullTotalPhys + 0]
-; MOV EDX,DWORD [SystemParameters.MemoryInfo.ullTotalPhys + 4]
-;
-; LEA EAX,[SystemParameters.SystemInfo]
-; LEA EDX,[SystemParameters.MemoryInfo]
-; NOP
-; NOP
-; NOP 
-;=== END DEBUG PART ===
-
 ; Initializing pointers
 lea esi,[TextTfms]
 lea ebp,[TEMP_BUFFER + 000]
@@ -183,13 +168,6 @@ mov ax,'  '
 stosw
 stosw
 @@:                          ; Cycle for print first 4 NUMA nodes bitmap
-
-;- lodsd
-;- ;- xchg edx,eax
-;- ;- lodsd
-;- ;- xchg edx,eax
-;- call HexPrint32  ; 64
-
 lodsd
 xchg edx,eax
 lodsd
@@ -265,13 +243,6 @@ mov edx,[ebx + 4]
 mov ebp,1024*1024             ; RBP = Divisor for Bytes to Megabytes, 32 clear 64
 div ebp                       ; RAX = Physical memory by OS, Megabytes
 mov byte [edi],'?'
-;-
-;- inc rdi
-;- shld rdx,rax,32
-;- test edx,edx                  ; Check bits [63-32] of Size, Megabytes
-;- jnz @f                        ; Go skip print if overflow
-;- dec rdi
-;-
 push ebx
 mov bl,0                         ; BL = Print template mode = 0 = no template
 call DecimalPrint32
@@ -301,8 +272,6 @@ call DecimalPrint32    ; Print large page size
 @@:
 mov al,0
 stosb
-
-; Done
 ret
 
 

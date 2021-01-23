@@ -56,15 +56,47 @@ lea ebx,[SystemParameters]  ; EBX = Pointer for sys. info detected at NCRB start
 ; test object = f ( user settings object )
 mov eax,[esi + UPB.OptionAsm]
 mov edx,[esi + UPB.OptionTarget]
-cmp eax,ASM_LIMIT
+cmp eax,ASM_ARGUMENT_LIMIT
 ja .L0
 cmp edx,TARGET_LIMIT
 ja .L0
+; Select CPU-specific non-temporal optimization
 mov ecx,[ebx + SYSPARMS.NonTemporalRead]
 inc ecx
 imul ecx,ecx,AM_BYTE_COUNT
+
+; Select prefetch distance for non-temporal optimization
+push eax
+mov [edi + IPB.UpdatedDistance],PD_NOT_USED
+mov eax,[esi + UPB.OptionDistance]
+cmp eax,PD_DEFAULT
+jne .L20
+mov [edi + IPB.UpdatedDistance],eax
+.L20:
+cmp eax,PD_MEDIUM
+jne .L21
+mov [edi + IPB.UpdatedDistance],eax
+add ecx,AM_BYTE_COUNT * 4
+.L21:
+cmp eax,PD_LONG
+jne .L22
+mov [edi + IPB.UpdatedDistance],eax
+add ecx,AM_BYTE_COUNT * 8
+.L22:
+pop eax
+
+; Remove prefetch distance option if associated methods not detected
+cmp eax,READ_SSE_MODE
+je .L40
+cmp eax,READ_AVX_MODE
+je .L40
+mov [edi + IPB.UpdatedDistance],PD_NOT_USED
+.L40: 
+
+; Remove non-temporal optimization if object type not a DRAM
 cmp edx,TARGET_DRAM
 je .L2
+mov [edi + IPB.UpdatedDistance],PD_NOT_USED  ; Remove prefetch distance option if not a DRAM
 xor ecx,ecx
 .L2:
 movzx eax,byte [AM_Selector + eax + ecx]
@@ -73,6 +105,7 @@ jmp .L1
 xor eax,eax
 .L1:
 mov [edi + IPB.UpdatedAsm],eax       ; Select assembler method ID
+
 ; Setup tested object
 mov [edi + IPB.UpdatedTarget],edx    ; Select target object (Cache/DRAM/Custom)
 
@@ -224,10 +257,7 @@ jmp .L9
 shr ecx,1              ; ( Size/2 - 512 ) for "Run simple", but
 cmp ecx,edx            ; other logic required for "Run drawings"
 ja .L16                ; Go skip correction if ( ECX = L(i)/2 ) > ( EDX = L(i-1) )
-;- lea rcx,[rcx*2+rdx] ; Support for exclusive cache L(i) / L(i-1) sizes ratio
-;- shr rcx,1
-add ecx,edx
-;-
+add ecx,edx            ; Support for exclusive cache L(i) / L(i-1) sizes ratio
 .L16:
 sub ecx,512 
 ; Done arithmetic, store block size
@@ -322,11 +352,6 @@ mov [edi + IPB.DomainsCount],1
 cmp [edi + IPB.UpdatedThreads],1
 jbe .L30                         ; Go if not a multi-thread mode
 
-; Changed: Get this from system or from one domain
-; mov eax,[SystemParameters.SystemInfo.dwNumberOfProcessors]
-
-; INT3
-
 ;--- This code executed only for NUMA Option = single domain 
 xor eax,eax                 ; Pre-blank logical CPU count = 0
 mov edx,dword [NumaNodesList + NUMACTRL.NodeAffinity]  ; Node 0 affinity mask
@@ -374,15 +399,12 @@ mov [esi],eax   ; write mask to last NUMA domain entry
 mov eax,[edi + IPB.MemoryTotal]   ; EAX = Total memory allocated 
 mov ecx,[edi + IPB.DomainsCount]  ; ECX = Number of NUMA nodes
 
-; INT3
-
 ;--- Skip division buffer size by nodes count if threads count = 1 
 cmp [edi + IPB.UpdatedThreads],1
 je .L33          ; Skip if threads = 1 and all memory allocated at node 0
 xor edx,edx
 div ecx          ; Divide  allocated memory / node count  for multi-thread 
 .L33:
-;---
 
 lea ebx,[NumaNodesList]           ; EBX = Base address of NUMA nodes list
 mov edx,ecx                       ; EDX = Number of NUMA nodes 

@@ -5,10 +5,10 @@
 ; OUTPUT:  CF = Error flag, 0(NC)=Executed OK, 1(C)=Error                ;
 ;          Output RDI valid only if CF=0(NC)                             ;
 ;                                                                        ;
-;          EDI = Input EDI + 112 , buffer size fixed = 112 bytes         ;
+;          EDI = Input EDI + 100 , buffer size fixed = 100 bytes         ;
 ;          Destination memory at [input EDI] = Results, 0=Not detected   ;
-;          --- 48 Bytes SYSTEM_INFO (see MSDN)                           ;
-;          --- note ia32 version uses 36 bytes, but reserved 48 bytes    ;
+;          --- 48 Bytes SYSTEM_INFO (see MSDN) for x64                   ;
+;          --- note ia32 version uses 36 bytes                           ;
 ;          wProcessorArchitecture      dw ?                              ;
 ;          wReserved                   dw ?                              ;
 ;          dwPageSize                  dd ?                              ;
@@ -37,7 +37,7 @@
 GetOsMemoryInfo:
 push ebx esi ebp
 
-; Here buffer not blanked by REP STOSB, and RDI valid only if no errors,
+; Here buffer not blanked by REP STOSB, and EDI valid only if no errors,
 ; because errors in this function is fatal and application exit
 
 ; Get System Info

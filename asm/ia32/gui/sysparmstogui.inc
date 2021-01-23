@@ -29,6 +29,10 @@ jnz @f                          ; Skip disable operation if SSE128 supported
 or [ebx+SSE128_METHOD_1],edx    ; Disable SSE128 tests if not supported
 or [ebx+SSE128_METHOD_2],edx
 or [ebx+SSE128_METHOD_3],edx
+; Also for prefetch distance control
+or [ebx+DISTANCE_DEFAULT_OPTION],edx
+or [ebx+DISTANCE_MEDIUM_OPTION],edx
+or [ebx+DISTANCE_LONG_OPTION],edx
 @@:
 test al,00000010b
 jnz @f                          ; Skip disable operation if AVX256 supported

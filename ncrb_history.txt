@@ -1,3 +1,13 @@
+23.01.2021 (v1.05.00 versions for ia32 and x64).
+1) Added manual control for prefetch distance.
+   Yet supported for Read SSE-128 and Read AVX-256 if target object is DRAM
+   (not a cache or user-defined region).
+2) Added "Silent" button for drawings window.
+   This mode without realtime visualization, recommended for slow platforms
+   and platforms with incorrect video drvers.
+
+
+
 06.09.2019 (v1.04.02 versions for ia32 and x64).
 Change GUI logic: main window operational when work child window.
 Remove disable and re-enable for entire main window.

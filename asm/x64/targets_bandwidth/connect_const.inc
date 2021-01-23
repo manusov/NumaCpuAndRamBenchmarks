@@ -56,6 +56,15 @@ BANDWIDTH_ENTRY  Pattern_NtRCopy_AVX512 , DumpStart_NtRCopy_AVX512 , DumpStop_Nt
 BANDWIDTH_ENTRY  Pattern_NtpRead_SSE128 , DumpStart_NtpRead_SSE128 , DumpStop_NtpRead_SSE128 , 16    ; ID = 32
 BANDWIDTH_ENTRY  Pattern_NtCopy_SSE128  , DumpStart_NtCopy_SSE128  , DumpStop_NtCopy_SSE128  , 16    ; This duplicated 1
 BANDWIDTH_ENTRY  Pattern_NtpRead_AVX256 , DumpStart_NtpRead_AVX256 , DumpStop_NtpRead_AVX256 , 32    ; ID = 34
+; Non-temporal read mode with extended prefetch distance option: PD + 512 bytes
+BANDWIDTH_ENTRY  Pattern_NtpRead_M_SSE128 , DumpStart_NtpRead_M_SSE128 , DumpStop_NtpRead_M_SSE128 , 16    ; ID = 35
+BANDWIDTH_ENTRY  Pattern_NtCopy_SSE128    , DumpStart_NtCopy_SSE128    , DumpStop_NtCopy_SSE128    , 16    ; This duplicated 1
+BANDWIDTH_ENTRY  Pattern_NtpRead_M_AVX256 , DumpStart_NtpRead_M_AVX256 , DumpStop_NtpRead_M_AVX256 , 32    ; ID = 37
+; Non-temporal read mode with extended prefetch distance option: PD + 2048 bytes
+BANDWIDTH_ENTRY  Pattern_NtpRead_L_SSE128 , DumpStart_NtpRead_L_SSE128 , DumpStop_NtpRead_L_SSE128 , 16    ; ID = 38
+BANDWIDTH_ENTRY  Pattern_NtCopy_SSE128    , DumpStart_NtCopy_SSE128    , DumpStop_NtCopy_SSE128    , 16    ; This duplicated 1
+BANDWIDTH_ENTRY  Pattern_NtpRead_L_AVX256 , DumpStart_NtpRead_L_AVX256 , DumpStop_NtpRead_L_AVX256 , 32    ; ID = 40
+
 ; Reserved for same 256-512 bit operations
 ; FMA with non-temporal store
 ; ... reserved ...

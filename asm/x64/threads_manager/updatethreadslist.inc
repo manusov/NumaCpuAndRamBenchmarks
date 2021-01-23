@@ -51,7 +51,7 @@ ret
 ThreadsUpdatePattern:
 @@:
 mov [rcx + THCTRL.EntryPoint],r9   ; R9 = pointer to pattern routine
-; Cycle
+; Cycle for all threads
 add rcx,THCTRL_SIZE                ; RCX = threads entries pointer
 dec r8d                            ; R8D = threads entries counter
 jnz @b 

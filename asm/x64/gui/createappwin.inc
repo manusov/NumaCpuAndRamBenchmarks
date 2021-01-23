@@ -15,15 +15,15 @@
 ;          R14 = Window Y-size                                      ;
 ;                                                                   ;
 ; OUTPUT:  ZF flag = Status: 0(NZ)=OK, 1(Z)=Error                   ;
+;          RAX = Created window handle or 0 if error, valid if NZ   ;
 ;          Variables state                                          ;
 ;-------------------------------------------------------------------;
 
 CreateApplicationWindow:
-;- cld                                          ; Clear direction, because STOSQ used
-push rbx rcx rdx rax rsi rbp r8 r9 r10 r11 rax  ; R8-R11 because API, volatile
-mov rbp,rsp                                     ; RBP used for restore RSP and addressing variables
-and rsp,0FFFFFFFFFFFFFFF0h                      ; Align stack
-sub rsp,32                                      ; Make parameters shadow
+push rbx rcx rdx rsi rbp r8 r9 r10 r11   ; R8-R11 because API, volatile
+mov rbp,rsp                              ; RBP used for restore RSP and addressing variables
+and rsp,0FFFFFFFFFFFFFFF0h               ; Align stack
+sub rsp,32                               ; Make parameters shadow
 ; Start initializing window elements
 test al,al
 jnz .SkipInitWin         ; Go if repeat call, already initialized
@@ -53,7 +53,7 @@ mov rcx,rdi             ; Parm#1 = Pointer to descriptor
 call [RegisterClassEx]  ; Register window class
 test rax,rax
 @@:
-jz DoneCreateWindow     ; Go if error returned
+jz .DoneCreateWindow     ; Go if error returned
 ; Start Create Window, create and show window
 ; Parm#1  = Extended window style = 0 , means none
 ; Parm#2  = Pointer to Window class name = ClassName
@@ -76,18 +76,18 @@ push rax  ;  rbx                          ; Parm#9  = 0 or Parent
 push r14                                  ; Parm#8  = Ysize
 push r13                                  ; Parm#7  = Xsize 
 push r12                                  ; Parm#6  = Ybase
-push qword [rbp+08]                       ; Parm#5  = Xbase, R11 is volatile
-mov r9,[rbp+16]                           ; Parm#4  = Style, R10 is volatile
+push qword [rbp+00]                       ; Parm#5  = Xbase, R11 is volatile
+mov r9,[rbp+08]                           ; Parm#4  = Style, R10 is volatile
 mov r8,rsi                                ; Parm#3  = Name
 mov rdx,[rdi+WNDCLASSEX.lpszClassName]    ; Parm#2  = Class
 xor ecx,ecx                               ; Parm#1  = Style
 sub rsp,32	                              ; Make parameters shadow
 call [CreateWindowEx]	                    ; Call function
 add rsp,32+8*8	                          ; Remove shadow and parameters
-test rax,rax                              ; RAX = Status, 0 if error
+test rax,rax                              ; RAX = Handle / Status, 0 if error
 ; Done
-DoneCreateWindow:    ; This branch must not corrupt flags, ZF used
+.DoneCreateWindow:    ; This branch must not corrupt flags, ZF used
 mov rsp,rbp
-pop rax r11 r10 r9 r8 rbp rsi rax rdx rcx rbx    ; R8-R11 because API, volatile
+pop r11 r10 r9 r8 rbp rsi rdx rcx rbx     ; R8-R11 because API, volatile
 ret
 

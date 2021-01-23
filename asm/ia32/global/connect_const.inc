@@ -16,11 +16,11 @@ BasePointGui:
 ;------------------------------------------------------------------------------;
 ; Application, version and vendor description information.                     ;
 ;------------------------------------------------------------------------------;
-PRODUCT_ID     DB  'NUMA CPU&RAM Benchmarks for Win32',0                                    
+PRODUCT_ID     DB  'NUMA CPU&RAM Benchmark for Win32',0                                    
 ABOUT_CAP      DB  'Program info',0
-ABOUT_ID       DB  'NUMA CPU&RAM Benchmarks'    , 0Dh,0Ah
-               DB  'v1.04.02 for Windows ia32'  , 0Dh,0Ah
-               DB  '(C)2019 IC Book Labs'       , 0Dh,0Ah,0
+ABOUT_ID       DB  'NUMA CPU&RAM Benchmark'     , 0Dh,0Ah
+               DB  'v1.05.00 for Windows ia32'  , 0Dh,0Ah
+               DB  '(C)2021 IC Book Labs'       , 0Dh,0Ah,0
 
 ;------------------------------------------------------------------------------;
 ; Memory size and speed units.                                                 ;
@@ -41,10 +41,21 @@ U_NS           DB  'nanoseconds',0
 ; Methods selector bytes
 AM_Selector:
 ; AM_COUNT bytes per line
-DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 35, 36   ; Temporal, NT optimization not required
-DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 32, 20, 33, 34, 22, 23, 15, 24, 25, 18, 19, 35, 36   ; NT mode = NT Read by VMOVNTDQA not supported
-DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 26, 20, 27, 12, 22, 23, 15, 24, 25, 18, 19, 35, 36   ; NT mode = SSE4.1 only supported
-DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 26, 20, 27, 28, 22, 29, 30, 24, 31, 18, 19, 35, 36   ; NT mode = both SSE4.1 and AVX2 supported
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 41, 42   ; Temporal, NT optimization not required
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 32, 20, 33, 34, 22, 23, 15, 24, 25, 18, 19, 41, 42   ; NT mode 0 = NT Read by VMOVNTDQA not supported
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 26, 20, 27, 12, 22, 23, 15, 24, 25, 18, 19, 41, 42   ; NT mode 1 = SSE4.1 only supported
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 26, 20, 27, 28, 22, 29, 30, 24, 31, 18, 19, 41, 42   ; NT mode 2 = both SSE4.1 and AVX2 supported
+; Additions for extra prefetch distance: medium
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 41, 42
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 35, 20, 36, 37, 22, 23, 15, 24, 25, 18, 19, 41, 42   ; changed 35, 20, 36, 37, medium prefetch distance, note NT mode 0 forced
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 26, 20, 27, 12, 22, 23, 15, 24, 25, 18, 19, 41, 42
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 26, 20, 27, 28, 22, 29, 30, 24, 31, 18, 19, 41, 42
+; Additions for extra prefetch distance: long 
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 41, 42
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 38, 20, 39, 40, 22, 23, 15, 24, 25, 18, 19, 41, 42   ; changed 38, 20, 39, 40, long prefetch distance, note NT mode 0 forced
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 26, 20, 27, 12, 22, 23, 15, 24, 25, 18, 19, 41, 42
+DB  00, 01, 02, 03, 04, 05, 06, 07, 08, 26, 20, 27, 28, 22, 29, 30, 24, 31, 18, 19, 41, 42
+
 ; Methods names
 AM_Strings_Prefix:
 AM_XX  DB  '?',0
@@ -91,9 +102,17 @@ AM_33  DB  'Non-temporal copy SSE-128 (PREFETCHNTA+MOVAPS+MOVNTPS)',0  ; 33
 ; Additions for non-temporal Read if CPU not supports (V)MOVNTDQA, v0.99.0
 ; also if (V)MOVNTDQA is supported, but non-optimal
 AM_34  DB  'Non-temporal read AVX-256 (PREFETCHNTA+VMOVAPD)',0         ; 34
+; Additions for extra prefetch distance: medium
+AM_35  DB  'Non-temporal read SSE-128 (PREFETCHNTA+MOVAPS)',0          ; 35
+AM_36  DB  'Non-temporal copy SSE-128 (PREFETCHNTA+MOVAPS+MOVNTPS)',0  ; 36
+AM_37  DB  'Non-temporal read AVX-256 (PREFETCHNTA+VMOVAPD)',0         ; 37
+; Additions for extra prefetch distance: long
+AM_38  DB  'Non-temporal read SSE-128 (PREFETCHNTA+MOVAPS)',0          ; 38
+AM_39  DB  'Non-temporal copy SSE-128 (PREFETCHNTA+MOVAPS+MOVNTPS)',0  ; 39
+AM_40  DB  'Non-temporal read AVX-256 (PREFETCHNTA+VMOVAPD)',0         ; 40
 ; Additions for latency measurement
-AM_35  DB  'Measure latency (LCM)',0                                   ; 35  
-AM_36  DB  'Measure latency (RDRAND)',0                                ; 36
+AM_41  DB  'Measure latency (LCM)',0                                   ; 41  
+AM_42  DB  'Measure latency (RDRAND)',0                                ; 42
 
 ; Hyper-threading option strings, for simple result window
 HT_00            DB  'disabled by platform',0
@@ -122,6 +141,11 @@ Target_02        DB  'L3 cache',0
 Target_03        DB  'L4 cache',0
 Target_04        DB  'DRAM',0
 Target_05        DB  'Custom block',0
+; Prefetch distance option strings
+PD_00            DB  'default',0          
+PD_01            DB  'medium',0
+PD_02            DB  'long',0
+PD_03            DB  'not used by this test',0
 ; Measurement options strings
 Measure_00       DB  'brief',0
 Measure_01       DB  'careful',0

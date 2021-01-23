@@ -95,30 +95,6 @@ xor edx,edx
 @@:
 mov ebp,15      ; 4 registers * 4 bytes - 1 unused (AL)
 
-;-
-; .CacheDescriptors:
-; shrd eax,ebx,8
-; shrd ebx,ecx,8
-; shrd ecx,edx,8
-; shr edx,8
-; lea esi,[IntelTraceCaches]
-; .CacheValues:
-; cmp al,[esi + 0]
-; jne @f
-; push eax
-; movzx eax,byte [esi + 1]        ; EAX = Trace Cache size, KuOps
-; shl eax,10                      ; EAX = Trace Cache size, uOps
-; mov dword [edi - 60 + 0],eax    ; Store Trace Cache size, uOps
-; mov dword [edi - 60 + 4],0 
-; pop eax
-; @@:
-; add esi,2
-; cmp byte [esi],0
-; jne .CacheValues        ; Cycle for possible Cache types IDs  
-; dec ebp
-; jnz .CacheDescriptors   ; Cycle for Cache Descriptors array 
-;-
-
 .CacheDescriptors:
 shrd eax,ebx,8
 shrd ebx,ecx,8

@@ -35,6 +35,7 @@ call GetSystemParameters
 
 ;-----------------------------------------;
 OPTION_ASM_METHOD          EQU  12                   ; { asm methods (routines) list }
+OPTION_DISTANCE            EQU  PD_NOT_USED          ; Prefetch distance option ( PD_PEFAULT, PD_MEDIUM, PD_HIGH, PD_NOT_USED )
 OPTION_TARGET_OBJECT       EQU  TARGET_L1            ; { L1, L2, L3, L4, DRAM, CUSTOM }
 OPTION_PARALLEL            EQU  PARALLEL_USED        ; { NOT_SUP, NOT_USED, USED }  
 OPTION_HYPER_THREADING     EQU  HT_NOT_SUPPORTED     ; { GRAY_NOT_SUP, DISABLED, ENABLED }
@@ -48,6 +49,7 @@ OPTION_CUSTOM_BLOCK_DELTA  EQU  0                    ; Override delta block size
 
 lea rsi,[UserParms]
 mov [rsi + UPB.OptionAsm]        , OPTION_ASM_METHOD
+mov [esi + UPB.OptionDistance]   , OPTION_DISTANCE
 mov [rsi + UPB.OptionParallel]   , OPTION_PARALLEL
 mov [rsi + UPB.OptionHT]         , OPTION_HYPER_THREADING
 mov [rsi + UPB.OptionPG]         , OPTION_PROCESSOR_GROUPS 
@@ -70,6 +72,7 @@ call SessionStop
 ; emulate options settings for unit test
 ;lea rbx,[InputParms]
 ;mov [rbx+IPB.UpdatedAsm],34  ; 35  ; 12
+; --- add prefetch distance option ---
 ;mov [rbx+IPB.OperandWidth],256
 ;mov [rbx+IPB.UpdatedThreads],1
 ;mov [rbx+IPB.UpdatedHT],1
@@ -137,6 +140,6 @@ include 'threads_manager\connect_var.inc'
 section '.idata' import data readable writeable
 library user32, 'USER32.DLL', kernel32, 'KERNEL32.DLL', gdi32, 'GDI32.DLL'
 include 'api\user32.inc'    ; Win API, user interface
-include 'api\gdi32.inc'     ; Win API, graphice 
+include 'api\gdi32.inc'     ; Win API, graphics 
 include 'api\kernel32.inc'  ; Win API, OS standard kernel functions
 
