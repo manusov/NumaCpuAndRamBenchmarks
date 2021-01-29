@@ -11,11 +11,20 @@
 ;          EAX = Subroutine #2 entry point, walker              ; 
 ;---------------------------------------------------------------; 
 GetLatencyPattern:
-movzx eax,al                             ; This clears bits EAX[31-8]
-imul eax,eax,6                           ; 6 = sizeof.LATENCY_ENTRY
-movzx eax,word [LatencyPatterns + eax]   ; Read 16-bit compact offset
-lea ebx,[LatencyPatternsBase + eax]      ; Calculate 32-bit absolute address
-lea eax,[Pattern_Latency_Walk]
+push ecx                          ; This routine changes output parameters only
+movzx eax,al                      ; This clears bits EAX[31-8] 
+imul eax,eax,6                    ; 6 = sizeof.LATENCY_ENTRY 
+lea ecx,[LatencyPatterns_32]      ; ECX = Pointer to set 32 or set 32x2 
+cmp al,6                          ; EAX = Pattern index inside set
+jbe .x2                           ; Go if first set of patterns (32)
+sub al,6*2                        ; This branch for second set (32x2)
+lea ecx,[LatencyPatterns_32x2]
+.x2:
+movzx ebx,word [ecx + eax]        ; EBX = 16-bit compact offset of Builder  
+add ebx,LatencyPatternsBase       ; EBX = Pointer to Builder
+movzx eax,word [ecx + 6*2]        ; EAX = 16-bit compact offset of Walker 
+add eax,LatencyPatternsBase       ; EAX = Pointer to Walker
+pop ecx
 ret
 
 ;--- Get pointer to performance pattern cycle body for dump by ID ---;
@@ -28,15 +37,25 @@ ret
 GetLatencyDump:
 movzx eax,al
 imul eax,eax,6   ; sizeof.BANDWIDTH_ENTRY
-movzx ecx,byte [LatencyPatterns + eax + 5]
-movzx edx,byte [LatencyPatterns + eax + 4]
-movzx eax,word [LatencyPatterns + eax + 2]
+cmp al,6
+ja .x2
+add eax,LatencyPatterns_32          ; EAX = Pointer to set 32 
+jmp .xLoad
+.x2:
+add eax,LatencyPatterns_32x2 - 6*2  ; EAX = Pointer to set 32x2
+.xLoad:
+movzx ecx,byte [eax + 5]
+movzx edx,byte [eax + 4]
+movzx eax,word [eax + 2]
 add eax,LatencyPatternsBase
 ret
 
 ; Start offset for compact offsets encoding
 LatencyPatternsBase:
 ; Latency measurement
-include 'latency_lcm.inc'      ; Build walk list, use linear congruental method
-include 'latency_rdrand.inc'   ; Build walk list, use RDRAND instruction
-include 'latency_walk.inc'     ; Walk on pre-builded walk list
+include 'latency_lcm_32.inc'       ; Build walk list, use linear congruental method, for one 32-bit load
+include 'latency_rdrand_32.inc'    ; Build walk list, use RDRAND instruction, for one 32-bit load
+include 'latency_walk_32.inc'      ; Walk on pre-builded walk list, one 32-bit load
+include 'latency_lcm_32x2.inc'     ; Build walk list, use linear congruental method, for two 32-bit loads match x64 version
+include 'latency_rdrand_32x2.inc'  ; Build walk list, use RDRAND instruction, for two 32-bit loads match x64 version
+include 'latency_walk_32x2.inc'    ; Walk on pre-builded walk list, two 32-bit loads match x64 version

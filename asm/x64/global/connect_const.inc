@@ -19,7 +19,7 @@ BasePointGui:
 PRODUCT_ID     DB  'NUMA CPU&RAM Benchmark for Win64',0                                    
 ABOUT_CAP      DB  'Program info',0
 ABOUT_ID       DB  'NUMA CPU&RAM Benchmark'    , 0Dh,0Ah
-               DB  'v1.05.00 for Windows x64'  , 0Dh,0Ah
+               DB  'v1.06.00 for Windows x64'  , 0Dh,0Ah
                DB  '(C)2021 IC Book Labs'      , 0Dh,0Ah,0
 
 ;------------------------------------------------------------------------------;
@@ -111,8 +111,8 @@ AM_38  DB  'Non-temporal read SSE-128 (PREFETCHNTA+MOVAPS)',0          ; 38
 AM_39  DB  'Non-temporal copy SSE-128 (PREFETCHNTA+MOVAPS+MOVNTPS)',0  ; 39
 AM_40  DB  'Non-temporal read AVX-256 (PREFETCHNTA+VMOVAPD)',0         ; 40
 ; Additions for latency measurement
-AM_41  DB  'Measure latency (LCM)',0                                   ; 41  
-AM_42  DB  'Measure latency (RDRAND)',0                                ; 42
+AM_41  DB  'Latency (LCM)',0                                           ; 41  
+AM_42  DB  'Latency (RDRAND)',0                                        ; 42
 
 ; Hyper-threading option strings, for simple result window
 HT_00            DB  'disabled by platform',0

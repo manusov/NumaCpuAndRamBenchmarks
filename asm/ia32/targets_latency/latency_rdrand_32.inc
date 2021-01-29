@@ -9,16 +9,14 @@
 ;          Registers corrupted                                                 ;
 ;------------------------------------------------------------------------------;
 
-Pattern_Latency_RDRAND:
+Pattern_Latency_RDRAND_32:
 ; Initializing parameters for build linear list, build linear list  
 push edi ecx esi 
 xor eax,eax
-xor edx,edx
-mov ebp,8
+mov ebp,4
 
 .BuildLinear:                ; This cycle for build sequental offsets list
 mov [esi+0],eax
-mov [esi+4],edx
 add esi,ebp
 add eax,ebp
 dec ecx
@@ -39,11 +37,11 @@ jnc .BuildRandom      ; Wait Hardware RNG ready
 and eax,edi
 cmp eax,ebp
 jae .BuildRandom
-shl eax,3
+shl eax,2
 add eax,[esp+00]                   ; dword [esp+00] = unmodified base ESI
 push dword [eax] dword [esi]
 pop dword [eax] dword [esi]
-add esi,8
+add esi,4
 dec ecx
 jnz .BuildRandom
 
@@ -52,12 +50,11 @@ pop esi ecx edi
 ; Initializing parameters for build linked random offsets list, build it
 push esi
 xor eax,eax           ; EAX = Value
-mov ebp,8             ; EBP = Addend
+mov ebp,4             ; EBP = Addend
 .BuildLinked:         ; This cycle for build linked random offsets list
 mov ebx,[esi]
 add ebx,edi
-mov [ebx+0],eax
-mov [ebx+4],eax       ; Duplicate at high dword
+mov [ebx],eax
 mov eax,ebx
 add esi,ebp
 dec ecx

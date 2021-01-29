@@ -146,8 +146,8 @@ TSCtimerDelta     dq  ?    ; delta time at units = 1 TSC clk., 64-bit long int.
 ends
 
 ; Assembler Methods (AM) option values count and Bandwidth/Latency criteria
-AM_BYTE_COUNT       EQU  22     ; 22 bytes per methods primary list
-LATENCY_MODE        EQU  41     ; modes ID = 41, 42 for latency measurement
+AM_BYTE_COUNT       EQU  24     ; 24 bytes per methods primary list
+LATENCY_MODE        EQU  41     ; modes ID = 41-44 for latency measurement
 READ_SSE_MODE       EQU  9      ; for add information about prefetch distance
 READ_AVX_MODE       EQU  12     ; for add information about prefetch distance
 
@@ -155,7 +155,7 @@ READ_AVX_MODE       EQU  12     ; for add information about prefetch distance
 ; 36 codes of assembler option, argument for AM_Selector translation
 ASM_ARGUMENT_LIMIT  EQU  AM_BYTE_COUNT - 1
 ; 42 names for assembler methods, result of AM_Selector translation
-ASM_RESULT_LIMIT    EQU  42 + 1
+ASM_RESULT_LIMIT    EQU  44 + 1
 
 ; Parallel threads option
 PARALLEL_LIMIT      EQU  2

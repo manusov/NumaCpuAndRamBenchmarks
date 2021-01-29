@@ -21,29 +21,29 @@ mov al,1                            ; ID = 1 = build walk list by RDRAND
 call GetLatencyPattern 
 lea esi,[ TEMP_BUFFER + 0 ]
 lea edi,[ TEMP_BUFFER + 24*1024 ]
-mov ecx,1024*3                     ; 4096/8
-call ebx                           ; old = qword [rbx]
-
+mov ecx,1024*3                  ; OLD: 4096/8
+call ebx                        ; Run walk list builder
+                               
 ; run target performance fragment: walk in the walk list
 xor eax,eax
 push eax eax eax eax eax eax
-mov al,2                           ; ID = 2 = walk in the walk list
+mov al,1                        ; 2  ; OLD: ID = 2 = walk in the walk list
 call GetLatencyPattern 
 lea esi,[ TEMP_BUFFER + 0 ]
 lea edi,[ TEMP_BUFFER + 24*1024 ]
-mov ecx,1024*3                    ; 4096/8
+mov ecx,1024*3                  ; OLD: 4096/8
 mov ebp,100000
 mov [esp+0],ecx       ; ECX = Instructions count per block
 mov [esp+8],ebp       ; EBP = Measurement repeats count
 
-push ebx
+push eax              ; EAX = Walker entry point ; OLD: push ebx
 xor ebx,ebx           ; EBX = Unused high 32 bits of measurement repeats count
 
 rdtsc
 mov [esp+16+4],eax
 mov [esp+20+4],edx
  
-call dword [esp]      ; call target fragment
+call dword [esp]      ; call target fragment: Run walker 
 
 rdtsc
 sub eax,[esp+16+4]

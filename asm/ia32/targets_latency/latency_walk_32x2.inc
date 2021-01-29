@@ -8,23 +8,23 @@
 ;          Registers corrupted                                                 ;
 ;------------------------------------------------------------------------------;
 
-Pattern_Latency_Walk:
+Pattern_Latency_Walk_32x2:
 
 mov ecx,[esi]         ; qword [esi] = walk list entry point, Block #1
-WalkRepeat:
+WalkRepeat_32x2:
 mov eax,ecx
 
-DumpStart_Latency_Walk:
+DumpStart_Latency_Walk_32x2:
 .WalkLinked:          ; Walk linked list, use fetched data as next address
 mov edx,[eax+0]
 mov eax,[eax+4]       ; Get duplicated from high dword
 test eax,eax
 jnz .WalkLinked
-DumpStop_Latency_Walk:
+DumpStop_Latency_Walk_32x2:
 
 sub ebp,1
 sbb ebx,0
 mov eax,ebp
 or eax,ebx
-jnz WalkRepeat
+jnz WalkRepeat_32x2
 ret

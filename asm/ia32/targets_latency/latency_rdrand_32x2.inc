@@ -9,7 +9,7 @@
 ;          Registers corrupted                                                 ;
 ;------------------------------------------------------------------------------;
 
-Pattern_Latency_LCM:
+Pattern_Latency_RDRAND_32x2:
 ; Initializing parameters for build linear list, build linear list  
 push edi ecx esi 
 xor eax,eax
@@ -24,27 +24,18 @@ add eax,ebp
 dec ecx
 jnz .BuildLinear
 pop esi ecx
-
 ; Initializing parameters for random unsorting linear list, build it
-RANDOM_SEED        EQU  3
-RANDOM_MULTIPLIER  EQU  00DEECE66Dh  ;  05DEECE66Dh  
-RANDOM_ADDEND      EQU  0Bh   
 push ecx esi
-
 xor edi,edi
 bsr eax,ecx
 inc eax
 bts edi,eax
 dec edi               ; EDI = mask
 mov ebp,ecx           ; EBP = limit
-mov ebx,RANDOM_SEED   ; EBX = Value
 
 .BuildRandom:
-mov eax,ebx
-mov edx,RANDOM_MULTIPLIER
-mul edx
-add eax,RANDOM_ADDEND
-mov ebx,eax
+rdrand eax
+jnc .BuildRandom      ; Wait Hardware RNG ready 
 and eax,edi
 cmp eax,ebp
 jae .BuildRandom
@@ -76,3 +67,4 @@ pop esi
 mov [esi],eax
 
 ret
+

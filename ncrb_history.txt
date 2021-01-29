@@ -1,3 +1,14 @@
+29.01.2021 (v1.06.00 versions for ia32 and x64).
+1) Added latency measurement options for ia32 version.
+   Native 32-bit method (one 32-bit load) make default for ia32 version.
+   Method 32x2 (two 32-bit loads) compatible with previous version,
+   it can be used for conditions match with x64 version.
+   For x64 version still used native 64-bit method (one 64-bit load).
+2) GUI updated for ia32 and x64 versions.
+
+
+
+
 23.01.2021 (v1.05.00 versions for ia32 and x64).
 1) Added manual control for prefetch distance.
    Yet supported for Read SSE-128 and Read AVX-256 if target object is DRAM
@@ -5,7 +16,6 @@
 2) Added "Silent" button for drawings window.
    This mode without realtime visualization, recommended for slow platforms
    and platforms with incorrect video drvers.
-
 
 
 06.09.2019 (v1.04.02 versions for ia32 and x64).

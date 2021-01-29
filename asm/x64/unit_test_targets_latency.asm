@@ -24,13 +24,16 @@ call GetLatencyPattern
 lea rsi,[ TEMP_BUFFER + 0 ]
 lea rdi,[ TEMP_BUFFER + 24*1024 ]
 mov ecx,1024*3    ; 4096/8
-call rbx          ; old = qword [rbx]
+call rbx          ; RBX = Pointer to walk list builder
 
 ; run target performance fragment: walk in the walk list
 xor eax,eax
 push rax rax rax
-mov al,2  ; ID = 2 = walk in the walk list
+mov al,1  ; 2  ; ID = 2 = walk in the walk list (incompatible with ia32 version)
 call GetLatencyPattern 
+
+mov rbx,rax  ; RBX = Pointer to walker
+
 lea rsi,[ TEMP_BUFFER + 0 ]
 lea rdi,[ TEMP_BUFFER + 24*1024 ]
 mov ecx,1024*3    ; 4096/8
@@ -40,7 +43,9 @@ mov [rsp+8],ebp                  ; EBP = Measurement repeats count
 rdtsc
 shl rdx,32
 lea r15,[rax+rdx]
-call rbx                         ; call target fragment, old = qword [rbx]
+
+call rbx                         ; call target fragment
+
 rdtsc
 shl rdx,32
 add rax,rdx

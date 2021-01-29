@@ -54,7 +54,8 @@ or [ebx+FMA512_METHOD_1],edx
 @@:
 test al,01000000b
 jnz @f
-or [ebx+RDRAND_METHOD],edx
+or [ebx+RDRAND_METHOD_32],edx
+or [ebx+RDRAND_METHOD_32x2],edx
 @@:
 
 ; Parallel threads and Hyper-Threading options
