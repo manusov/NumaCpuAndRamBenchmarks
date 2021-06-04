@@ -86,9 +86,11 @@ add ecx,AM_BYTE_COUNT * 8
 pop rax
 
 ; Remove prefetch distance option if associated methods not detected
-cmp eax,READ_SSE_MODE
+cmp eax,READ_SSE128_MODE
 je .L40
-cmp eax,READ_AVX_MODE
+cmp eax,READ_AVX256_MODE
+je .L40
+cmp eax,READ_AVX512_MODE
 je .L40
 mov [rdi + IPB.UpdatedDistance],PD_NOT_USED
 .L40: 

@@ -19,7 +19,7 @@ mov eax,esi                  ; EAX = Reload source address
 mov ebx,edi                  ; EBX = Reload destination address
 mov edx,ecx                  ; EDX = Reload length
 shr edx,3                    ; EDX = Block length, convert from INSTRUCTIONS to 8xINSTRUCTION iterations, required future make 1 instr. iteration (!)
-jz Small_Dot_FMA512          ; Go if Length < 16 instructions
+jz Small_Dot_FMA512          ; Go if Length < 8 instructions
 ; Big cycle
 DumpStart_Dot_FMA512:
 Block_Dot_FMA512:

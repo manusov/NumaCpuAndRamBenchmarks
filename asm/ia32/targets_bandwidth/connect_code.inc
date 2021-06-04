@@ -78,6 +78,11 @@ include 'ntpread_medium_sse128.inc'   ; Same read with prefetch distance + 512
 include 'ntpread_medium_avx256.inc'   ; Same read with prefetch distance + 512
 include 'ntpread_long_sse128.inc'     ; Same read with prefetch distance + 2048
 include 'ntpread_long_avx256.inc'     ; Same read with prefetch distance + 2048
+; Non-temporal read mode with default and extended prefetch distance options,
+; for AVX512
+include 'ntpread_avx512.inc'   ; Read by PREFETCHNTA + VMOVAPD (512 bit)
+include 'ntpread_medium_avx512.inc'   ; Same read with prefetch distance + 512 
+include 'ntpread_long_avx512.inc'     ; Same read with prefetch distance + 2048
 
 
  

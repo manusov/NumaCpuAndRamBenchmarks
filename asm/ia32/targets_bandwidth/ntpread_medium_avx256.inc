@@ -19,12 +19,12 @@ Measurement_NtpRead_M_AVX256:
 lea eax,[esi+256]            ; EAX = Reload source address
 mov edx,ecx                  ; EDX = Reload length
 shr edx,4                    ; EDX = Block length, convert from INSTRUCTIONS to 16xINSTRUCTION iterations, required future make 1 instr. iteration (!)
-jz Small_NtpRead_M_AVX256      ; Go if Length < 16 instructions
+jz Small_NtpRead_M_AVX256    ; Go if Length < 16 instructions
 mov ebx,512                  ; EBX = Addend
 ; Big cycle
 DumpStart_NtpRead_M_AVX256:
 Block_NtpRead_M_AVX256:
-; Prefetch, note about 512 bytes per iteration, skip last 3 iterations means skip 2048 bytes
+; Prefetch, note about 512 bytes per iteration, skip last 3 iterations means skip 1536 bytes
 cmp edx,3                             ; Skip for 3 last iterations: EBX*2+512 = 512*3 = 1536  
 jbe @f                                ; Skip prefetch: prevent prefetch above block size
 prefetchnta [eax-32*08+ebx*2 + 512]   ; Medium prefetch distance means + 512

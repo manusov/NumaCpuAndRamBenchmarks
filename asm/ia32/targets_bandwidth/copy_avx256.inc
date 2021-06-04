@@ -16,8 +16,8 @@ Measurement_Copy_AVX256:
 ; Prepare big cycle
 ; Set pointer to middle of 512-byte interval, +/- offsets is code size optimal,
 ; because offsets [-128...+127] encoded as one byte
-lea eax,[esi+256]            ; eax = Reload source address, +256 means moddle
-lea ebx,[edi+256]            ; ebx = Reload destination address, +256 means moddle
+lea eax,[esi+256]            ; EAX = Reload source address, +256 means moddle
+lea ebx,[edi+256]            ; EBX = Reload destination address, +256 means moddle
 mov edx,ecx                  ; RDX = Reload length
 shr edx,4                    ; RDX = Block length, convert from INSTRUCTIONS to 16xINSTRUCTION iterations, required future make 1 instr. iteration (!)
 jz Small_Copy_AVX256         ; Go if Length < 16 instructions

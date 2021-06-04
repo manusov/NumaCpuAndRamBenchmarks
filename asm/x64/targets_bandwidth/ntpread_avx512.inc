@@ -10,17 +10,30 @@
 ;          Registers corrupted, but must save R14, R15                         ;
 ;------------------------------------------------------------------------------;
 
-Pattern_Read_AVX512:
-Measurement_Read_AVX512:
+Pattern_NtpRead_AVX512:
+Measurement_NtpRead_AVX512:
 ; Prepare big cycle
 mov rax,rsi                  ; RAX = Reload source address
 mov rdx,rcx                  ; RDX = Reload length
 shr rdx,3                    ; RDX = Block length, convert from INSTRUCTIONS to 8xINSTRUCTION iterations, required future make 1 instr. iteration (!)
-jz Small_Read_AVX512         ; Go if Length < 8 instructions
+jz Small_NtpRead_AVX512      ; Go if Length < 8 instructions
 mov ebx,512                  ; RBX = Addend, this operation also clear bits RBX[63-32]
 ; Big cycle
-DumpStart_Read_AVX512:
-Block_Read_AVX512:
+DumpStart_NtpRead_AVX512:
+Block_NtpRead_AVX512:
+; Prefetch, note about 512 bytes per iteration, skip last 2 iterations means skip 1024 bytes
+cmp rdx,2                             ; Skip for 2 last iterations: RBX*2 = 512*2 = 1024
+jbe @f                                ; Skip prefetch: prevent prefetch above block size
+prefetchnta [rax-64*00+rbx*2]
+prefetchnta [rax-64*01+rbx*2]
+prefetchnta [rax-64*02+rbx*2]
+prefetchnta [rax-64*03+rbx*2]
+prefetchnta [rax+64*04+rbx*2]
+prefetchnta [rax+64*05+rbx*2]
+prefetchnta [rax+64*06+rbx*2]
+prefetchnta [rax+64*07+rbx*2]
+@@:
+; Read
 vmovapd zmm0, [rax+64*00]
 vmovapd zmm1, [rax+64*01]
 vmovapd zmm2, [rax+64*02]
@@ -31,22 +44,23 @@ vmovapd zmm6, [rax+64*06]
 vmovapd zmm7, [rax+64*07]
 add rax,rbx                  ; Modify address, addend=register (not constant) for optimization!
 dec rdx
-jnz Block_Read_AVX512        ; Cycle for block data transfer, DEC/JNZ is faster than LOOP!
-DumpStop_Read_AVX512:
+jnz Block_NtpRead_AVX512     ; Cycle for block data transfer, DEC/JNZ is faster than LOOP!
+DumpStop_NtpRead_AVX512:
 ; Prepare tail cycle
-Small_Read_AVX512:
+Small_NtpRead_AVX512:
 mov edx,ecx
-and edx,00000111b            ; ECX = Extract tail length
-jz Measure_Read_AVX512
-mov ebx,64
+and edx,00001111b            ; ECX = Extract tail length
+jz Measure_NtpRead_AVX512
+mov ebx,32
 ; Tail cycle
-Tail_Read_AVX512:
-vmovapd zmm8, [rax+64*00]
+Tail_NtpRead_AVX512:
+vmovapd ymm0, [rax+64*00]
 add rax,rbx                  ; Modify address, addend=register (not constant) for optimization!
 dec edx
-jnz Tail_Read_AVX512         ; Cycle for tail data transfer, DEC/JNZ is faster than LOOP!
+jnz Tail_NtpRead_AVX512      ; Cycle for tail data transfer, DEC/JNZ is faster than LOOP!
 ; Measurement cycle
-Measure_Read_AVX512:
+Measure_NtpRead_AVX512:
 dec rbp
-jnz Measurement_Read_AVX512  ; Cycle for measurement, repeat same operation, DEC/JNZ is faster than LOOP!
+jnz Measurement_NtpRead_AVX512  ; Cycle for measurement, repeat same operation, DEC/JNZ is faster than LOOP!
 ret
+

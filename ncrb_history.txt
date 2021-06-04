@@ -1,3 +1,18 @@
+05.06.2021 (v1.07.00 versions for ia32 and x64).
+1) Optimize DRAM Read operation with AVX512 instructions.
+   Special interpreting Prefetch distance option for Read AVX512
+   if target object = DRAM.
+   Default = No software prefetch (hardware prefetch only),
+   use VMOVNTDQA instruction.
+   Medium = Software prefetch with distance = 1024 bytes,
+   use PREFETCHNTA + VMOVAPD instructions.
+   Long = Software prefetch with distance = 3072 bytes,
+   use PREFETCHNTA + VMOVAPD instructions.
+   All 3 variants with non-temporal hint.
+2) Correct some comments for AVX512 performance patterns.
+
+
+
 29.01.2021 (v1.06.00 versions for ia32 and x64).
 1) Added latency measurement options for ia32 version.
    Native 32-bit method (one 32-bit load) make default for ia32 version.
@@ -5,8 +20,6 @@
    it can be used for conditions match with x64 version.
    For x64 version still used native 64-bit method (one 64-bit load).
 2) GUI updated for ia32 and x64 versions.
-
-
 
 
 23.01.2021 (v1.05.00 versions for ia32 and x64).

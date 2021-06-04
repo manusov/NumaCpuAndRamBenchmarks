@@ -23,8 +23,8 @@ mov ebx,512                  ; RBX = Addend, this operation also clear bits RBX[
 ; Big cycle
 DumpStart_NtpRead_M_AVX256:
 Block_NtpRead_M_AVX256:
-; Prefetch, note about 512 bytes per iteration, skip last 3 iterations means skip 2048 bytes
-cmp rdx,3                             ; Skip for 3 last iterations: EBX*2+512 = 512*3 = 1536  
+; Prefetch, note about 512 bytes per iteration, skip last 3 iterations means skip 1536 bytes
+cmp rdx,3                             ; Skip for 3 last iterations: RBX*2+512 = 512*3 = 1536  
 jbe @f                                ; Skip prefetch: prevent prefetch above block size
 prefetchnta [rax-32*08+rbx*2 + 512]   ; Medium prefetch distance means + 512
 prefetchnta [rax-32*06+rbx*2 + 512]

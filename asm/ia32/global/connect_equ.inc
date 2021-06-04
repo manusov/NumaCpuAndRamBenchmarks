@@ -147,15 +147,17 @@ ends
 
 ; Assembler Methods (AM) option values count and Bandwidth/Latency criteria
 AM_BYTE_COUNT       EQU  24     ; 24 bytes per methods primary list
-LATENCY_MODE        EQU  41     ; modes ID = 41-44 for latency measurement
-READ_SSE_MODE       EQU  9      ; for add information about prefetch distance
-READ_AVX_MODE       EQU  12     ; for add information about prefetch distance
+LATENCY_MODE        EQU  44     ; modes ID = 44-47 for latency measurement
+READ_SSE128_MODE    EQU  9      ; for add information about prefetch distance
+READ_AVX256_MODE    EQU  12     ; for add information about prefetch distance
+READ_AVX512_MODE    EQU  15     ; for add information about prefetch distance
 
 ; Options limits and values
-; 36 codes of assembler option, argument for AM_Selector translation
+; 24 codes of assembler option, argument for AM_Selector translation,
+; because 24 checkboxes for assembler method select in GUI
 ASM_ARGUMENT_LIMIT  EQU  AM_BYTE_COUNT - 1
 ; 42 names for assembler methods, result of AM_Selector translation
-ASM_RESULT_LIMIT    EQU  44 + 1
+ASM_RESULT_LIMIT    EQU  47 + 1
 
 ; Parallel threads option
 PARALLEL_LIMIT      EQU  2

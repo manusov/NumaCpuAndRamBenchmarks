@@ -17,7 +17,7 @@ Measurement_NtRead_AVX512:
 mov eax,esi                  ; EAX = Reload source address
 mov edx,ecx                  ; EDX = Reload length
 shr edx,3                    ; EDX = Block length, convert from INSTRUCTIONS to 8xINSTRUCTION iterations, required future make 1 instr. iteration (!)
-jz Small_NtRead_AVX512       ; Go if Length < 16 instructions
+jz Small_NtRead_AVX512       ; Go if Length < 8 instructions
 mov ebx,512                  ; EBX = Addend, this operation also clear bits ebx[63-32]
 ; Big cycle
 DumpStart_NtRead_AVX512:

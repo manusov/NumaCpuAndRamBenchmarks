@@ -9,7 +9,6 @@
 ; OUTPUT:  None                                                                ;
 ;          Registers corrupted, but must save R14, R15                         ;
 ;------------------------------------------------------------------------------;
-; added at v0.99.0
 
 Pattern_NtpRead_AVX256:
 Measurement_NtpRead_AVX256:
@@ -24,9 +23,9 @@ mov ebx,512                  ; RBX = Addend, this operation also clear bits RBX[
 ; Big cycle
 DumpStart_NtpRead_AVX256:
 Block_NtpRead_AVX256:
-; Prefetch, except last 2 operations
-cmp rdx,2
-jbe @f
+; Prefetch, note about 512 bytes per iteration, skip last 2 iterations means skip 1024 bytes
+cmp rdx,2                             ; Skip for 2 last iterations: RBX*2 = 512*2 = 1024
+jbe @f                                ; Skip prefetch: prevent prefetch above block size
 prefetchnta [rax-32*08+rbx*2]
 prefetchnta [rax-32*06+rbx*2]
 prefetchnta [rax-32*04+rbx*2]

@@ -5,7 +5,7 @@
 ;                                                                              ;
 ;  This file is main module: translation object, interconnecting all modules.  ;
 ;                                                                              ;
-;         Translation by Flat Assembler version 1.73.25 (Aug 20, 2020)         ;
+;        Translation by Flat Assembler version 1.73.27 ( Jan 27, 2021 )        ;
 ;                         http://flatassembler.net/                            ;
 ;                                                                              ;
 ;       Edit by FASM Editor 2.0, use this editor for correct tabulations.      ;
