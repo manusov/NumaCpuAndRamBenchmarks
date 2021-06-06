@@ -20,7 +20,7 @@ lea rax,[rsi+128]           ; RAX = Reload source address
 lea rbx,[rdi+128]           ; RBX = Reload destination address
 mov rdx,rcx                 ; RDX = Reload length
 shr rdx,3                   ; RDX = Block length, convert from INSTRUCTIONS to 8xINSTRUCTION iterations, required future make 1 instr. iteration (!)
-jz Small_Dot_FMA256         ; Go if Length < 16 instructions
+jz Small_Dot_FMA256         ; Go if Length < 8 instructions
 mov r8d,256                 ; R8 = Addend, this operation also clear bits R8[63-32]
 ; Big cycle
 DumpStart_Dot_FMA256:

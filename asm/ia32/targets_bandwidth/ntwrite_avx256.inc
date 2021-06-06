@@ -10,7 +10,7 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_NtWrite_AVX256:
-vzeroall                     ; Clear ZMM0-ZMM7 (ZMM31) for write data
+vzeroall                     ; Clear ZMM0-ZMM7 (8 registers only because 32-bit mode) for write data
 push ebx                     ; EBX = High 32 bits of measurement repeats count
 
 Measurement_NtWrite_AVX256:

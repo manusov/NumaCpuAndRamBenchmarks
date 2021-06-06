@@ -11,7 +11,7 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_NtWrite_AVX512:
-vzeroall                     ; Clear ZMM0-ZMM31 for write data
+vzeroall                     ; Clear ZMM0-ZMM15 for write data, note ZMM16-ZMM31 not changed by VZEROALL
 
 Measurement_NtWrite_AVX512:
 ; Prepare big cycle

@@ -10,7 +10,7 @@
 ;------------------------------------------------------------------------------;
 
 Pattern_Write_AVX256:
-vzeroall                     ; Clear YMM0-YMM7 (YMM15) for write data
+vzeroall                     ; Clear YMM0-YMM7 (8 registers only because 32-bit mode) for write data
 push ebx                     ; EBX = High 32 bits of measurement repeats count
 
 Measurement_Write_AVX256:
