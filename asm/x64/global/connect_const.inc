@@ -19,7 +19,7 @@ BasePointGui:
 PRODUCT_ID     DB  'NUMA CPU&RAM Benchmark for Win64',0                                    
 ABOUT_CAP      DB  'Program info',0
 ABOUT_ID       DB  'NUMA CPU&RAM Benchmark'    , 0Dh,0Ah
-               DB  'v1.07.00 for Windows x64'  , 0Dh,0Ah
+               DB  'v1.07.01 for Windows x64'  , 0Dh,0Ah
                DB  '(C)2021 IC Book Labs'      , 0Dh,0Ah,0
 
 ;------------------------------------------------------------------------------;

@@ -173,9 +173,20 @@ call [SendMessage]
 ; Disable edit block size field
 mov rcx,[SubHandles-128+HANDLE_CUSTOM_EDIT*8]  ; RCX = Parm#1 = Handle
 mov edx,WM_ENABLE       ; RDX = Parm#2 = Message
-xor r8d,r8d             ; R8  = Parm#3 = Select: 0=Disable, R13 from previous step
+xor r8d,r8d             ; R8  = Parm#3 = Select: 0=Disable
 xor r9d,r9d             ; R9  = Parm#4 = Not used
 call [SendMessage]                  
+
+; Disable prefetch distance radio buttons
+mov rcx,[SubHandles-128+HANDLE_DISTANCE_DEFAULT*8]  ; RCX = Parm#1 = Handle
+xor edx,edx             ; RDX = Parm#2 = Select: 0=Disable
+call [EnableWindow]
+mov rcx,[SubHandles-128+HANDLE_DISTANCE_MEDIUM*8]   ; RCX = Parm#1 = Handle
+xor edx,edx             ; RDX = Parm#2 = Select: 0=Disable
+call [EnableWindow]
+mov rcx,[SubHandles-128+HANDLE_DISTANCE_LONG*8]     ; RCX = Parm#1 = Handle
+xor edx,edx             ; RDX = Parm#2 = Select: 0=Disable
+call [EnableWindow]
 
 ; Done, registers restore and return, R8-R11 because API, volatile
 mov rsp,rbp

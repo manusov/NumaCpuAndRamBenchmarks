@@ -73,8 +73,37 @@ jmp .WinFinish
 ; Check phase of execution
 cmp byte [Win0_Init],1
 jne .WinDefaultProc    ; Run default OS handler if Window 0 not initialized yet
-; Handling if Window 0 already initialized
-mov r14,r8              ; R14 = Store event code
+; Handling this events if Window 0 already initialized
+mov r14,r8             ; R14 = Store event code
+
+; Activate prefetch distance radio buttons if operation conditions detected
+mov edi,1
+mov esi,HANDLE_DRAM
+call SendMessageGetCheck
+jz @f
+xor edi,edi
+@@:
+mov esi,HANDLE_SSE128_READ
+call SendMessageGetCheck
+jz @f
+mov esi,HANDLE_AVX256_READ
+call SendMessageGetCheck
+jz @f
+mov esi,HANDLE_AVX512_READ
+call SendMessageGetCheck
+jz @f
+xor edi,edi
+@@:
+mov rcx,[SubHandles-128+HANDLE_DISTANCE_DEFAULT*8]  ; RCX = Parm#1 = Handle
+mov edx,edi             ; RDX = Parm#2 = Disable (0) or Enable (1) by EDI from previous
+call [EnableWindow]
+mov rcx,[SubHandles-128+HANDLE_DISTANCE_MEDIUM*8]   ; RCX = Parm#1 = Handle
+mov edx,edi             ; RDX = Parm#2 = Disable (0) or Enable (1) by EDI from previous 
+call [EnableWindow]
+mov rcx,[SubHandles-128+HANDLE_DISTANCE_LONG*8]     ; RCX = Parm#1 = Handle
+mov edx,edi             ; RDX = Parm#2 = Disable (0) or Enable (1) by EDI from previous 
+call [EnableWindow]
+
 ; Activate custom block radio button if edit string active
 call [GetFocus]
 cmp rax,[SubHandles - 128 + HANDLE_CUSTOM_EDIT*8]

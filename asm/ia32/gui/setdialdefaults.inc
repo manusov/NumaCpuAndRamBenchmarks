@@ -1,7 +1,7 @@
 ;--- Set default state for options, called when Create Window 0 ----;
 ;    and when click "Defaults" button.                              ;
 ;                                                                   ;
-; INPUT:   RBX = Parent window handle                               ;
+; INPUT:   EBX = Parent window handle                               ;
 ;          Sysinfo and Window 0 variables only                      ;
 ; OUTPUT:  None in the CPU registers,                               ; 
 ;          window 0 variables only                                  ;
@@ -175,8 +175,19 @@ call [SendMessage]
 push 0            ; Parm#4 = Not used
 push 0            ; Parm#3 = Select: 0=Disable, R13 from previous step
 push WM_ENABLE    ; Parm#2 = Message
-push dword [SubHandles - 64 + HANDLE_CUSTOM_EDIT*4]  ; RCX = Parm#1 = Handle 
+push dword [SubHandles - 64 + HANDLE_CUSTOM_EDIT*4]  ; Parm#1 = Handle 
 call [SendMessage]                  
+
+; Disable prefetch distance radio buttons
+push 0            ; Parm#2 = Select: 0=Disable
+push dword [SubHandles-64+HANDLE_DISTANCE_DEFAULT*4]  ; Parm#1 = Handle
+call [EnableWindow]
+push 0            ; Parm#2 = Select: 0=Disable
+push dword [SubHandles-64+HANDLE_DISTANCE_MEDIUM*4]   ; Parm#1 = Handle
+call [EnableWindow]
+push 0            ; Parm#2 = Select: 0=Disable
+push dword [SubHandles-64+HANDLE_DISTANCE_LONG*4]     ; Parm#1 = Handle
+call [EnableWindow]
 
 ; Done
 popad

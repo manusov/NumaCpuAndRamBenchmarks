@@ -1,3 +1,11 @@
+07.06.2021 (v1.07.01 versions for ia32 and x64).
+Activation of Prefetch distance option depends on selected scenario.
+Option active only for scenarios with prefetch distance: 
+Operation = Read
+Instruction set = SSE-128, AVX-256, AVX-512
+Test object = DRAM.
+
+
 05.06.2021 (v1.07.00 versions for ia32 and x64).
 1) Optimize DRAM Read operation with AVX512 instructions.
    Special interpreting Prefetch distance option for Read AVX512
@@ -10,7 +18,6 @@
    use PREFETCHNTA + VMOVAPD instructions.
    All 3 variants with non-temporal hint.
 2) Correct some comments for AVX512 performance patterns.
-
 
 
 29.01.2021 (v1.06.00 versions for ia32 and x64).
