@@ -294,3 +294,13 @@ v0.96
 Fix RAM Read benchmark error if SSE4.1 not supported,
 cause: SSE4.1 and non-temporal read feature detection bug.
 
+---
+
+See also:
+
+NCRB project continued at:
+https://github.com/manusov/NCRBv2
+
+Prototyping and debug:
+https://github.com/manusov/Prototyping
+
